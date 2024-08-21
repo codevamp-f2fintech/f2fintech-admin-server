@@ -1,17 +1,17 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('activities')
-export class Activity {
+@Entity('ticket-activities')
+export class TicketActivity {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column({ length: 20 })
   ticketId: string;
 
-  @Column()
+  @Column({ length: 250 })
   comment: string;
 
-  @Column({ length: 20 })
+  @Column()
   attachment: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

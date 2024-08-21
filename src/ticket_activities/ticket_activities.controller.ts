@@ -8,9 +8,9 @@ import {
   Delete,
 } from '@nestjs/common';
 import { ActivitiesService } from './ticket_activities.service';
-import { CreateTicketActivityDto } from './dto/create-ticket_activity.dto';
+import { CreateTicketActivityDto } from './dto/create_ticket_activity.dto';
 
-@Controller('activities')
+@Controller('ticket-activities')
 export class TicketActivitiesController {
   constructor(private readonly activitiesService: ActivitiesService) {}
 
@@ -35,10 +35,5 @@ export class TicketActivitiesController {
     @Body() updateTicketActivityDto: CreateTicketActivityDto,
   ) {
     return this.activitiesService.update(+id, updateTicketActivityDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.activitiesService.remove(+id);
   }
 }

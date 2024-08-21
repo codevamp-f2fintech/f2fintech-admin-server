@@ -1,15 +1,21 @@
 import { Module } from '@nestjs/common';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersModule } from './users/users.module';
-import { TicketActivitiesModule } from './ticket_activities/ticket_activities.module';
-import { TicketsModule } from './tickets/tickets.module';
+
 import { AppController } from './app.controller';
-import { UsersController } from './users/users.controller';
 import { TicketsController } from './tickets/tickets.controller';
-import { User } from './users/entities/user.entity';
+import { TicketActivitiesController } from './ticket_activities/ticket_activities.controller';
+import { UsersController } from './users/users.controller';
+
+import { TicketActivity } from './ticket_activities/entities/ticket_activities.entity';
 import { Ticket } from './tickets/entities/ticket.entity';
-import { Activity } from './ticket_activities/entities/ticket_activity.entity';
+import { User } from './users/entities/user.entity';
+
+import { TicketsModule } from './tickets/tickets.module';
+import { TicketActivitiesModule } from './ticket_activities/ticket_activities.module';
+import { UsersModule } from './users/users.module';
+
+import { AppService } from './app.service';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -20,14 +26,20 @@ import { Activity } from './ticket_activities/entities/ticket_activity.entity';
       username: 'root',
       password: '',
       database: 'f2-fintech',
-      entities: [User, Ticket, Activity],
+      entities: [User, Ticket, TicketActivity],
       synchronize: true,
     }),
     UsersModule,
     TicketsModule,
     TicketActivitiesModule,
+    HealthModule,
   ],
-  controllers: [AppController, UsersController, TicketsController],
+  controllers: [
+    AppController,
+    UsersController,
+    TicketActivitiesController,
+    TicketsController,
+  ],
   providers: [AppService],
 })
 export class AppModule {}

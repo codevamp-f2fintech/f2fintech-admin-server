@@ -25,8 +25,8 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ length: 100 }) // Use 'bigint' for large numbers
-  contact: string;
+  @Column({ length: 15 }) // Use 'bigint' for large numbers
+  number: string;
 
   @Column()
   designation: string;

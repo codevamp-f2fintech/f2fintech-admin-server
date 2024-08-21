@@ -1,21 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateTicketActivityDto } from './dto/create-ticket_activity.dto';
-import { UpdateTicketActivityDto } from './dto/update-ticket_activity.dto';
-import { Activity } from './entities/ticket_activity.entity';
+import { CreateTicketActivityDto } from './dto/create_ticket_activity.dto';
+import { UpdateTicketActivityDto } from './dto/update_ticket_activity.dto';
+import { TicketActivity } from './entities/ticket_activities.entity';
 
 @Injectable()
 export class ActivitiesService {
   constructor(
-    @InjectRepository(Activity)
-    private readonly activityRepository: Repository<Activity>,
+    @InjectRepository(TicketActivity)
+    private readonly activityRepository: Repository<TicketActivity>,
   ) {}
 
   // Create a new activity
   async create(
     createTicketActivityDto: CreateTicketActivityDto,
-  ): Promise<Activity> {
+  ): Promise<TicketActivity> {
     const newactivity = this.activityRepository.create({
       ...createTicketActivityDto,
       createdAt: new Date(),
@@ -25,12 +25,12 @@ export class ActivitiesService {
   }
 
   // Retrieve all activities
-  async findAll(): Promise<Activity[]> {
+  async findAll(): Promise<TicketActivity[]> {
     return await this.activityRepository.find();
   }
 
   // Retrieve a single activity by ID
-  async findOne(id: number): Promise<Activity> {
+  async findOne(id: number): Promise<TicketActivity> {
     const activity = await this.activityRepository.findOne({ where: { id } });
     if (!activity) {
       throw new NotFoundException(`Activity with ID ${id} not found`);
@@ -42,15 +42,9 @@ export class ActivitiesService {
   async update(
     id: number,
     updateTicketActivityDto: UpdateTicketActivityDto,
-  ): Promise<Activity> {
+  ): Promise<TicketActivity> {
     const activity = await this.findOne(id);
     Object.assign(activity, updateTicketActivityDto, { updatedAt: new Date() });
     return await this.activityRepository.save(activity);
-  }
-
-  // Remove an activity by ID
-  async remove(id: number): Promise<void> {
-    const activity = await this.findOne(id);
-    await this.activityRepository.remove(activity);
   }
 }

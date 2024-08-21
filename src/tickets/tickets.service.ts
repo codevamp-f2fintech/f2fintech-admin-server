@@ -34,9 +34,4 @@ export class TicketsService {
     Object.assign(ticket, updateTicketDto, { updatedAt: new Date() });
     return await this.ticketRepository.save(ticket);
   }
-
-  async remove(id: number): Promise<void> {
-    const ticket = await this.findOne(id);
-    await this.ticketRepository.delete(ticket);
-  }
 }

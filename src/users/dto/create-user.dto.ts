@@ -6,18 +6,8 @@ import {
   IsOptional,
   Length,
 } from 'class-validator';
-
-// Define enums directly in this file
-export enum Gender {
-  MALE = 'male',
-  FEMALE = 'female',
-  OTHER = 'other',
-}
-
-export enum Status {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-}
+import { Gender } from '../entities/user.entity';
+import { Status } from '../entities/user.entity';
 
 export class CreateUserDto {
   @IsString()
