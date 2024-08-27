@@ -1,5 +1,9 @@
 import * as bcrypt from 'bcryptjs';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -8,6 +12,7 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 
 @Injectable()
 export class UsersService {
@@ -17,14 +22,26 @@ export class UsersService {
     private jwtService: JwtService,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const { password } = createUserDto;
+  async create(createUserDto: CreateUserDto) {
+    const { password, email } = createUserDto;
     const hashedPassword = await this.generateHashedPassword(password);
-    const newUser = this.userRepository.create({
-      ...createUserDto,
-      password: hashedPassword,
-    });
-    return await this.userRepository.save(newUser);
+
+    try {
+      const user = await this.userRepository.save({
+        ...createUserDto,
+        password: hashedPassword,
+      });
+
+      return ResponseFormatter.success(201, 'User created successfully', user);
+    } catch (error) {
+      if (error.code === 'ER_DUP_ENTRY') {
+        // Unique constraint violation
+        throw new ConflictException(
+          ResponseFormatter.error(500, `Email ${email} already exists`),
+        );
+      }
+      throw error; // Re-throw any other errors
+    }
   }
 
   private async generateHashedPassword(password: string): Promise<string> {
@@ -45,6 +62,7 @@ export class UsersService {
     const payload = {
       username: user.username,
       sub: user.id,
+      role: user.role,
     };
     const access_token = {
       access_token: this.jwtService.sign(payload),
@@ -58,7 +76,7 @@ export class UsersService {
 
   async findOne(id: number): Promise<User> {
     return await this.userRepository.findOne({
-      where: { id }, // This is shorthand and should work as well
+      where: { id },
     });
   }
 

@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
-import { JwtService } from '@nestjs/jwt';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
@@ -10,12 +9,11 @@ import { UsersController } from './users.controller';
   imports: [
     TypeOrmModule.forFeature([User]),
     JwtModule.register({
-      secret:
-        '3a1b7a6f3d4f456c8b7dbe3b6a1e0f4c7e9e2d3b5a8e4c2d9f1c0e1f3b5a6c7d',
-      signOptions: { expiresIn: '60m' },
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: process.env.JWT_EXPIRY },
     }),
   ],
-  providers: [UsersService, JwtService],
+  providers: [UsersService],
   controllers: [UsersController],
   exports: [UsersService],
 })

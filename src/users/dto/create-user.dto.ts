@@ -6,7 +6,7 @@ import {
   IsOptional,
   Length,
 } from 'class-validator';
-import { Gender } from '../entities/user.entity';
+import { Gender, Role } from '../entities/user.entity';
 import { Status } from '../entities/user.entity';
 
 export class CreateUserDto {
@@ -32,4 +32,7 @@ export class CreateUserDto {
   @IsEnum(Status)
   @IsOptional() // status is optional, so it can be omitted
   status?: Status;
+
+  @IsEnum(Role)
+  role: Role;
 }
