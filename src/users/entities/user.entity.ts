@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 export enum Gender {
   MALE = 'male',
@@ -11,7 +11,13 @@ export enum Status {
   INACTIVE = 'inactive',
 }
 
+export enum Role {
+  ADMIN = 'admin',
+  SALES = 'sales',
+}
+
 @Entity('users')
+@Unique(['email'])
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -44,4 +50,11 @@ export class User {
     default: Status.ACTIVE, // Optional: Set a default value
   })
   status: Status;
+
+  @Column({
+    type: 'enum',
+    enum: Role,
+    default: Role.SALES,
+  })
+  role: Role;
 }

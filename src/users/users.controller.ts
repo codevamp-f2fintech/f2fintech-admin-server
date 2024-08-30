@@ -1,34 +1,109 @@
-import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
+
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { ResponseFormatter } from 'src/common/utility/responseFormatter';
+import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { Role } from 'src/common/enum/role.enum';
 
 @Controller('api/user')
+@UseGuards(RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post('signup')
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  @Post('create')
+  @Roles(Role.Admin)
+  async create(@Body() createUserDto: CreateUserDto) {
+    try {
+      const newUser = await this.usersService.create(createUserDto);
+      return ResponseFormatter.success(
+        201,
+        'User created successfully',
+        newUser,
+      );
+    } catch (error) {
+      return ResponseFormatter.error(
+        error.status || 400,
+        error.message || 'User creation failed',
+      );
+    }
   }
+
   @Post('login')
-  login(@Body() loginUserDto: LoginUserDto) {
-    return this.usersService.login(loginUserDto);
+  async login(@Body() loginUserDto: LoginUserDto) {
+    try {
+      const token = await this.usersService.login(loginUserDto);
+      return ResponseFormatter.success(200, 'Login successful', { token });
+    } catch (error) {
+      return ResponseFormatter.error(
+        error.status || 401,
+        error.message || 'Unauthorized',
+      );
+    }
   }
 
   @Get('get')
-  findAll() {
-    return this.usersService.findAll();
+  @Roles(Role.Admin, Role.Sales)
+  async findAll() {
+    try {
+      const users = await this.usersService.findAll();
+      return ResponseFormatter.success(
+        200,
+        'Users retrieved successfully',
+        users,
+      );
+    } catch (error) {
+      return ResponseFormatter.error(
+        error.status || 500,
+        error.message || 'Internal server error',
+      );
+    }
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.usersService.findOne(+id);
+  @Roles(Role.Admin, Role.Sales)
+  async findOne(@Param('id') id: number) {
+    try {
+      const user = await this.usersService.findOne(id);
+      return ResponseFormatter.success(
+        200,
+        'User retrieved successfully',
+        user,
+      );
+    } catch (error) {
+      return ResponseFormatter.error(
+        error.status || 404,
+        error.message || 'User not found',
+      );
+    }
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Roles(Role.Admin)
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    try {
+      const updatedUser = await this.usersService.update(+id, updateUserDto);
+      return ResponseFormatter.success(
+        200,
+        'User updated successfully',
+        updatedUser,
+      );
+    } catch (error) {
+      return ResponseFormatter.error(
+        error.status || 500,
+        error.message || 'Internal server error',
+      );
+    }
   }
 }

@@ -1,0 +1,81 @@
+{
+    "clientName": "Thunder Client",
+    "collectionName": "ticketing-system",
+    "collectionId": "f410d715-2cb7-4206-a621-26b3ea2c769f",
+    "dateExported": "2024-08-27T13:44:22.699Z",
+    "version": "1.2",
+    "folders": [],
+    "requests": [
+        {
+            "_id": "e82004d4-aae7-478a-af8b-c051920b5935",
+            "colId": "f410d715-2cb7-4206-a621-26b3ea2c769f",
+            "containerId": "",
+            "name": "health/check",
+            "url": "http://localhost:3000/health/check",
+            "method": "GET",
+            "sortNum": 10000,
+            "created": "2024-08-21T09:03:27.843Z",
+            "modified": "2024-08-21T09:03:27.843Z",
+            "headers": []
+        },
+        {
+            "_id": "07120df8-dfe9-460c-a2a0-0a90e9bd626b",
+            "colId": "f410d715-2cb7-4206-a621-26b3ea2c769f",
+            "containerId": "",
+            "name": "api/user",
+            "url": "http://localhost:3000/api/user/signup",
+            "method": "POST",
+            "sortNum": 25000,
+            "created": "2024-08-21T09:03:34.521Z",
+            "modified": "2024-08-27T13:21:31.254Z",
+            "headers": [
+                {
+                    "name": "x-access-token",
+                    "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlRhZGVlZWViIiwic3ViIjo1Niwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzI0NzY0NzkzLCJleHAiOjE3MjQ3NjgzOTN9.CeKKjM-Hkjb5c8rNhLKPvudwF1P7HXpM16nqbjdgcHU",
+                    "isDisabled": true
+                }
+            ],
+            "body": {
+                "type": "json",
+                "raw": " {\n    \"username\": \"admin\",\n    \"password\": \"secure@1234\",\n    \"email\": \"admin@gmail.com\",\n    \"number\": \"\",\n    \"designation\": \"admin\",\n    \"gender\": \"male\",\n    \"status\": \"active\",\n    \"role\": \"admin\"\n  }",
+                "form": []
+            }
+        },
+        {
+            "_id": "13e755f6-0ccd-4222-baab-4ff335a56b41",
+            "colId": "f410d715-2cb7-4206-a621-26b3ea2c769f",
+            "containerId": "",
+            "name": "https://localhost:3000",
+            "url": "http://localhost:3000",
+            "method": "GET",
+            "sortNum": 30000,
+            "created": "2024-08-21T09:03:42.541Z",
+            "modified": "2024-08-21T09:03:42.541Z",
+            "headers": []
+        },
+        {
+            "_id": "6fafac52-3aee-4100-9bbd-cb974c02ebde",
+            "colId": "f410d715-2cb7-4206-a621-26b3ea2c769f",
+            "containerId": "",
+            "name": "users/login",
+            "url": "http://localhost:3000/api/user/login",
+            "method": "POST",
+            "sortNum": 30000,
+            "created": "2024-08-21T09:33:46.425Z",
+            "modified": "2024-08-27T13:21:17.246Z",
+            "headers": [
+                {
+                    "name": "x-access-token",
+                    "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlRhZGVlZWViIiwic3ViIjo1Niwicm9sZSI6InNhbGVzIiwiaWF0IjoxNzI0NzU0MDU2LCJleHAiOjE3MjQ3NTc2NTZ9.TWev_UIsK94oizscgbJ6Loa8kboMSoMh15VFo3ZW_Q0",
+                    "isDisabled": true
+                }
+            ],
+            "body": {
+                "type": "json",
+                "raw": " {\n  \"email\": \"admin@gmail.com\",\n  \"password\": \"secure@1234\"\n  }",
+                "form": []
+            }
+        }
+    ],
+    "ref": "sj5atHN2OfrbHDIIrrWAWP0Nfi6CigvKvq9QD4yVMAFk3AVMAiW3C_s5YkXzXE4WaI2KQiyzmaJ_CoxQ56xdqQ"
+}
