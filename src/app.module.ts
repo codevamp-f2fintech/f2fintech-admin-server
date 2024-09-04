@@ -33,7 +33,7 @@ import { HealthModule } from './health/health.module';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: [User, Ticket, TicketActivity],
-        synchronize: true,
+        synchronize: false,
       }),
       inject: [ConfigService],
     }),
