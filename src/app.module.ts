@@ -32,6 +32,8 @@ import { HealthModule } from './health/health.module';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: configService.get<string>('JWT_EXPIRY') },
         entities: [User, Ticket, TicketActivity],
         synchronize: true,
       }),

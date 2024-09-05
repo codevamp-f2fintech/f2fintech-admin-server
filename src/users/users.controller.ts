@@ -88,8 +88,8 @@ export class UsersController {
       );
     }
   }
-
-  @Patch(':id')
+  //user/update/20
+  @Patch('update/:id')
   @Roles(Role.Admin)
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     try {

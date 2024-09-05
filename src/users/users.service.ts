@@ -64,9 +64,12 @@ export class UsersService {
       sub: user.id,
       role: user.role,
     };
+    console.log('payload', payload);
+
     const access_token = {
       access_token: this.jwtService.sign(payload),
     };
+    console.log('acces-token', access_token);
     return access_token;
   }
 
