@@ -54,7 +54,7 @@ export class UsersController {
   }
 
   @Get('get')
-  @Roles(Role.Admin, Role.Sales)
+  // @Roles(Role.Admin)
   async findAll() {
     try {
       const users = await this.usersService.findAll();
@@ -88,8 +88,8 @@ export class UsersController {
       );
     }
   }
-
-  @Patch(':id')
+  //user/update/20
+  @Patch('update/:id')
   @Roles(Role.Admin)
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     try {
