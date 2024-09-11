@@ -35,7 +35,7 @@ import { HealthModule } from './health/health.module';
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: configService.get<string>('JWT_EXPIRY') },
         entities: [User, Ticket, TicketActivity],
-        synchronize: true,
+        synchronize: false,
       }),
       inject: [ConfigService],
     }),
