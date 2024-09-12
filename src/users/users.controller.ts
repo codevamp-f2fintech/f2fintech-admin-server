@@ -16,6 +16,7 @@ import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enum/role.enum';
+import { Schema } from 'inspector';
 
 @Controller('api/user')
 @UseGuards(RolesGuard)
@@ -54,7 +55,7 @@ export class UsersController {
   }
 
   @Get('get')
-  @Roles(Role.Admin, Role.Sales)
+  // @Roles(Role.Admin)
   async findAll() {
     try {
       const users = await this.usersService.findAll();
@@ -88,8 +89,8 @@ export class UsersController {
       );
     }
   }
-
-  @Patch(':id')
+  //user/update/20
+  @Patch('update/:id')
   @Roles(Role.Admin)
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     try {

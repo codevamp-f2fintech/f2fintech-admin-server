@@ -33,6 +33,8 @@ import { ApplicationsModule } from './applications/applications.module';
         username: configService.get<string>('DB_USERNAME'),
         password: 'Rishav@123',
         database: configService.get<string>('DB_NAME'),
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: configService.get<string>('JWT_EXPIRY') },
         entities: [User, Ticket, TicketActivity],
         synchronize: false,
       }),
