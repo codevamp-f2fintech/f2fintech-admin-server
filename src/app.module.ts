@@ -17,6 +17,7 @@ import { UsersModule } from './users/users.module';
 
 import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
+import { ApplicationsModule } from './applications/applications.module';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { HealthModule } from './health/health.module';
         host: configService.get<string>('DB_HOST'),
         port: configService.get<number>('DB_PORT'),
         username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
+        password: 'Rishav@123',
         database: configService.get<string>('DB_NAME'),
         entities: [User, Ticket, TicketActivity],
         synchronize: false,
@@ -41,6 +42,7 @@ import { HealthModule } from './health/health.module';
     TicketsModule,
     TicketActivitiesModule,
     HealthModule,
+    ApplicationsModule,
   ],
   controllers: [
     AppController,
