@@ -17,12 +17,12 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enum/role.enum';
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 
-@Controller('api/ticket')
+@Controller('api/v1')
 @UseGuards(RolesGuard)
 export class TicketsController {
   constructor(private readonly ticketsService: TicketsService) {}
 
-  @Post('create')
+  @Post('create-ticket')
   @Roles(Role.Admin, Role.Sales)
   async create(@Body() createTicketDto: CreateTicketDto) {
     try {
@@ -40,7 +40,7 @@ export class TicketsController {
     }
   }
 
-  @Get()
+  @Get('get-all-tickets/:id')
   @Roles(Role.Admin, Role.Sales)
   async findAll() {
     try {
@@ -58,11 +58,11 @@ export class TicketsController {
     }
   }
 
-  @Get(':id')
-  @Roles(Role.Admin, Role.Sales)
-  async findOne(@Param('id') id: string) {
+  @Get('get-ticket/:ticketId')
+  // @Roles(Role.Admin, Role.Sales)
+  async findOne(@Param('ticketId') ticketId: string) {
     try {
-      const ticket = await this.ticketsService.findOne(+id);
+      const ticket = await this.ticketsService.findOne(+ticketId);
       return ResponseFormatter.success(
         200,
         'Ticket retrieved successfully',
@@ -76,22 +76,18 @@ export class TicketsController {
     }
   }
 
-  @Patch(':id')
-  @Roles(Role.Admin, Role.Sales)
+  @Patch('update-ticket/:ticketId')
+  // @Roles(Role.Admin, Role.Sales)
   async update(
-    @Param('id') id: string,
+    @Param('ticketId') ticketId: number,
     @Body() updateTicketDto: UpdateTicketDto,
   ) {
     try {
       const updatedTicket = await this.ticketsService.update(
-        +id,
+        +ticketId,
         updateTicketDto,
       );
-      return ResponseFormatter.success(
-        200,
-        'Ticket updated successfully',
-        updatedTicket,
-      );
+      return ResponseFormatter.success(200, 'Ticket updated successfully');
     } catch (error) {
       return ResponseFormatter.error(
         error.status || 500,

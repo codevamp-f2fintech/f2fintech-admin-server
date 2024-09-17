@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
 export enum Status {
   ACTIVE = 'active',
@@ -10,14 +10,17 @@ export class Ticket {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 20 })
-  customerApplication: string;
+  // Define customer_application_id as a foreign key with an index for fast lookups
+  @Column()
+  @Index()
+  customer_application_id: number;
 
-  @Column({ length: 11 })
-  userId: string;
+  @Column()
+  @Index()
+  user_id: number;
 
-  @Column({ length: 20 })
-  forwardedTo: string;
+  @Column()
+  forwarded_to: number;
 
   @Column({
     type: 'enum',
@@ -27,15 +30,15 @@ export class Ticket {
   status: Status;
 
   @Column({ type: 'date', unique: true })
-  dueDate: Date;
+  due_date: Date;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
+  created_at: Date;
 
   @Column({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP',
   })
-  updatedAt: Date;
+  updated_at: Date;
 }

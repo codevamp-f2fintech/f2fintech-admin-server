@@ -1,32 +1,29 @@
-import { IsString, IsEnum, IsDate, Length } from 'class-validator';
+import { IsEnum, IsDate, Length, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Status } from '../entities/ticket.entity';
 
 export class CreateTicketDto {
-  @IsString()
-  @Length(1, 20)
-  customerApplication: string;
+  @IsNumber()
+  customer_application_id: number;
 
-  @IsString()
-  @Length(1, 11)
-  userId: string;
+  @IsNumber()
+  user_id: number;
 
-  @IsString()
-  @Length(1, 20)
-  forwardedTo: string;
+  @IsNumber()
+  forwarded_to: number;
 
   @IsEnum(Status)
   status: Status;
 
   @IsDate()
   @Type(() => Date)
-  dueDate: Date;
+  due_date: Date;
 
   @IsDate()
   @Type(() => Date)
-  createdAt: Date;
+  created_at: Date;
 
   @IsDate()
   @Type(() => Date)
-  updatedAt: Date;
+  updated_at: Date;
 }
