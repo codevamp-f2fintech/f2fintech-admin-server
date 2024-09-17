@@ -17,6 +17,7 @@ import { UsersModule } from './users/users.module';
 
 import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
+import { ApplicationsModule } from './applications/applications.module';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { HealthModule } from './health/health.module';
         host: configService.get<string>('DB_HOST'),
         port: configService.get<number>('DB_PORT'),
         username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
+         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: configService.get<string>('JWT_EXPIRY') },
@@ -43,6 +44,7 @@ import { HealthModule } from './health/health.module';
     TicketsModule,
     TicketActivitiesModule,
     HealthModule,
+    ApplicationsModule,
   ],
   controllers: [
     AppController,
