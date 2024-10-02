@@ -23,7 +23,7 @@ export class TicketsController {
   constructor(private readonly ticketsService: TicketsService) {}
 
   @Post('create-ticket')
-  @Roles(Role.Admin, Role.Sales)
+  // @Roles(Role.Admin, Role.Sales)
   async create(@Body() createTicketDto: CreateTicketDto) {
     try {
       const newTicket = await this.ticketsService.create(createTicketDto);
@@ -76,6 +76,25 @@ export class TicketsController {
     }
   }
 
+  @Get('get-by-application-id/:applicationId')
+  // @Roles(Role.Admin, Role.Sales)
+  async findByApplicationId(@Param('applicationId') applicationId: number) {
+    try {
+      const ticket =
+        await this.ticketsService.findByApplicationId(+applicationId);
+      return ResponseFormatter.success(
+        200,
+        'Ticket retrieved successfully',
+        ticket,
+      );
+    } catch (error) {
+      return ResponseFormatter.error(
+        error.status || 404,
+        error.message || 'Ticket not found',
+      );
+    }
+  }
+
   @Patch('update-ticket/:ticketId')
   @Roles(Role.Admin, Role.Sales)
   async update(
@@ -83,6 +102,7 @@ export class TicketsController {
     @Body() updateTicketDto: UpdateTicketDto,
   ) {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const updatedTicket = await this.ticketsService.update(
         +ticketId,
         updateTicketDto,

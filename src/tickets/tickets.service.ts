@@ -29,6 +29,18 @@ export class TicketsService {
     return ticket;
   }
 
+  async findByApplicationId(applicationId: number): Promise<Ticket> {
+    const ticket = await this.ticketRepository.findOne({
+      where: { customer_application_id: applicationId },
+    });
+    if (!ticket) {
+      throw new NotFoundException(
+        `Ticket with applicationId ${applicationId} not found`,
+      );
+    }
+    return ticket;
+  }
+
   async update(id: number, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
     const ticket = await this.findOne(id);
     Object.assign(ticket, updateTicketDto, { updatedAt: new Date() });
