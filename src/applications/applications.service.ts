@@ -9,6 +9,7 @@ export class ApplicationsService {
   async getCustomerData(
     page: number = 1,
     offset: number = 6,
+
     conditionObj: Record<string, any> = {},
   ): Promise<any> {
     try {
@@ -64,6 +65,7 @@ export class ApplicationsService {
               Amount: application.amount,
               Tenure: application.tenure,
               applicationDate: application.application_date,
+              applicationId: application.id,
               status: customerLoanStatus?.status ?? 'No status available',
               Designation: customerInfo?.occupation_type ?? 'Not available',
               Image: customerDocument?.document_url ?? 'No image available',
@@ -124,6 +126,40 @@ export class ApplicationsService {
     }
   }
 
+  async getCustomerStatusAndDocuments(
+    customerId: string,
+    applicationId: string,
+  ): Promise<any> {
+    try {
+      if (!customerId || !applicationId) {
+        console.log(`IDs not provided`);
+        return null;
+      }
+
+      try {
+        // Fetch customer details and loan status in parallel
+        const [customerDocuments, customerLoanStatus] = await Promise.all([
+          this.fetchAllCustomerDocuments(customerId),
+          this.fetchLoanTrackingStatus(applicationId),
+        ]);
+
+        return {
+          loanStatus: customerLoanStatus?.status ?? 'No status available',
+          documents:
+            customerDocuments.length > 0
+              ? customerDocuments
+              : 'No documents available',
+        };
+      } catch (error) {
+        console.error(`Error fetching details:`, error.message);
+        return null;
+      }
+    } catch (error) {
+      console.error('An Error Occurred', error.message);
+      throw error;
+    }
+  }
+
   private async fetchCustomerData(customerId: string): Promise<any> {
     try {
       const customerUrl = `http://localhost:8080/api/v1/get-customer/${customerId}`;
@@ -136,6 +172,24 @@ export class ApplicationsService {
         `Error fetching customer data for ID ${customerId}:`,
         error.message,
       );
+      return null;
+    }
+  }
+
+  private async fetchAllCustomerDocuments(customerId: string): Promise<any> {
+    try {
+      const documentUrl = `http://localhost:8080/api/v1/get-customer-documents/${customerId}`;
+      const documentResponse = await firstValueFrom(
+        this.httpService.get(documentUrl),
+      );
+
+      return documentResponse.data.data;
+    } catch (error) {
+      console.error(
+        `Error fetching customer document for ID ${customerId}:`,
+        error.message,
+      );
+
       return null;
     }
   }
