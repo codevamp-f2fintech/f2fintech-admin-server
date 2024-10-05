@@ -1,9 +1,10 @@
+/* eslint-disable prettier/prettier */
 import { Controller, Get, Query, Param } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 
 @Controller('customer-applications')
 export class ApplicationsController {
-  constructor(private readonly applicationsService: ApplicationsService) {}
+  constructor(private readonly applicationsService: ApplicationsService) { }
 
   @Get('get-loan-applications')
   async getLoanApplications(
@@ -13,6 +14,18 @@ export class ApplicationsController {
     try {
       const data = await this.applicationsService.getCustomerData(page, offset);
       return { success: true, data: data.data, totalCount: data.totalCount };
+    } catch (error) {
+      return { success: false, message: error.message };
+    }
+  }
+
+  @Get('get-ticket-applications/:applicationId')
+  async getApplicationsAsTickets(
+    @Param('applicationId') applicationId: string,
+  ): Promise<any> {
+    try {
+      const data = await this.applicationsService.getApplicationsAsTickets(applicationId);
+      return { success: true, data: data || [] };
     } catch (error) {
       return { success: false, message: error.message };
     }

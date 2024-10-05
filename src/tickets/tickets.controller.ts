@@ -40,11 +40,11 @@ export class TicketsController {
     }
   }
 
-  @Get('get-all-tickets/:id')
-  @Roles(Role.Admin, Role.Sales)
-  async findAll() {
+  @Get('get-all-tickets/:userId')
+  // @Roles(Role.Admin, Role.Sales)
+  async findAll(@Param('userId') userId: number) {
     try {
-      const tickets = await this.ticketsService.findAll();
+      const tickets = await this.ticketsService.findAllByUserId(userId);
       return ResponseFormatter.success(
         200,
         'Tickets retrieved successfully',
