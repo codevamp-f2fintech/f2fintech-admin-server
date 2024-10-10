@@ -10,15 +10,17 @@ export class TicketsService {
   constructor(
     @InjectRepository(Ticket)
     private readonly ticketRepository: Repository<Ticket>,
-  ) {}
+  ) { }
 
   async create(createUserDto: CreateTicketDto): Promise<Ticket> {
     const newTicket = this.ticketRepository.create(createUserDto);
     return await this.ticketRepository.save(newTicket);
   }
 
-  async findAll(): Promise<Ticket[]> {
-    return await this.ticketRepository.find();
+  async findAllByUserId(userId: number) {
+    return await this.ticketRepository.find({
+      where: { user_id: userId },
+    });
   }
 
   async findOne(id: number): Promise<Ticket> {
