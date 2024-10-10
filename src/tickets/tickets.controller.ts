@@ -59,7 +59,7 @@ export class TicketsController {
   }
 
   @Get('get-ticket/:ticketId')
-  @Roles(Role.Admin, Role.Sales)
+  // @Roles(Role.Admin, Role.Sales)
   async findOne(@Param('ticketId') ticketId: string) {
     try {
       const ticket = await this.ticketsService.findOne(+ticketId);
@@ -96,7 +96,7 @@ export class TicketsController {
   }
 
   @Patch('update-ticket/:ticketId')
-  @Roles(Role.Admin, Role.Sales)
+  // @Roles(Role.Admin, Role.Sales)
   async update(
     @Param('ticketId') ticketId: number,
     @Body() updateTicketDto: UpdateTicketDto,
