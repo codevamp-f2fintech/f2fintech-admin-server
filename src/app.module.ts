@@ -31,7 +31,7 @@ import { ApplicationsModule } from './applications/applications.module';
         host: configService.get<string>('DB_HOST'),
         port: configService.get<number>('DB_PORT'),
         username: configService.get<string>('DB_USERNAME'),
-         password: configService.get<string>('DB_PASSWORD'),
+        password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: configService.get<string>('JWT_EXPIRY') },
@@ -54,4 +54,4 @@ import { ApplicationsModule } from './applications/applications.module';
   ],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
