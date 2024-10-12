@@ -17,12 +17,12 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enum/role.enum';
 
-@Controller('api/user')
+@Controller('api/v1')
 @UseGuards(RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post('create')
+  @Post('create-user')
   @Roles(Role.Admin)
   async create(@Body() createUserDto: CreateUserDto) {
     try {
@@ -53,7 +53,7 @@ export class UsersController {
     }
   }
 
-  @Get('get')
+  @Get('get-users')
   @Roles(Role.Admin)
   async findAll() {
     try {
@@ -71,7 +71,7 @@ export class UsersController {
     }
   }
 
-  @Get(':id')
+  @Get('get-by-id/:id')
   @Roles(Role.Admin, Role.Sales)
   async findOne(@Param('id') id: number) {
     try {
@@ -88,7 +88,7 @@ export class UsersController {
       );
     }
   }
-  @Patch('update/:id')
+  @Patch('update-user/:id')
   @Roles(Role.Admin)
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     try {

@@ -7,6 +7,7 @@ import {
   Patch,
   UseGuards,
 } from '@nestjs/common';
+
 import { ActivitiesService } from './ticket_activities.service';
 import { CreateTicketActivityDto } from './dto/create_ticket_activity.dto';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -14,12 +15,12 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enum/role.enum';
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 
-@Controller('api/ticket-activity')
+@Controller('api/v1')
 @UseGuards(RolesGuard)
 export class TicketActivitiesController {
-  constructor(private readonly activitiesService: ActivitiesService) {}
+  constructor(private readonly activitiesService: ActivitiesService) { }
 
-  @Post()
+  @Post('create-ticket-activity')
   @Roles(Role.Admin, Role.Sales)
   async create(@Body() createTicketActivityDto: CreateTicketActivityDto) {
     try {
@@ -39,7 +40,7 @@ export class TicketActivitiesController {
     }
   }
 
-  @Get()
+  @Get('get-ticket-activities')
   @Roles(Role.Admin, Role.Sales)
   async findAll() {
     try {
@@ -57,7 +58,7 @@ export class TicketActivitiesController {
     }
   }
 
-  @Get(':id')
+  @Get('get-by-id/:id')
   @Roles(Role.Admin, Role.Sales)
   async findOne(@Param('id') id: string) {
     try {
@@ -75,7 +76,7 @@ export class TicketActivitiesController {
     }
   }
 
-  @Patch(':id')
+  @Patch('update-ticket-activity/:id')
   @Roles(Role.Admin, Role.Sales)
   async update(
     @Param('id') id: string,

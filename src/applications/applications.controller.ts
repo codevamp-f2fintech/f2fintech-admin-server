@@ -2,7 +2,7 @@
 import { Controller, Get, Query, Param } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 
-@Controller('customer-applications')
+@Controller('api/v1')
 export class ApplicationsController {
   constructor(private readonly applicationsService: ApplicationsService) { }
 
@@ -19,7 +19,7 @@ export class ApplicationsController {
     }
   }
 
-  @Get('get-ticket-applications/:applicationId')
+  @Get('get-application-as-ticket/:applicationId')
   async getApplicationsAsTickets(
     @Param('applicationId') applicationId: string,
   ): Promise<any> {
