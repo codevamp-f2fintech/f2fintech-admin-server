@@ -21,7 +21,7 @@ export class CreateUserDto {
   email: string;
 
   @IsNumber()
-  contact: string;
+  contact: number;
 
   @IsString()
   designation: string;

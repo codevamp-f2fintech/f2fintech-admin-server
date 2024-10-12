@@ -31,7 +31,7 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ length: 15 }) // Use 'bigint' for large numbers
+  @Column({ length: 15 })
   number: string;
 
   @Column()
@@ -40,14 +40,14 @@ export class User {
   @Column({
     type: 'enum',
     enum: Gender,
-    default: Gender.OTHER, // Optional: Set a default value
+    default: Gender.OTHER,
   })
   gender: Gender;
 
   @Column({
     type: 'enum',
     enum: Status,
-    default: Status.ACTIVE, // Optional: Set a default value
+    default: Status.ACTIVE,
   })
   status: Status;
 
