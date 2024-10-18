@@ -6,7 +6,7 @@ export class TicketActivity {
   id: number;
 
   @Column({ length: 20 })
-  ticketId: string;
+  ticket_id: string;
 
   @Column({ length: 250 })
   comment: string;
@@ -15,12 +15,12 @@ export class TicketActivity {
   attachment: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
+  created_at: Date;
 
   @Column({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP',
   })
-  updatedAt: Date;
+  updated_at: Date;
 }

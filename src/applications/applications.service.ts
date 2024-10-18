@@ -1,10 +1,11 @@
+/* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class ApplicationsService {
-  constructor(private readonly httpService: HttpService) {}
+  constructor(private readonly httpService: HttpService) { }
 
   async getCustomerData(
     page: number = 1,
@@ -99,7 +100,6 @@ export class ApplicationsService {
           return true;
         });
 
-      console.log('Filtered Data Length:', filteredData.length);
 
       // Pagination logic: Calculate start and end indices
       const startIndex = (page - 1) * offset;
@@ -112,7 +112,6 @@ export class ApplicationsService {
       const hasMoreData = endIndex < filteredData.length;
 
       console.log('Paginated Data Length:', paginatedData.length);
-      console.log('Returning Data:', paginatedData);
 
       // Return the paginated data, total count, and if more data is available
       return {
@@ -122,6 +121,93 @@ export class ApplicationsService {
       };
     } catch (error) {
       console.error('Error fetching customer data:', error.message);
+      throw error;
+    }
+  }
+
+  async getApplicationsAsTickets(
+    applicationId: string,
+  ): Promise<any> {
+    try {
+      if (!applicationId) {
+        console.log(`Application ID not provided`);
+        return null;
+      }
+      try {
+        const applicationsUrl = `http://localhost:8080/api/v1/get-applications/${applicationId}`;
+
+        // Fetch all applications
+        let applicationsData: any;
+        try {
+          const applicationsResponse = await firstValueFrom(
+            this.httpService.get(applicationsUrl),
+          );
+          applicationsData = applicationsResponse.data.data;
+          console.log(applicationsData, 'data')
+          if (!applicationsData || applicationsData.length === 0) {
+            throw new Error('No application data found');
+          }
+        } catch (error) {
+          console.error('Error fetching application data:', error.message);
+          throw new Error('Failed to fetch application data');
+        }
+
+        console.log('Fetched Applications Data Length:', applicationsData.length);
+
+        const combinedDataList = await Promise.all(
+          applicationsData.map(async (application) => {
+            console.log(application.id, application.customer_id, 'loop')
+            const customerId = application.customer_id;
+            const applicationId = application.id;
+            if (!customerId) {
+              console.error(
+                `Customer ID not found for application: ${application.id}`,
+              );
+              return null;
+            }
+            try {
+              // Fetch customer details, document, and location info in parallel
+              const [
+                customerData,
+                customerDocument,
+                customerInfo,
+                customerLoanStatus,
+              ] = await Promise.all([
+                this.fetchCustomerData(customerId),
+                this.fetchCustomerDocument(customerId),
+                this.fetchCustomerInfo(customerId),
+                this.fetchLoanTrackingStatus(applicationId),
+              ]);
+
+              return {
+                Id: customerData?.id ?? 'No ID',
+                Name: customerData?.name ?? 'No Name',
+                Email: customerData?.email ?? 'No Email',
+                Contact: customerData?.contact ?? 'No Contact',
+                Amount: application.amount,
+                Tenure: application.tenure,
+                applicationDate: application.application_date,
+                applicationId: application.id,
+                status: customerLoanStatus?.status ?? 'No status available',
+                Designation: customerInfo?.occupation_type ?? 'Not available',
+                Image: customerDocument?.document_url ?? 'No image available',
+                Location: customerInfo?.city ?? 'No location available',
+              };
+            } catch (error) {
+              console.log(
+                `Error fetching details for application ${applicationId}:`,
+                error.message,
+              );
+              return null;
+            }
+          }),
+        );
+        return combinedDataList;
+      } catch (error) {
+        console.log('An Error Occurred', error.message);
+      }
+    } catch (error) {
+      console.log('An Error Occurred', error.message);
       throw error;
     }
   }

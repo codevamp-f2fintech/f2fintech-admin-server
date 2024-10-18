@@ -40,11 +40,11 @@ export class TicketsController {
     }
   }
 
-  @Get('get-all-tickets/:id')
-  @Roles(Role.Admin, Role.Sales)
-  async findAll() {
+  @Get('get-all-tickets/:userId')
+  // @Roles(Role.Admin, Role.Sales)
+  async findAll(@Param('userId') userId: number) {
     try {
-      const tickets = await this.ticketsService.findAll();
+      const tickets = await this.ticketsService.findAllByUserId(userId);
       return ResponseFormatter.success(
         200,
         'Tickets retrieved successfully',
@@ -59,7 +59,7 @@ export class TicketsController {
   }
 
   @Get('get-ticket/:ticketId')
-  @Roles(Role.Admin, Role.Sales)
+  // @Roles(Role.Admin, Role.Sales)
   async findOne(@Param('ticketId') ticketId: string) {
     try {
       const ticket = await this.ticketsService.findOne(+ticketId);
@@ -96,7 +96,7 @@ export class TicketsController {
   }
 
   @Patch('update-ticket/:ticketId')
-  @Roles(Role.Admin, Role.Sales)
+  // @Roles(Role.Admin, Role.Sales)
   async update(
     @Param('ticketId') ticketId: number,
     @Body() updateTicketDto: UpdateTicketDto,
