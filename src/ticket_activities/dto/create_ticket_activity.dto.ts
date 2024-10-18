@@ -3,7 +3,7 @@ import { IsString, IsOptional, Length } from 'class-validator';
 export class CreateTicketActivityDto {
   @IsString()
   @Length(1, 20)
-  ticketId: string;
+  ticket_id: string;
 
   @IsString()
   comment: string;
