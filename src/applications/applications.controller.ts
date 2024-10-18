@@ -1,10 +1,10 @@
-/* eslint-disable prettier/prettier */
 import { Controller, Get, Query, Param } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
+
 @Controller('api/v1/')
 export class ApplicationsController {
-  constructor(private readonly applicationsService: ApplicationsService) {}
+  constructor(private readonly applicationsService: ApplicationsService) { }
 
   @Get('get-loan-applications')
   async getLoanApplications(

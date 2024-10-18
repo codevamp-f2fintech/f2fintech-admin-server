@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -12,7 +11,7 @@ export class ApplicationsService {
     private readonly httpService: HttpService,
     @InjectRepository(Application)
     private readonly applicationRepository: Repository<Application>,
-  ) {}
+  ) { }
 
   async getApplicationData(
     page: number = 1,

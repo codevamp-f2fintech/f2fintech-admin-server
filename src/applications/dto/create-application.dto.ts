@@ -1,4 +1,4 @@
-import { IsInt, IsDecimal, IsDateString, IsOptional } from 'class-validator';
+import { IsInt, IsDecimal, IsDateString } from 'class-validator';
 
 export class CreateApplicationDto {
   @IsInt()

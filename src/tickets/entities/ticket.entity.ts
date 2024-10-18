@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index, BeforeInsert } from 'typeorm';
 
 export enum Status {
   ACTIVE = 'active',
@@ -22,6 +22,9 @@ export class Ticket {
   @Column()
   forwarded_to: number;
 
+  @Column()
+  original_estimate: string;
+
   @Column({
     type: 'enum',
     enum: Status,
@@ -29,7 +32,7 @@ export class Ticket {
   })
   status: Status;
 
-  @Column({ type: 'date', unique: true })
+  @Column({ type: 'date', nullable: true })
   due_date: Date;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
@@ -41,4 +44,13 @@ export class Ticket {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updated_at: Date;
+
+  @BeforeInsert()
+  setDefaultDueDate() {
+    if (!this.due_date) {
+      const today = new Date();
+      today.setDate(today.getDate() + 1);
+      this.due_date = today;
+    }
+  }
 }

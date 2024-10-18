@@ -1,4 +1,4 @@
-import { IsEnum, IsDate, Length, IsNumber } from 'class-validator';
+import { IsEnum, IsDate, IsNumber, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Status } from '../entities/ticket.entity';
 
@@ -11,6 +11,9 @@ export class CreateTicketDto {
 
   @IsNumber()
   forwarded_to: number;
+
+  @IsString()
+  original_estimate: string;
 
   @IsEnum(Status)
   status: Status;

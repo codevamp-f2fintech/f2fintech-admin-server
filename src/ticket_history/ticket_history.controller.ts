@@ -9,7 +9,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { Role } from 'src/common/enum/role.enum';
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 
-@Controller('api/v1')
+@Controller('api/v1/')
 @UseGuards(RolesGuard)
 export class TicketHistoryController {
   constructor(private readonly ticketHistoryService: TicketHistoryService) { }
