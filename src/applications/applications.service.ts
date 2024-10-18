@@ -2,28 +2,33 @@
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { Application } from './entities/applications.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ApplicationsService {
-  constructor(private readonly httpService: HttpService) { }
+  constructor(
+    private readonly httpService: HttpService,
+    @InjectRepository(Application)
+    private readonly applicationRepository: Repository<Application>,
+  ) {}
 
-  async getCustomerData(
+  async getApplicationData(
     page: number = 1,
     offset: number = 6,
-
     conditionObj: Record<string, any> = {},
   ): Promise<any> {
     try {
-      const applicationsUrl = `http://localhost:8080/api/v1/get-applications`;
-
       // Fetch all applications
-      let applicationsData: any;
+      let applicationsResponse: any;
       try {
-        const applicationsResponse = await firstValueFrom(
-          this.httpService.get(applicationsUrl),
-        );
-        applicationsData = applicationsResponse.data.data;
-        if (!applicationsData || applicationsData.length === 0) {
+        const skip = (page - 1) * offset;
+        applicationsResponse = await this.applicationRepository.find({
+          skip,
+          take: offset,
+        });
+        if (!applicationsResponse || applicationsResponse.length === 0) {
           throw new Error('No application data found');
         }
       } catch (error) {
@@ -31,11 +36,9 @@ export class ApplicationsService {
         throw new Error('Failed to fetch application data');
       }
 
-      console.log('Fetched Applications Data Length:', applicationsData.length);
-
       // Fetch all required data in parallel
       const combinedDataList = await Promise.all(
-        applicationsData.map(async (application) => {
+        applicationsResponse.map(async (application) => {
           const customerId = application.customer_id;
           const applicationId = application.id;
           if (!customerId) {
@@ -100,7 +103,6 @@ export class ApplicationsService {
           return true;
         });
 
-
       // Pagination logic: Calculate start and end indices
       const startIndex = (page - 1) * offset;
       const endIndex = startIndex + offset;
@@ -111,8 +113,6 @@ export class ApplicationsService {
       // Determine if there is more data to load
       const hasMoreData = endIndex < filteredData.length;
 
-      console.log('Paginated Data Length:', paginatedData.length);
-
       // Return the paginated data, total count, and if more data is available
       return {
         data: paginatedData,
@@ -120,96 +120,81 @@ export class ApplicationsService {
         hasMore: hasMoreData,
       };
     } catch (error) {
-      console.error('Error fetching customer data:', error.message);
+      console.error('Error fetching Application data:', error.message);
       throw error;
     }
   }
 
-  async getApplicationsAsTickets(
-    applicationId: string,
-  ): Promise<any> {
-    try {
-      if (!applicationId) {
-        console.log(`Application ID not provided`);
-        return null;
-      }
-      try {
-        const applicationsUrl = `http://localhost:8080/api/v1/get-applications/${applicationId}`;
-
-        // Fetch all applications
-        let applicationsData: any;
-        try {
-          const applicationsResponse = await firstValueFrom(
-            this.httpService.get(applicationsUrl),
-          );
-          applicationsData = applicationsResponse.data.data;
-          console.log(applicationsData, 'data')
-          if (!applicationsData || applicationsData.length === 0) {
-            throw new Error('No application data found');
-          }
-        } catch (error) {
-          console.error('Error fetching application data:', error.message);
-          throw new Error('Failed to fetch application data');
-        }
-
-        console.log('Fetched Applications Data Length:', applicationsData.length);
-
-        const combinedDataList = await Promise.all(
-          applicationsData.map(async (application) => {
-            console.log(application.id, application.customer_id, 'loop')
-            const customerId = application.customer_id;
-            const applicationId = application.id;
-            if (!customerId) {
-              console.error(
-                `Customer ID not found for application: ${application.id}`,
-              );
-              return null;
-            }
-            try {
-              // Fetch customer details, document, and location info in parallel
-              const [
-                customerData,
-                customerDocument,
-                customerInfo,
-                customerLoanStatus,
-              ] = await Promise.all([
-                this.fetchCustomerData(customerId),
-                this.fetchCustomerDocument(customerId),
-                this.fetchCustomerInfo(customerId),
-                this.fetchLoanTrackingStatus(applicationId),
-              ]);
-
-              return {
-                Id: customerData?.id ?? 'No ID',
-                Name: customerData?.name ?? 'No Name',
-                Email: customerData?.email ?? 'No Email',
-                Contact: customerData?.contact ?? 'No Contact',
-                Amount: application.amount,
-                Tenure: application.tenure,
-                applicationDate: application.application_date,
-                applicationId: application.id,
-                status: customerLoanStatus?.status ?? 'No status available',
-                Designation: customerInfo?.occupation_type ?? 'Not available',
-                Image: customerDocument?.document_url ?? 'No image available',
-                Location: customerInfo?.city ?? 'No location available',
-              };
-            } catch (error) {
-              console.log(
-                `Error fetching details for application ${applicationId}:`,
-                error.message,
-              );
-              return null;
-            }
-          }),
-        );
-        return combinedDataList;
-      } catch (error) {
-        console.log('An Error Occurred', error.message);
-      }
-    } catch (error) {
-      console.log('An Error Occurred', error.message);
-      throw error;
+  async getApplicationsAsTickets(applicationId: string): Promise<any> {
+    if (!applicationId) {
+      console.log(`Application ID not provided`);
+      return null;
     }
+
+    try {
+      const applicationsUrl = `http://localhost:8080/api/v1/get-applications/${applicationId}`;
+      const applicationsResponse = await firstValueFrom(
+        this.httpService.get(applicationsUrl),
+      );
+      const applicationsData = applicationsResponse.data.data;
+
+      if (!applicationsData || applicationsData.length === 0) {
+        throw new Error('No application data found');
+      }
+
+      console.log('Fetched Applications Data Length:', applicationsData.length);
+
+      const combinedDataList = await Promise.all(
+        applicationsData.map(async (application) => {
+          const customerId = application.customer_id;
+          if (!customerId) {
+            console.error(
+              `Customer ID not found for application: ${application.id}`,
+            );
+            return null;
+          }
+
+          const [
+            customerData,
+            customerDocument,
+            customerInfo,
+            customerLoanStatus,
+          ] = await Promise.all([
+            this.fetchCustomerData(customerId),
+            this.fetchCustomerDocument(customerId),
+            this.fetchCustomerInfo(customerId),
+            this.fetchLoanTrackingStatus(application.id),
+          ]);
+
+          return {
+            Id: customerData?.id ?? 'No ID',
+            Name: customerData?.name ?? 'No Name',
+            Email: customerData?.email ?? 'No Email',
+            Contact: customerData?.contact ?? 'No Contact',
+            Amount: application.amount,
+            Tenure: application.tenure,
+            applicationDate: application.application_date,
+            applicationId: application.id,
+            status: customerLoanStatus?.status ?? 'No status available',
+            Designation: customerInfo?.occupation_type ?? 'Not available',
+            Image: customerDocument?.document_url ?? 'No image available',
+            Location: customerInfo?.city ?? 'No location available',
+          };
+        }),
+      );
+
+      return combinedDataList.filter((item) => item !== null);
+    } catch (error) {
+      console.error(
+        'An Error Occurred in getApplicationsAsTickets:',
+        error.message,
+      );
+      throw new Error('Failed to fetch applications as tickets');
+    }
+  }
+
+  async getApplicationsCount(): Promise<any> {
+    return this.applicationRepository.count();
   }
 
   async getCustomerStatusAndDocuments(
@@ -218,7 +203,6 @@ export class ApplicationsService {
   ): Promise<any> {
     try {
       if (!customerId || !applicationId) {
-        console.log(`IDs not provided`);
         return null;
       }
 

@@ -7,6 +7,7 @@ import { TicketsController } from './tickets/tickets.controller';
 import { TicketActivitiesController } from './ticket_activities/ticket_activities.controller';
 import { UsersController } from './users/users.controller';
 
+import { Application } from './applications/entities/applications.entity';
 import { Ticket } from './tickets/entities/ticket.entity';
 import { TicketActivity } from './ticket_activities/entities/ticket_activities.entity';
 import { TicketLog } from './ticket_log/entities/ticket_log.entity';
@@ -22,6 +23,9 @@ import { UsersModule } from './users/users.module';
 
 import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { DashboardController } from './dashboard/dashboard.controller';
+import { ApplicationsController } from './applications/applications.controller';
 
 @Module({
   imports: [
@@ -39,7 +43,14 @@ import { HealthModule } from './health/health.module';
         database: configService.get<string>('DB_NAME'),
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: configService.get<string>('JWT_EXPIRY') },
-        entities: [User, Ticket, TicketActivity, TicketLog, TicketHistory],
+        entities: [
+          Application,
+          User,
+          Ticket,
+          TicketActivity,
+          TicketLog,
+          TicketHistory,
+        ],
         synchronize: false,
       }),
       inject: [ConfigService],
@@ -51,13 +62,16 @@ import { HealthModule } from './health/health.module';
     TicketLogModule,
     TicketHistoryModule,
     UsersModule,
+    DashboardModule,
   ],
   controllers: [
     AppController,
     UsersController,
     TicketActivitiesController,
     TicketsController,
+    DashboardController,
+    ApplicationsController,
   ],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
