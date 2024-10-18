@@ -38,7 +38,6 @@ export class RolesGuard implements CanActivate {
 
     // Decode the JWT token from the headers
     const decoded_token = JwtUtils.decodeToken(headers['x-access-token']);
-    console.log('decoded_token', decoded_token);
 
     // Check if the decoded token roles match any of the required roles
     return requiredRoles.some((role) => decoded_token?.role === role);
