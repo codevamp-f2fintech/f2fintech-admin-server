@@ -23,6 +23,13 @@ export class Application {
   @Column({ type: 'int' })
   emi_count: number;
 
+  @Column({
+    type: 'tinyint',
+    width: 1,          // Width 1 because it’s used as a boolean-like field
+    default: 0,
+  })
+  is_picked: boolean;
+
   @Column({ type: 'date' })
   application_date: Date;
 
