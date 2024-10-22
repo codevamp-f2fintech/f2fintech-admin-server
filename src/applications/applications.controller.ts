@@ -35,7 +35,7 @@ export class ApplicationsController {
     }
   }
 
-  @Get('count')
+  @Get('application/count')
   async getApplicationsCount(): Promise<any> {
     try {
       const count = await this.applicationsService.getApplicationsCount();
