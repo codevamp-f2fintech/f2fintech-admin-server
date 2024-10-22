@@ -11,8 +11,8 @@ export class TicketActivity {
   @Column({ length: 250 })
   comment: string;
 
-  @Column()
-  attachment: string;
+  @Column({ nullable: true })
+  attachment: string | null;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;

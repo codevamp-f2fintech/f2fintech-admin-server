@@ -19,7 +19,7 @@ import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 @Controller('api/v1/')
 @UseGuards(RolesGuard)
 export class TicketActivitiesController {
-  constructor(private readonly activitiesService: ActivitiesService) {}
+  constructor(private readonly activitiesService: ActivitiesService) { }
 
   @Post('create-ticket-activity')
   //@Roles(Role.Admin, Role.Sales) 
@@ -41,13 +41,13 @@ export class TicketActivitiesController {
 
   @Get('get-all-ticket-activities/:ticketId')
   // @Roles(Role.Admin, Role.Sales) // Uncomment if you want to enforce roles
-  async findAll(@Param('ticketId') ticketId: number) { 
+  async findAll(@Param('ticketId') ticketId: number) {
     try {
-      const activities = await this.activitiesService.findAllByTicketId(ticketId); 
+      const activities = await this.activitiesService.findAllByTicketId(ticketId);
       return ResponseFormatter.success(
         200,
         'Ticket activities retrieved successfully',
-         activities,
+        activities,
       );
     } catch (error) {
       return ResponseFormatter.error(
@@ -82,10 +82,10 @@ export class TicketActivitiesController {
     }
   }
 
-  @Delete('delete-ticket-activity/:ticket_id')
-  async remove(@Param('ticket_id') ticket_id: string) {
+  @Delete('delete-ticket-activity/:id')
+  async remove(@Param('id') id: number) {
     try {
-      await this.activitiesService.remove(ticket_id);
+      await this.activitiesService.remove(id);
       return ResponseFormatter.success(200, 'Ticket activity deleted successfully');
     } catch (error) {
       return ResponseFormatter.error(
