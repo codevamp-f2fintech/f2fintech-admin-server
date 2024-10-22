@@ -19,7 +19,7 @@ export class Ticket {
   @Index()
   user_id: number;
 
-  @Column()
+  @Column({ nullable: true })
   forwarded_to: number;
 
   @Column()
