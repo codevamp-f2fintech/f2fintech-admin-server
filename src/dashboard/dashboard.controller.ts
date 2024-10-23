@@ -27,29 +27,30 @@ export class DashboardController {
     }
   }
 
-  @Get('tickets/count')
+  @Get('tickets/count/:idOrStatus?/:status?')
   // @Roles(Role.Admin, Role.Sales)
-  async findTicketsCount() {
+  async findTicketsCount(
+    @Param('idOrStatus') idOrStatus?: string,
+    @Param('status') status?: string,
+  ) {
     try {
-      const count = await this.dashboardService.findTicketsCount();
-      return ResponseFormatter.success(
-        200,
-        'Tickets count retrieved successfully',
-        count,
-      );
-    } catch (error) {
-      return ResponseFormatter.error(
-        error.status || 500,
-        error.message || 'Internal server error',
-      );
-    }
-  }
+      let count = 0;
+      if (idOrStatus && status) {
+        count = await this.dashboardService.findTicketsCount(
+          idOrStatus,
+          status,
+        );
+      } else if (!isNaN(Number(idOrStatus))) {
+        // it has id bcz it has number !NaN (not a number)
+        count = await this.dashboardService.findTicketsCount(idOrStatus);
+      } else if (isNaN(Number(idOrStatus))) {
+        // it has status bcz it is NaN (not a number)
+        count = await this.dashboardService.findTicketsCount(null, status);
+      } else {
+        count = await this.dashboardService.findTicketsCount();
+      }
 
-  @Get('tickets/count/:status')
-  // @Roles(Role.Admin, Role.Sales)
-  async findTicketsCountByStatus(@Param('status') status: string) {
-    try {
-      const count = await this.dashboardService.findTicketsCount(status);
+      console.log('COUNT', idOrStatus, status, count);
       return ResponseFormatter.success(
         200,
         'Tickets count retrieved successfully',
