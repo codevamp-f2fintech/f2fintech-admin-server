@@ -28,7 +28,7 @@ export class Application {
     width: 1,          // Width 1 because it’s used as a boolean-like field
     default: 0,
   })
-  is_picked: boolean;
+  is_picked: number;
 
   @Column({ type: 'date' })
   application_date: Date;

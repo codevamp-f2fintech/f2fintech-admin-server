@@ -1,5 +1,6 @@
-import { Controller, Get, Query, Param } from '@nestjs/common';
+import { Controller, Get, Query, Param, Patch, Body } from '@nestjs/common';
 import { ApplicationsService } from './applications.service';
+import { UpdateApplicationDto } from './dto/update-application.dto';
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 
 @Controller('api/v1/')
@@ -66,6 +67,26 @@ export class ApplicationsController {
       return { success: true, data: data };
     } catch (error) {
       return { success: false, message: error.message };
+    }
+  }
+
+  @Patch('update-loan-application/:id')
+  // @Roles(Role.Admin, Role.Sales)
+  async update(
+    @Param('id') id: number,
+    @Body() updateApplicationDto: UpdateApplicationDto,
+  ) {
+    try {
+      await this.applicationsService.update(
+        +id,
+        updateApplicationDto,
+      );
+      return ResponseFormatter.success(200, 'Application updated successfully');
+    } catch (error) {
+      return ResponseFormatter.error(
+        error.status || 500,
+        error.message || 'Internal server error',
+      );
     }
   }
 }

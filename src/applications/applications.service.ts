@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { Application } from './entities/applications.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
+import { Application } from './entities/applications.entity';
+import { UpdateApplicationDto } from './dto/update-application.dto';
 
 @Injectable()
 export class ApplicationsService {
@@ -26,6 +28,9 @@ export class ApplicationsService {
         applicationsResponse = await this.applicationRepository.find({
           skip,
           take: offset,
+          where: {
+            is_picked: 0,     // Only fetch applications where is_picked is false (0)
+          },
         });
         if (!applicationsResponse || applicationsResponse.length === 0) {
           throw new Error('No application data found');
@@ -109,7 +114,6 @@ export class ApplicationsService {
       // Slice the filtered data to get the paginated data
       const paginatedData = filteredData.slice(startIndex, endIndex);
 
-      // Determine if there is more data to load
       const hasMoreData = endIndex < filteredData.length;
 
       // Return the paginated data, total count, and if more data is available
@@ -228,6 +232,23 @@ export class ApplicationsService {
       throw error;
     }
   }
+
+  // Update an existing loan application
+  async update(
+    id: number,
+    updateApplicationDto: UpdateApplicationDto,
+  ): Promise<Application> {
+    const application = await this.applicationRepository.findOne({ where: { id } });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    Object.assign(application, updateApplicationDto);
+
+    return this.applicationRepository.save(application); // Save updated entity to the database
+  }
+
 
   private async fetchCustomerData(customerId: string): Promise<any> {
     try {
