@@ -18,11 +18,27 @@ export class DashboardService {
     return this.userRepository.count();
   }
 
-  async findTicketsCount(status = null): Promise<number> {
-    if (status) {
+  async findTicketsCount(id = null, status = null): Promise<number> {
+    if (id || status) {
+      let where = {};
+      if (status) {
+        where = {
+          ...where,
+          status: status,
+        };
+      }
+      if (id) {
+        where = {
+          ...where,
+          user_id: id,
+        };
+      }
+
+      console.log('where', where);
+
       //it will give count as per status
       return this.ticketRepository.count({
-        where: { status: status },
+        where: where,
       });
     } else {
       // it will give total Tickets count
