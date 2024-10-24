@@ -23,6 +23,7 @@ export class TicketHistoryService {
   async findAllByTicketId(ticketId: number) {
     return await this.ticketHistoryRepository.find({
       where: { ticket_id: ticketId },
+      order: { created_at: 'DESC' }
     });
   }
 

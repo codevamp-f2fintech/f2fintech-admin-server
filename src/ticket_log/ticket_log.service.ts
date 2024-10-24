@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CreateTicketLogDto } from './dto/create-ticket_log.dto';
-import { UpdateTicketLogDto } from './dto/update-ticket_log.dto';
 import { TicketLog } from './entities/ticket_log.entity';
 
 @Injectable()
@@ -23,6 +22,7 @@ export class TicketLogService {
   async findAllByTicketId(ticketId: number) {
     return await this.ticketLogRepository.find({
       where: { ticket_id: ticketId },
+      order: { created_at: 'DESC' }
     });
   }
 }
