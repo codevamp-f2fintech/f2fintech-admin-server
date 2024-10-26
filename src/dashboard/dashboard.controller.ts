@@ -5,9 +5,9 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 
 @Controller('api/v1/dashboard')
-// @UseGuards(RolesGuard)
+@UseGuards(RolesGuard)
 export class DashboardController {
-  constructor(private readonly dashboardService: DashboardService) {}
+  constructor(private readonly dashboardService: DashboardService) { }
 
   @Get('agents/count')
   // @Roles(Role.Admin) // Uncomment to restrict access to admin role only
@@ -36,17 +36,16 @@ export class DashboardController {
     try {
       let count = 0;
       if (idOrStatus && status) {
-        count = await this.dashboardService.findTicketsCount(
-          idOrStatus,
-          status,
-        );
-      } else if (!isNaN(Number(idOrStatus))) {
-        // it has id bcz it has number !NaN (not a number)
+        // idOrStatus is treated as an ID, and status is provided
+        count = await this.dashboardService.findTicketsCount(idOrStatus, status);
+      } else if (idOrStatus && !isNaN(Number(idOrStatus))) {
+        // idOrStatus is a number, so treat it as an ID with no status
         count = await this.dashboardService.findTicketsCount(idOrStatus);
-      } else if (isNaN(Number(idOrStatus))) {
-        // it has status bcz it is NaN (not a number)
-        count = await this.dashboardService.findTicketsCount(null, status);
+      } else if (idOrStatus && isNaN(Number(idOrStatus))) {
+        // idOrStatus is a string and not a number, so treat it as a status
+        count = await this.dashboardService.findTicketsCount(null, idOrStatus);
       } else {
+        // no parameters, return total count
         count = await this.dashboardService.findTicketsCount();
       }
 

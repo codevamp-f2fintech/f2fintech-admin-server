@@ -57,7 +57,7 @@ export class UsersController {
   }
 
   @Get('get-users')
-  @Roles(Role.Admin)
+  // @Roles(Role.Admin)
   async findAll() {
     try {
       const users = await this.usersService.findAll();

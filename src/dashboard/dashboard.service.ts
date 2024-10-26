@@ -12,37 +12,23 @@ export class DashboardService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Ticket)
     private readonly ticketRepository: Repository<Ticket>,
-  ) {}
+  ) { }
 
   async findAgentCount(): Promise<number> {
     return this.userRepository.count();
   }
 
   async findTicketsCount(id = null, status = null): Promise<number> {
-    if (id || status) {
-      let where = {};
-      if (status) {
-        where = {
-          ...where,
-          status: status,
-        };
-      }
-      if (id) {
-        where = {
-          ...where,
-          user_id: id,
-        };
-      }
+    const where: any = {};
 
-      console.log('where', where);
-
-      //it will give count as per status
-      return this.ticketRepository.count({
-        where: where,
-      });
-    } else {
-      // it will give total Tickets count
-      return this.ticketRepository.count();
+    if (id) {
+      where.user_id = id;
     }
+    if (status) {
+      where.status = status;
+    }
+
+    // Return count based on the conditions in 'where'
+    return this.ticketRepository.count({ where });
   }
 }
