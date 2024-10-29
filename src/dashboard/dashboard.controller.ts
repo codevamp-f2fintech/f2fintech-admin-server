@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -49,12 +49,50 @@ export class DashboardController {
         count = await this.dashboardService.findTicketsCount();
       }
 
-      console.log('COUNT', idOrStatus, status, count);
+      // console.log('COUNT', idOrStatus, status, count);
       return ResponseFormatter.success(
         200,
         'Tickets count retrieved successfully',
         count,
       );
+    } catch (error) {
+      return ResponseFormatter.error(
+        error.status || 500,
+        error.message || 'Internal server error',
+      );
+    }
+  }
+
+  @Get('tickets/counts-by-month')
+  async getTotalTicketsByMonth(@Query('year') year: string) {
+    const yearInt = parseInt(year);
+    if (isNaN(yearInt)) {
+      throw new BadRequestException('Invalid year');
+    }
+
+    try {
+      const result = await this.dashboardService.getTotalTicketsByMonth(yearInt);
+      // console.log('Total tickets by month', result);
+      return ResponseFormatter.success(200, 'Total tickets by month retrieved successfully', result);
+    } catch (error) {
+      return ResponseFormatter.error(
+        error.status || 500,
+        error.message || 'Internal server error',
+      );
+    }
+  }
+
+  @Get('tickets/done-counts-by-month')
+  async getDoneTicketsByMonth(@Query('year') year: string) {
+    const yearInt = parseInt(year);
+    if (isNaN(yearInt)) {
+      throw new BadRequestException('Invalid year');
+    }
+
+    try {
+      const result = await this.dashboardService.getDoneTicketsByMonth(yearInt);
+      // console.log('Done tickets by month', result);
+      return ResponseFormatter.success(200, 'Done tickets by month retrieved successfully', result);
     } catch (error) {
       return ResponseFormatter.error(
         error.status || 500,

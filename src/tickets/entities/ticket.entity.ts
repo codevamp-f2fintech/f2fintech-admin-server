@@ -1,8 +1,11 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index, BeforeInsert } from 'typeorm';
 
 export enum Status {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
+  TO_DO = 'to do',
+  IN_PROGRESS = 'in progress',
+  ON_HOLD = 'on hold',
+  DONE = 'done',
+  CLOSE = 'close',
 }
 
 @Entity('tickets')
@@ -27,8 +30,7 @@ export class Ticket {
 
   @Column({
     type: 'enum',
-    enum: Status,
-    default: Status.ACTIVE,
+    enum: Status
   })
   status: Status;
 
