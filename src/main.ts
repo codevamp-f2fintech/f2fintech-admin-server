@@ -3,12 +3,21 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
   // Enable CORS globally
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://admin-f2fintech.netlify.app', "https://web.f2fintech.in/api/v1"], // Allow requests from this origin
+    origin: [
+      'http://localhost:3000',                // Local development
+      'https://admin-f2fintech.netlify.app',  // Admin portal on Netlify
+      'https://web.f2fintech.in',             // Main web application
+      'https://admin.f2fintech.in'            // API domain on EC2
+    ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true, // Set to true if you need to allow cookies or authentication headers
+    credentials: true,  // Enable credentials (cookies/auth headers)
   });
-  await app.listen(3001);
+
+  // Listen on port 3001 on all network interfaces
+  await app.listen(3001, '0.0.0.0');
 }
+
 bootstrap();
