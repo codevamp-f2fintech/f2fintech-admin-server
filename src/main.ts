@@ -9,7 +9,7 @@ async function bootstrap() {
     origin: [
       'http://localhost:3000',                // Local development
       'https://admin-f2fintech.netlify.app',  // Admin portal on Netlify
-      'https://web.f2fintech.in',             // Main web application
+      'https://web.f2fintech.in/api/v1',
       'https://admin.f2fintech.in'            // API domain on EC2
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
