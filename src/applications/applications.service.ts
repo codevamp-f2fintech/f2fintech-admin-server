@@ -37,7 +37,7 @@ export class ApplicationsService {
         }
       } catch (error) {
         console.error('Error fetching application data:', error.message);
-        throw new Error('Failed to fetch application data');
+        throw new Error('Failed to fetch application data', error);
       }
 
       // Fetch all required data in parallel
@@ -135,14 +135,14 @@ export class ApplicationsService {
     }
 
     try {
-      const applicationsUrl = `http://localhost:8080/api/v1/get-applications/${applicationId}`;
+      const applicationsUrl = `https://web.f2fintech.in/api/v1/get-applications/${applicationId}`;
       const applicationsResponse = await firstValueFrom(
         this.httpService.get(applicationsUrl),
       );
       const applicationsData = applicationsResponse.data.data;
 
       if (!applicationsData || applicationsData.length === 0) {
-        throw new Error('No application data found');
+        throw new Error('No application data found',applicationsUrl);
       }
 
       console.log('Fetched Applications Data Length:', applicationsData.length);
@@ -190,9 +190,9 @@ export class ApplicationsService {
     } catch (error) {
       console.error(
         'An Error Occurred in getApplicationsAsTickets:',
-        error.message,
+        error,applicationId
       );
-      throw new Error('Failed to fetch applications as tickets');
+      throw new Error('Failed to fetch applications as tickets', error);
     }
   }
 
@@ -252,7 +252,7 @@ export class ApplicationsService {
 
   private async fetchCustomerData(customerId: string): Promise<any> {
     try {
-      const customerUrl = `http://localhost:8080/api/v1/get-customer/${customerId}`;
+      const customerUrl = `https://web.f2fintech.in/api/v1/get-customer/${customerId}`;
       const customerResponse = await firstValueFrom(
         this.httpService.get(customerUrl),
       );
@@ -268,7 +268,7 @@ export class ApplicationsService {
 
   private async fetchAllCustomerDocuments(customerId: string): Promise<any> {
     try {
-      const documentUrl = `http://localhost:8080/api/v1/get-customer-documents/${customerId}`;
+      const documentUrl = `https://web.f2fintech.in/api/v1/get-customer-documents/${customerId}`;
       const documentResponse = await firstValueFrom(
         this.httpService.get(documentUrl),
       );
@@ -286,7 +286,7 @@ export class ApplicationsService {
 
   private async fetchCustomerDocument(customerId: string): Promise<any> {
     try {
-      const documentUrl = `http://localhost:8080/api/v1/get-customer-document/${customerId}`;
+      const documentUrl = `https://web.f2fintech.in/api/v1/get-customer-document/${customerId}`;
       const documentResponse = await firstValueFrom(
         this.httpService.get(documentUrl),
       );
@@ -302,7 +302,7 @@ export class ApplicationsService {
 
   private async fetchCustomerInfo(customerId: string): Promise<any> {
     try {
-      const locationUrl = `http://localhost:8080/api/v1/customer-info/${customerId}`;
+      const locationUrl = `https://web.f2fintech.in/api/v1/customer-info/${customerId}`;
       const locationResponse = await firstValueFrom(
         this.httpService.get(locationUrl),
       );
@@ -318,7 +318,7 @@ export class ApplicationsService {
 
   private async fetchLoanTrackingStatus(applicationId: string): Promise<any> {
     try {
-      const statusUrl = `http://localhost:8080/api/v1/get-loan-tracking-by-id/${applicationId}`;
+      const statusUrl = `https://web.f2fintech.in/api/v1/get-loan-tracking-by-id/${applicationId}`;
       const statusResponse = await firstValueFrom(
         this.httpService.get(statusUrl),
       );
