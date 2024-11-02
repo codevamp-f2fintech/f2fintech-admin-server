@@ -32,7 +32,8 @@ export class ApplicationsController {
         await this.applicationsService.getApplicationsAsTickets(applicationId);
       return { success: true, data: data || [] };
     } catch (error) {
-      return { success: false, message: error.message };
+      console.error(`Error in Controller for application ID ${applicationId}:`, error.message);
+      // return { success: false, message: error.message };
     }
   }
 

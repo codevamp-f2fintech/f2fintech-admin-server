@@ -134,11 +134,13 @@ export class ApplicationsService {
       return null;
     }
     const applicationsUrl = `https://web.f2fintech.in/api/v1/get-applications/${applicationId}`;
+    console.log(`Fetching applications from URL: ${applicationsUrl}`);
 
     try {
       const applicationsResponse = await firstValueFrom(
         this.httpService.get(applicationsUrl),
       );
+      console.log('Applications Response:', applicationsResponse.data);
       const applicationsData = applicationsResponse.data.data;
 
       if (!applicationsData || applicationsData.length === 0) {
@@ -188,11 +190,9 @@ export class ApplicationsService {
 
       return combinedDataList.filter((item) => item !== null);
     } catch (error) {
-      console.error(
-        applicationsUrl, 'An Error Occurred in getApplicationsAsTickets:',
-        error
-      );
-      throw new Error('Failed to fetch applications as tickets');
+      console.error(`An Error Occurred in getApplicationsAsTickets:`, error);
+      console.error(`Error Details: ${error.response ? error.response.data : error.message}`);
+      // throw new Error('Failed to fetch applications as tickets');
     }
   }
 
