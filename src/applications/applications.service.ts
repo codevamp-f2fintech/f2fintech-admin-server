@@ -190,7 +190,7 @@ export class ApplicationsService {
 
       return combinedDataList.filter((item) => item !== null);
     } catch (error) {
-      console.error(`An Error Occurred in getApplicationsAsTickets:`, error);
+      // console.error(`An Error Occurred in getApplicationsAsTickets:`, error);
       console.error(`Error Details: ${error.response ? error.response.data : error.message}`);
       // throw new Error('Failed to fetch applications as tickets');
     }
