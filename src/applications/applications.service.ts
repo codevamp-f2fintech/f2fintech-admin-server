@@ -222,6 +222,7 @@ export class ApplicationsService {
             customerDocuments.length > 0
               ? customerDocuments
               : 'No documents available',
+          success: true
         };
       } catch (error) {
         console.error(`Error fetching details:`, error.message);

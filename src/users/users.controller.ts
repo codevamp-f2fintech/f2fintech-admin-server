@@ -20,7 +20,7 @@ import { Role } from 'src/common/enum/role.enum';
 @Controller('api/v1/')
 @UseGuards(RolesGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Post('create-user')
   @Roles(Role.Admin)
@@ -41,10 +41,8 @@ export class UsersController {
   }
 
   @Post('login')
-  // @Roles(Role.Admin)
-  // @Roles(Role.Sales)
+  @Roles(Role.Admin, Role.Sales)
   async login(@Body() loginUserDto: LoginUserDto) {
-    console.log('loginUserDto', loginUserDto);
     try {
       const token = await this.usersService.login(loginUserDto);
       return ResponseFormatter.success(200, 'Login successful', { token });
