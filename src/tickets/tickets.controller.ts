@@ -20,7 +20,7 @@ import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 @Controller('api/v1/')
 @UseGuards(RolesGuard)
 export class TicketsController {
-  constructor(private readonly ticketsService: TicketsService) {}
+  constructor(private readonly ticketsService: TicketsService) { }
 
   @Post('create-ticket')
   // @Roles(Role.Admin, Role.Sales)
@@ -40,9 +40,9 @@ export class TicketsController {
     }
   }
 
-  @Get('get-all-tickets/:userId')
+  @Get('get-all-tickets/:userId?')
   // @Roles(Role.Admin, Role.Sales)
-  async findAll(@Param('userId') userId: number) {
+  async findAll(@Param('userId') userId?: number) {
     try {
       const tickets = await this.ticketsService.findAllByUserId(userId);
       return ResponseFormatter.success(

@@ -17,11 +17,11 @@ export class TicketsService {
     return await this.ticketRepository.save(newTicket);
   }
 
-  async findAllByUserId(userId: number) {
-    return await this.ticketRepository.find({
-      where: { user_id: userId },
-    });
+  async findAllByUserId(userId?: number) {
+    const condition = userId ? { where: { user_id: userId } } : {};
+    return await this.ticketRepository.find(condition);
   }
+
 
   async findOne(id: number): Promise<Ticket> {
     const ticket = await this.ticketRepository.findOne({ where: { id } });
