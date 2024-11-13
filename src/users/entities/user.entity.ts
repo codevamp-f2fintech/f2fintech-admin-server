@@ -13,9 +13,8 @@ export enum Status {
 
 export enum Role {
   ADMIN = 'admin',
-  SALES = 'sales',
+  AGENT = 'agent',
 }
-
 @Entity('users')
 @Unique(['email'])
 export class User {
@@ -54,7 +53,7 @@ export class User {
   @Column({
     type: 'enum',
     enum: Role,
-    default: Role.SALES,
+    default: Role.AGENT,
   })
   role: Role;
 
