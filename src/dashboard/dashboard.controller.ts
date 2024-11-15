@@ -10,7 +10,6 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) { }
 
   @Get('agents/count')
-  // @Roles(Role.Admin) // Uncomment to restrict access to admin role only
   async findAgentCount() {
     try {
       const count = await this.dashboardService.findAgentCount();
