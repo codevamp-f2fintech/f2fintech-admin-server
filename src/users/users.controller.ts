@@ -23,7 +23,6 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   @Post('create-user')
-  @Roles(Role.Admin)
   async create(@Body() createUserDto: CreateUserDto) {
     try {
       const newUser = await this.usersService.create(createUserDto);
@@ -41,7 +40,6 @@ export class UsersController {
   }
 
   @Post('login')
-  @Roles(Role.Admin, Role.Sales)
   async login(@Body() loginUserDto: LoginUserDto) {
     try {
       const token = await this.usersService.login(loginUserDto);
