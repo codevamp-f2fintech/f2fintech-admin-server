@@ -3,8 +3,6 @@ import { BadRequestException, Controller, Get, Param, Query, UseGuards } from '@
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 import { DashboardService } from './dashboard.service';
 import { RolesGuard } from 'src/common/guards/roles.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { Role } from 'src/common/enum/role.enum';
 
 @Controller('api/v1/dashboard')
 @UseGuards(RolesGuard)
@@ -12,7 +10,6 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) { }
 
   @Get('agents/count')
-  @Roles(Role.Admin)
   async findAgentCount() {
     try {
       const count = await this.dashboardService.findAgentCount();
@@ -30,7 +27,6 @@ export class DashboardController {
   }
 
   @Get('tickets/count/:idOrStatus?/:status?')
-  @Roles(Role.Admin, Role.Agent)
   async findTicketsCount(
     @Param('idOrStatus') idOrStatus?: string,
     @Param('status') status?: string,
