@@ -30,7 +30,7 @@ export class DashboardController {
   }
 
   @Get('tickets/count/:idOrStatus?/:status?')
-  @Roles(Role.Admin, Role.Sales)
+  @Roles(Role.Admin, Role.Agent)
   async findTicketsCount(
     @Param('idOrStatus') idOrStatus?: string,
     @Param('status') status?: string,

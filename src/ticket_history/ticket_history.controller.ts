@@ -15,7 +15,6 @@ export class TicketHistoryController {
   constructor(private readonly ticketHistoryService: TicketHistoryService) { }
 
   @Post('create-ticket-history')
-  @Roles(Role.Admin, Role.Sales)
   async create(@Body() createTicketHistoryDto: CreateTicketHistoryDto) {
     try {
       const newHistory = await this.ticketHistoryService.create(
@@ -35,7 +34,6 @@ export class TicketHistoryController {
   }
 
   @Get('get-ticket-histories/:ticketId')
-  @Roles(Role.Admin, Role.Sales)
   async findAll(@Param('ticketId') ticketId: number) {
     try {
       const histories = await this.ticketHistoryService.findAllByTicketId(ticketId);

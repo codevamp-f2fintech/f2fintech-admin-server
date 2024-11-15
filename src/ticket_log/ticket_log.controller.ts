@@ -15,7 +15,6 @@ export class TicketLogController {
   constructor(private readonly ticketLogService: TicketLogService) { }
 
   @Post('create-ticket-log')
-  @Roles(Role.Admin, Role.Sales)
   async create(@Body() createTicketLogDto: CreateTicketLogDto) {
     try {
       const newLog = await this.ticketLogService.create(
@@ -35,7 +34,7 @@ export class TicketLogController {
   }
 
   @Get('get-ticket-logs/:ticketId')
-  @Roles(Role.Admin, Role.Sales)
+  @Roles(Role.Admin, Role.Agent)
   async findAll(@Param('ticketId') ticketId: number) {
     try {
       const logs = await this.ticketLogService.findAllByTicketId(ticketId);

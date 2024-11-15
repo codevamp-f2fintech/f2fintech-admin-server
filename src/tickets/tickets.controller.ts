@@ -23,7 +23,6 @@ export class TicketsController {
   constructor(private readonly ticketsService: TicketsService) {}
 
   @Post('create-ticket')
-  @Roles(Role.Admin, Role.Sales)
   async create(@Body() createTicketDto: CreateTicketDto) {
     try {
       const newTicket = await this.ticketsService.create(createTicketDto);
@@ -41,7 +40,6 @@ export class TicketsController {
   }
 
   @Get('get-all-tickets/:userId?')
-  @Roles(Role.Admin, Role.Sales)
   async findAll(@Param('userId') userId?: number) {
     try {
       const tickets = await this.ticketsService.findAllByUserId(userId);
@@ -59,7 +57,7 @@ export class TicketsController {
   }
 
   @Get('get-ticket/:ticketId')
-  @Roles(Role.Admin, Role.Sales)
+  @Roles(Role.Admin, Role.Agent)
   async findOne(@Param('ticketId') ticketId: string) {
     try {
       const ticket = await this.ticketsService.findOne(+ticketId);
@@ -77,7 +75,7 @@ export class TicketsController {
   }
 
   @Get('get-by-application-id/:applicationId')
-  @Roles(Role.Admin, Role.Sales)
+  @Roles(Role.Admin, Role.Agent)
   async findByApplicationId(@Param('applicationId') applicationId: number) {
     try {
       const ticket =
@@ -96,7 +94,7 @@ export class TicketsController {
   }
 
   @Patch('update-ticket/:ticketId')
-  @Roles(Role.Admin, Role.Sales)
+  @Roles(Role.Admin, Role.Agent)
   async update(
     @Param('ticketId') ticketId: number,
     @Body() updateTicketDto: UpdateTicketDto,

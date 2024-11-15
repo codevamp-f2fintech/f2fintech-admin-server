@@ -23,7 +23,6 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   @Post('create-user')
-  @Roles(Role.Admin)
   async create(@Body() createUserDto: CreateUserDto) {
     try {
       const newUser = await this.usersService.create(createUserDto);
@@ -41,7 +40,7 @@ export class UsersController {
   }
 
   @Post('login')
-  @Roles(Role.Admin, Role.Sales)
+  @Roles(Role.Admin, Role.Agent)
   async login(@Body() loginUserDto: LoginUserDto) {
     console.log('loginUserDto', loginUserDto);
     try {
@@ -74,7 +73,7 @@ export class UsersController {
   }
 
   @Get('get-by-id/:id')
-  @Roles(Role.Admin, Role.Sales)
+  @Roles(Role.Admin, Role.Agent)
   async findOne(@Param('id') id: number) {
     try {
       const user = await this.usersService.findOne(id);
