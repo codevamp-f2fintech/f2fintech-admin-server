@@ -41,7 +41,7 @@ export class TicketsController {
   }
 
   @Get('get-all-tickets/:userId?')
-  // @Roles(Role.Admin, Role.Sales)
+  @Roles(Role.Admin, Role.Sales)
   async findAll(@Param('userId') userId?: number) {
     try {
       const tickets = await this.ticketsService.findAllByUserId(userId);
@@ -96,7 +96,7 @@ export class TicketsController {
   }
 
   @Patch('update-ticket/:ticketId')
-  // @Roles(Role.Admin, Role.Sales)
+  @Roles(Role.Admin, Role.Sales)
   async update(
     @Param('ticketId') ticketId: number,
     @Body() updateTicketDto: UpdateTicketDto,
