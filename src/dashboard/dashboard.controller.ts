@@ -1,8 +1,8 @@
 import { BadRequestException, Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
-import { DashboardService } from './dashboard.service';
+
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
+import { DashboardService } from './dashboard.service';
 import { RolesGuard } from 'src/common/guards/roles.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
 
 @Controller('api/v1/dashboard')
 @UseGuards(RolesGuard)
@@ -27,7 +27,6 @@ export class DashboardController {
   }
 
   @Get('tickets/count/:idOrStatus?/:status?')
-  // @Roles(Role.Admin, Role.Sales)
   async findTicketsCount(
     @Param('idOrStatus') idOrStatus?: string,
     @Param('status') status?: string,
@@ -48,7 +47,6 @@ export class DashboardController {
         count = await this.dashboardService.findTicketsCount();
       }
 
-      // console.log('COUNT', idOrStatus, status, count);
       return ResponseFormatter.success(
         200,
         'Tickets count retrieved successfully',
@@ -71,7 +69,6 @@ export class DashboardController {
 
     try {
       const result = await this.dashboardService.getTotalTicketsByMonth(yearInt);
-      // console.log('Total tickets by month', result);
       return ResponseFormatter.success(200, 'Total tickets by month retrieved successfully', result);
     } catch (error) {
       return ResponseFormatter.error(
@@ -90,7 +87,6 @@ export class DashboardController {
 
     try {
       const result = await this.dashboardService.getDoneTicketsByMonth(yearInt);
-      // console.log('Done tickets by month', result);
       return ResponseFormatter.success(200, 'Done tickets by month retrieved successfully', result);
     } catch (error) {
       return ResponseFormatter.error(

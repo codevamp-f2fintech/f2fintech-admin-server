@@ -70,7 +70,6 @@ export class UsersController {
   }
 
   @Get('get-by-id/:id')
-  @Roles(Role.Admin, Role.Sales)
   async findOne(@Param('id') id: number) {
     try {
       const user = await this.usersService.findOne(id);

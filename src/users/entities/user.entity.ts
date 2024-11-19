@@ -15,7 +15,6 @@ export enum Role {
   ADMIN = 'admin',
   AGENT = 'agent',
 }
-
 @Entity('users')
 @Unique(['email'])
 export class User {

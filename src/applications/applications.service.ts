@@ -7,6 +7,16 @@ import { Repository } from 'typeorm';
 import { Application } from './entities/applications.entity';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 
+
+export interface PaginationResult<T> {
+  results: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  errorMessage?: string;
+}
+
 @Injectable()
 export class ApplicationsService {
   constructor(
@@ -16,43 +26,52 @@ export class ApplicationsService {
   ) { }
 
   async getApplicationData(
-    page: number = 1,
-    offset: number = 6,
-    conditionObj: Record<string, any> = {},
-  ): Promise<any> {
+    page: number,
+    limit: number
+  ): Promise<{
+    results: any[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     try {
-      // Fetch all applications
-      let applicationsResponse: any;
-      try {
-        const skip = (page - 1) * offset;
-        applicationsResponse = await this.applicationRepository.find({
-          skip,
-          take: offset,
-          where: {
-            is_picked: 0,     // Only fetch applications where is_picked is false (0)
-          },
-        });
-        if (!applicationsResponse || applicationsResponse.length === 0) {
-          throw new Error('No application data found');
-        }
-      } catch (error) {
-        console.error('Error fetching application data:', error.message);
-        throw new Error('Failed to fetch application data');
-      }
+      const skip = (page - 1) * limit;
 
-      // Fetch all required data in parallel
-      const combinedDataList = await Promise.all(
+      // Fetch total count of applications
+      const total = await this.applicationRepository.count({
+        where: {
+          is_picked: 0, // Count applications where is_picked is 0
+        }
+      });
+      if (total === 0) {
+        return {
+          results: [],
+          total: 0,
+          page,
+          limit,
+          totalPages: 0,
+        };
+      }
+      // Fetch paginated applications
+      const applicationsResponse = await this.applicationRepository.find({
+        where: { is_picked: 0 },
+        skip,
+        take: limit,
+      });
+
+      // Map and process application details
+      const results = await Promise.all(
         applicationsResponse.map(async (application) => {
           const customerId = application.customer_id;
           const applicationId = application.id;
+
           if (!customerId) {
-            console.error(
-              `Customer ID not found for application: ${application.id}`,
-            );
+            console.error(`Customer ID not found for application: ${application.id}`);
             return null;
           }
+
           try {
-            // Fetch customer details, document, and location info in parallel
             const [
               customerData,
               customerDocument,
@@ -80,53 +99,27 @@ export class ApplicationsService {
               Location: customerInfo?.city ?? 'No location available',
             };
           } catch (error) {
-            console.error(
-              `Error fetching details for application ${applicationId}:`,
-              error.message,
-            );
+            console.error(`Error fetching details for application ${applicationId}:`, error.message);
             return null;
           }
-        }),
+        })
       );
 
-      // Filter out any null values and apply conditionObj filters
-      const filteredData = combinedDataList
-        .filter((data) => data !== null)
-        .filter((data) => {
-          if (Object.keys(conditionObj).length > 0) {
-            return Object.keys(conditionObj).every((key) => {
-              if (key in data) {
-                return data[key]
-                  .toString()
-                  .toLowerCase()
-                  .includes(conditionObj[key].toString().toLowerCase());
-              }
-              return false;
-            });
-          }
-          return true;
-        });
-
-      // Pagination logic: Calculate start and end indices
-      const startIndex = (page - 1) * offset;
-      const endIndex = startIndex + offset;
-
-      // Slice the filtered data to get the paginated data
-      const paginatedData = filteredData.slice(startIndex, endIndex);
-
-      const hasMoreData = endIndex < filteredData.length;
-
-      // Return the paginated data, total count, and if more data is available
+      // Filter out null results
+      const filteredResults = results.filter((data) => data !== null);
       return {
-        data: paginatedData,
-        totalCount: filteredData.length,
-        hasMore: hasMoreData,
+        results: filteredResults,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       };
     } catch (error) {
-      console.error('Error fetching Application data:', error.message);
+      console.error('Error fetching paginated application data:', error.message);
       throw error;
     }
   }
+
 
   async getApplicationsAsTickets(applicationId: string): Promise<any> {
     if (!applicationId) {
@@ -201,8 +194,8 @@ export class ApplicationsService {
   }
 
   async getCustomerStatusAndDocuments(
-    customerId: string,
-    applicationId: string,
+    customerId: number,
+    applicationId: number,
   ): Promise<any> {
     try {
       if (!customerId || !applicationId) {
@@ -251,7 +244,7 @@ export class ApplicationsService {
   }
 
 
-  private async fetchCustomerData(customerId: string): Promise<any> {
+  private async fetchCustomerData(customerId: number): Promise<any> {
     try {
       const customerUrl = `https://web.f2fintech.in/api/v1/get-customer/${customerId}`;
       const customerResponse = await firstValueFrom(
@@ -267,7 +260,7 @@ export class ApplicationsService {
     }
   }
 
-  private async fetchAllCustomerDocuments(customerId: string): Promise<any> {
+  private async fetchAllCustomerDocuments(customerId: number): Promise<any> {
     try {
       const documentUrl = `https://web.f2fintech.in/api/v1/get-customer-documents/${customerId}`;
       const documentResponse = await firstValueFrom(
@@ -285,7 +278,7 @@ export class ApplicationsService {
     }
   }
 
-  private async fetchCustomerDocument(customerId: string): Promise<any> {
+  private async fetchCustomerDocument(customerId: number): Promise<any> {
     try {
       const documentUrl = `https://web.f2fintech.in/api/v1/get-customer-document/${customerId}`;
       const documentResponse = await firstValueFrom(
@@ -301,7 +294,7 @@ export class ApplicationsService {
     }
   }
 
-  private async fetchCustomerInfo(customerId: string): Promise<any> {
+  private async fetchCustomerInfo(customerId: number): Promise<any> {
     try {
       const locationUrl = `https://web.f2fintech.in/api/v1/customer-info/${customerId}`;
       const locationResponse = await firstValueFrom(
@@ -317,7 +310,7 @@ export class ApplicationsService {
     }
   }
 
-  private async fetchLoanTrackingStatus(applicationId: string): Promise<any> {
+  private async fetchLoanTrackingStatus(applicationId: number): Promise<any> {
     try {
       const statusUrl = `https://web.f2fintech.in/api/v1/get-loan-tracking-by-id/${applicationId}`;
       const statusResponse = await firstValueFrom(
