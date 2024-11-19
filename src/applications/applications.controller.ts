@@ -9,17 +9,20 @@ export class ApplicationsController {
 
   @Get('get-loan-applications')
   async getLoanApplications(
-    @Query('page') page: number = 1,
-    @Query('offset') offset: number = 6,
+    @Query('page') page: number,
+    @Query('limit') limit: number
   ): Promise<any> {
     try {
-      const data = await this.applicationsService.getApplicationData(
-        page,
-        offset,
-      );
-      return { success: true, data: data.data, totalCount: data.totalCount };
+      return await this.applicationsService.getApplicationData(page, limit);
     } catch (error) {
-      return { success: false, message: error.message };
+      return {
+        results: [],
+        total: 0,
+        page,
+        limit,
+        totalPages: 0,
+        errorMessage: error.message
+      };
     }
   }
 
@@ -55,8 +58,8 @@ export class ApplicationsController {
 
   @Get('get-status-and-documents/:customerId/:applicationId')
   async getStatusAndDocuments(
-    @Param('customerId') customerId: string,
-    @Param('applicationId') applicationId: string,
+    @Param('customerId') customerId: number,
+    @Param('applicationId') applicationId: number,
   ): Promise<any> {
     try {
       const data = await this.applicationsService.getCustomerStatusAndDocuments(
