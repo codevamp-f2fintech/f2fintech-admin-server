@@ -3,13 +3,14 @@ import * as bcrypt from 'bcryptjs';
 import {
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 
-import { User } from './entities/user.entity';
+import { Status, User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -21,7 +22,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async create(createUserDto: CreateUserDto) {
     const { password, email } = createUserDto;
@@ -72,8 +73,39 @@ export class UsersService {
     return access_token;
   }
 
-  async findAll(): Promise<User[]> {
-    return await this.userRepository.find();
+  async findAll(
+    page: number,
+    limit: number
+  ): Promise<{
+    results: any[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    const skip = (page - 1) * limit;
+
+    // Fetch paginated results
+    const [results, total] = await Promise.all([
+      this.userRepository.find({
+        where: { status: Status.ACTIVE }, // Fetch users with active status
+        skip,                             // Offset for pagination
+        take: limit,                      // Limit for pagination
+      }),
+      this.userRepository.count({
+        where: {
+          status: Status.ACTIVE, // Count users where status is active
+        }
+      })
+    ]);
+
+    return {
+      results,                       // The paginated results
+      total,                         // The total number of documents
+      page,                          // Current page
+      limit,                         // Limit per page
+      totalPages: Math.ceil(total / limit), // Calculate total pages
+    };
   }
 
   async findOne(id: number): Promise<User> {
@@ -82,8 +114,24 @@ export class UsersService {
     });
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    await this.userRepository.update(id, updateUserDto);
+  async update(updateUserDto: UpdateUserDto): Promise<User> {
+    const { id, password, ...updateFields } = updateUserDto;
+    // Ensure the user exists before updating
+    const user = await this.findOne(id);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    // mutable updateData object
+    const updateData: Partial<User> = { ...updateFields };
+    // Hash the password if it's provided in the payload
+    if (password) {
+      const hashedPassword = await this.generateHashedPassword(password);
+      updateData.password = hashedPassword;
+    }
+
+    // Update the user with the provided fields
+    await this.userRepository.update(id, updateData);
+    // Fetch and return the updated user
     return this.findOne(id);
   }
 }

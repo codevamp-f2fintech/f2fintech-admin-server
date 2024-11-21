@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 
 import { UsersService } from './users.service';
@@ -53,19 +54,21 @@ export class UsersController {
   }
 
   @Get('get-users')
-  async findAll() {
+  async findAll(
+    @Query('page') page: number,
+    @Query('limit') limit: number
+  ): Promise<any> {
     try {
-      const users = await this.usersService.findAll();
-      return ResponseFormatter.success(
-        200,
-        'Users retrieved successfully',
-        users,
-      );
+      return await this.usersService.findAll(page, limit);
     } catch (error) {
-      return ResponseFormatter.error(
-        error.status || 500,
-        error.message || 'Internal server error',
-      );
+      return {
+        results: [],
+        total: 0,
+        page,
+        limit,
+        totalPages: 0,
+        errorMessage: error.message
+      };
     }
   }
 
@@ -85,11 +88,11 @@ export class UsersController {
       );
     }
   }
-  @Patch('update-user/:id')
-  @Roles(Role.Admin)
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  
+  @Patch('update-user')
+  async update(@Body() updateUserDto: UpdateUserDto) {
     try {
-      const updatedUser = await this.usersService.update(+id, updateUserDto);
+      const updatedUser = await this.usersService.update(updateUserDto);
       return ResponseFormatter.success(
         200,
         'User updated successfully',

@@ -75,7 +75,6 @@ export class ApplicationsController {
   }
 
   @Patch('update-loan-application/:id')
-  // @Roles(Role.Admin, Role.Sales)
   async update(
     @Param('id') id: number,
     @Body() updateApplicationDto: UpdateApplicationDto,
