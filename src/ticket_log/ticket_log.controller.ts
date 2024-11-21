@@ -34,7 +34,6 @@ export class TicketLogController {
   }
 
   @Get('get-ticket-logs/:ticketId')
-  @Roles(Role.Admin, Role.Agent)
   async findAll(@Param('ticketId') ticketId: number) {
     try {
       const logs = await this.ticketLogService.findAllByTicketId(ticketId);

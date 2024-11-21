@@ -22,7 +22,6 @@ export class TicketActivitiesController {
   constructor(private readonly activitiesService: ActivitiesService) { }
 
   @Post('create-ticket-activity')
-  //@Roles(Role.Admin, Role.Sales) 
   async create(@Body() createTicketActivityDto: CreateTicketActivityDto) {
     try {
       const newActivity = await this.activitiesService.create(createTicketActivityDto);
@@ -40,7 +39,6 @@ export class TicketActivitiesController {
   }
 
   @Get('get-all-ticket-activities/:ticketId')
-  // @Roles(Role.Admin, Role.Sales) // Uncomment if you want to enforce roles
   async findAll(@Param('ticketId') ticketId: number) {
     try {
       const activities = await this.activitiesService.findAllByTicketId(ticketId);

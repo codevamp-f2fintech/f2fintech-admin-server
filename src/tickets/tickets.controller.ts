@@ -57,7 +57,6 @@ export class TicketsController {
   }
 
   @Get('get-ticket/:ticketId')
-  @Roles(Role.Admin, Role.Agent)
   async findOne(@Param('ticketId') ticketId: string) {
     try {
       const ticket = await this.ticketsService.findOne(+ticketId);
@@ -75,7 +74,6 @@ export class TicketsController {
   }
 
   @Get('get-by-application-id/:applicationId')
-  @Roles(Role.Admin, Role.Agent)
   async findByApplicationId(@Param('applicationId') applicationId: number) {
     try {
       const ticket =
@@ -94,7 +92,6 @@ export class TicketsController {
   }
 
   @Patch('update-ticket/:ticketId')
-  @Roles(Role.Admin, Role.Agent)
   async update(
     @Param('ticketId') ticketId: number,
     @Body() updateTicketDto: UpdateTicketDto,

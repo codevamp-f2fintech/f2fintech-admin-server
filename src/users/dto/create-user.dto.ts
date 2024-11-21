@@ -6,12 +6,16 @@ import {
   IsOptional,
   Length,
 } from 'class-validator';
+import { PrimaryGeneratedColumn } from 'typeorm';
 import { Gender, Role } from '../entities/user.entity';
 import { Status } from '../entities/user.entity';
 
 export class CreateUserDto {
+  @PrimaryGeneratedColumn()
+  id: number;
+
   @IsString()
-  @Length(1, 100)
+  @Length(50)
   username: string;
 
   @IsString()

@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 
 import { UsersService } from './users.service';
@@ -40,9 +41,7 @@ export class UsersController {
   }
 
   @Post('login')
-  @Roles(Role.Admin, Role.Agent)
   async login(@Body() loginUserDto: LoginUserDto) {
-    console.log('loginUserDto', loginUserDto);
     try {
       const token = await this.usersService.login(loginUserDto);
       return ResponseFormatter.success(200, 'Login successful', { token });
@@ -55,24 +54,25 @@ export class UsersController {
   }
 
   @Get('get-users')
-  async findAll() {
+  async findAll(
+    @Query('page') page: number,
+    @Query('limit') limit: number
+  ): Promise<any> {
     try {
-      const users = await this.usersService.findAll();
-      return ResponseFormatter.success(
-        200,
-        'Users retrieved successfully',
-        users,
-      );
+      return await this.usersService.findAll(page, limit);
     } catch (error) {
-      return ResponseFormatter.error(
-        error.status || 500,
-        error.message || 'Internal server error',
-      );
+      return {
+        results: [],
+        total: 0,
+        page,
+        limit,
+        totalPages: 0,
+        errorMessage: error.message
+      };
     }
   }
 
   @Get('get-by-id/:id')
-  @Roles(Role.Admin, Role.Agent)
   async findOne(@Param('id') id: number) {
     try {
       const user = await this.usersService.findOne(id);
@@ -88,11 +88,11 @@ export class UsersController {
       );
     }
   }
-  @Patch('update-user/:id')
-  @Roles(Role.Admin)
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  
+  @Patch('update-user')
+  async update(@Body() updateUserDto: UpdateUserDto) {
     try {
-      const updatedUser = await this.usersService.update(+id, updateUserDto);
+      const updatedUser = await this.usersService.update(updateUserDto);
       return ResponseFormatter.success(
         200,
         'User updated successfully',
