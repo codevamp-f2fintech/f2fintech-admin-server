@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 
 import { TicketsService } from './tickets.service';
@@ -40,9 +41,12 @@ export class TicketsController {
   }
 
   @Get('get-all-tickets/:userId?')
-  async findAll(@Param('userId') userId?: number) {
+  async findAll(
+    @Param('userId') userId?: number,
+    @Query('isAgent') isAgent: boolean = false
+  ) {
     try {
-      const tickets = await this.ticketsService.findAllByUserId(userId);
+      const tickets = await this.ticketsService.findAllByUserId(userId, isAgent);
       return ResponseFormatter.success(
         200,
         'Tickets retrieved successfully',

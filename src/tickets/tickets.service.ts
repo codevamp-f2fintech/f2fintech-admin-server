@@ -17,11 +17,23 @@ export class TicketsService {
     return await this.ticketRepository.save(newTicket);
   }
 
-  async findAllByUserId(userId?: number) {
-    const condition = userId ? { where: { user_id: userId } } : {};
-    return await this.ticketRepository.find(condition);
-  }
+  async findAllByUserId(userId?: number, isAgent?: boolean) {
+    if (!userId) {
+      // If no userId is provided, return all tickets
+      return await this.ticketRepository.find();
+    }
 
+    const query = this.ticketRepository.createQueryBuilder('ticket');
+    if (isAgent) {
+      // For agents, include tickets where user_id or forwarded_to matches
+      query.where('ticket.user_id = :userId', { userId })
+        .orWhere('ticket.forwarded_to = :userId', { userId });
+    } else {
+      // For non-agents, filter only by user_id
+      query.where('ticket.user_id = :userId', { userId });
+    }
+    return await query.getMany();
+  }
 
   async findOne(id: number): Promise<Ticket> {
     const ticket = await this.ticketRepository.findOne({ where: { id } });
