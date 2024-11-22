@@ -24,13 +24,15 @@ export class TicketsService {
     }
 
     const query = this.ticketRepository.createQueryBuilder('ticket');
+    // Exclude Tickets where the current agent has forwarded them
     if (isAgent) {
-      // For agents, include tickets where user_id or forwarded_to matches
-      query.where('ticket.user_id = :userId', { userId })
-        .orWhere('ticket.forwarded_to = :userId', { userId });
+      query
+        .where('ticket.user_id = :userId', { userId })
+        .orWhere('ticket.forwarded_to = :userId', { userId })
+        .andWhere('ticket.status != :status', { status: 'forwarded' }); // Exclude tickets with status 'forwarded'
     } else {
-      // For non-agents, filter only by user_id
-      query.where('ticket.user_id = :userId', { userId });
+      query
+        .where('ticket.user_id = :userId', { userId });
     }
     return await query.getMany();
   }
