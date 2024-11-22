@@ -27,7 +27,16 @@ export class DashboardService {
       where.user_id = id;
     }
     if (status) {
-      where.status = status;
+      if (status === "forwarded" && id) {
+        // Use query builder for OR condition
+        return this.ticketRepository
+          .createQueryBuilder('ticket')
+          .where('ticket.status = :status', { status })
+          .andWhere('ticket.forwarded_to = :id', { id })
+          .getCount();
+      } else {
+        where.status = status;
+      }
     }
 
     // Return count based on the conditions in 'where'
