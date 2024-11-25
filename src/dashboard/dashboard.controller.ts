@@ -1,4 +1,11 @@
-import { BadRequestException, Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Param,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 import { DashboardService } from './dashboard.service';
@@ -7,7 +14,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 @Controller('api/v1/dashboard')
 @UseGuards(RolesGuard)
 export class DashboardController {
-  constructor(private readonly dashboardService: DashboardService) { }
+  constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('agents/count')
   async findAgentCount() {
@@ -31,11 +38,15 @@ export class DashboardController {
     @Param('idOrStatus') idOrStatus?: string,
     @Param('status') status?: string,
   ) {
+    console.log('idOrStatus and status>>>', idOrStatus, status);
     try {
       let count = 0;
       if (idOrStatus && status) {
         // idOrStatus is treated as an ID, and status is provided
-        count = await this.dashboardService.findTicketsCount(idOrStatus, status);
+        count = await this.dashboardService.findTicketsCount(
+          idOrStatus,
+          status,
+        );
       } else if (idOrStatus && !isNaN(Number(idOrStatus))) {
         // idOrStatus is a number, so treat it as an ID with no status
         count = await this.dashboardService.findTicketsCount(idOrStatus);
@@ -68,8 +79,13 @@ export class DashboardController {
     }
 
     try {
-      const result = await this.dashboardService.getTotalTicketsByMonth(yearInt);
-      return ResponseFormatter.success(200, 'Total tickets by month retrieved successfully', result);
+      const result =
+        await this.dashboardService.getTotalTicketsByMonth(yearInt);
+      return ResponseFormatter.success(
+        200,
+        'Total tickets by month retrieved successfully',
+        result,
+      );
     } catch (error) {
       return ResponseFormatter.error(
         error.status || 500,
@@ -87,7 +103,11 @@ export class DashboardController {
 
     try {
       const result = await this.dashboardService.getDoneTicketsByMonth(yearInt);
-      return ResponseFormatter.success(200, 'Done tickets by month retrieved successfully', result);
+      return ResponseFormatter.success(
+        200,
+        'Done tickets by month retrieved successfully',
+        result,
+      );
     } catch (error) {
       return ResponseFormatter.error(
         error.status || 500,

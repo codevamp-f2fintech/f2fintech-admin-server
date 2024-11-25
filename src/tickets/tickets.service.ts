@@ -5,36 +5,85 @@ import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { Ticket } from './entities/ticket.entity';
 
+export enum Status {
+  TO_DO = 'to do',
+  IN_PROGRESS = 'in progress',
+  ON_HOLD = 'on hold',
+  DONE = 'done',
+  CLOSE = 'close',
+}
+
 @Injectable()
 export class TicketsService {
   constructor(
     @InjectRepository(Ticket)
     private readonly ticketRepository: Repository<Ticket>,
-  ) { }
+  ) {}
 
   async create(createUserDto: CreateTicketDto): Promise<Ticket> {
     const newTicket = this.ticketRepository.create(createUserDto);
     return await this.ticketRepository.save(newTicket);
   }
 
-  async findAllByUserId(userId?: number, isAgent?: boolean) {
-    if (!userId) {
-      // If no userId is provided, return all tickets
-      return await this.ticketRepository.find();
+  async findAllByUserId(
+    page: number,
+    limit: number,
+    userId?: number,
+    isAgent?: boolean,
+    status?: string,
+  ): Promise<{
+    results: any[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    const skip = (page - 1) * limit; // Calculate offset for pagination
+    const query = this.ticketRepository.createQueryBuilder('ticket');
+
+    // Apply filters based on parameters
+    if (userId) {
+      if (isAgent) {
+        if (status === 'forwarded') {
+          query
+            .where('ticket.forwarded_to = :userId', { userId })
+            .andWhere('ticket.status = :status', { status });
+        } else {
+          query
+            .where('ticket.user_id = :userId', { userId })
+            .andWhere('ticket.status = :status', { status });
+        }
+      } else {
+        if (status === 'forwarded') {
+          query
+            .where('ticket.forwarded_to = :userId', { userId })
+            .andWhere('ticket.status = :status', { status });
+        } else {
+          query
+            .where('ticket.user_id = :userId', { userId })
+            .andWhere('ticket.status = :status', { status });
+        }
+      }
+    } else if (status) {
+      query.where('ticket.status = :status', { status });
     }
 
-    const query = this.ticketRepository.createQueryBuilder('ticket');
-    // Exclude Tickets where the current agent has forwarded them
-    if (isAgent) {
-      query
-        .where('ticket.user_id = :userId', { userId })
-        .orWhere('ticket.forwarded_to = :userId', { userId })
-        .andWhere('ticket.status != :status', { status: 'forwarded' }); // Exclude tickets with status 'forwarded'
-    } else {
-      query
-        .where('ticket.user_id = :userId', { userId });
-    }
-    return await query.getMany();
+    // Apply pagination
+    query.skip(skip).take(limit);
+
+    // Execute queries for results and total count
+    const [results, total] = await Promise.all([
+      query.getMany(),
+      query.getCount(),
+    ]);
+
+    return {
+      results, // The paginated results
+      total, // The total number of matching tickets
+      page, // Current page
+      limit, // Limit per page
+      totalPages: Math.ceil(total / limit), // Calculate total pages
+    };
   }
 
   async findOne(id: number): Promise<Ticket> {

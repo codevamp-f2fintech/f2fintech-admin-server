@@ -7,7 +7,6 @@ import { Repository } from 'typeorm';
 import { Application } from './entities/applications.entity';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 
-
 export interface PaginationResult<T> {
   results: T[];
   total: number;
@@ -23,11 +22,11 @@ export class ApplicationsService {
     private readonly httpService: HttpService,
     @InjectRepository(Application)
     private readonly applicationRepository: Repository<Application>,
-  ) { }
+  ) {}
 
   async getApplicationData(
     page: number,
-    limit: number
+    limit: number,
   ): Promise<{
     results: any[];
     total: number;
@@ -42,7 +41,7 @@ export class ApplicationsService {
       const total = await this.applicationRepository.count({
         where: {
           is_picked: 0, // Count applications where is_picked is 0
-        }
+        },
       });
       if (total === 0) {
         return {
@@ -58,6 +57,7 @@ export class ApplicationsService {
         where: { is_picked: 0 },
         skip,
         take: limit,
+        order: { last_updated: 'DESC' }, // Sort by last_updated field in descending order
       });
 
       // Map and process application details
@@ -67,7 +67,9 @@ export class ApplicationsService {
           const applicationId = application.id;
 
           if (!customerId) {
-            console.error(`Customer ID not found for application: ${application.id}`);
+            console.error(
+              `Customer ID not found for application: ${application.id}`,
+            );
             return null;
           }
 
@@ -99,10 +101,13 @@ export class ApplicationsService {
               Location: customerInfo?.city ?? 'No location available',
             };
           } catch (error) {
-            console.error(`Error fetching details for application ${applicationId}:`, error.message);
+            console.error(
+              `Error fetching details for application ${applicationId}:`,
+              error.message,
+            );
             return null;
           }
-        })
+        }),
       );
 
       // Filter out null results
@@ -115,11 +120,13 @@ export class ApplicationsService {
         totalPages: Math.ceil(total / limit),
       };
     } catch (error) {
-      console.error('Error fetching paginated application data:', error.message);
+      console.error(
+        'Error fetching paginated application data:',
+        error.message,
+      );
       throw error;
     }
   }
-
 
   async getApplicationsAsTickets(applicationId: string): Promise<any> {
     if (!applicationId) {
@@ -232,7 +239,9 @@ export class ApplicationsService {
     id: number,
     updateApplicationDto: UpdateApplicationDto,
   ): Promise<Application> {
-    const application = await this.applicationRepository.findOne({ where: { id } });
+    const application = await this.applicationRepository.findOne({
+      where: { id },
+    });
 
     if (!application) {
       throw new NotFoundException('Application not found');
@@ -242,7 +251,6 @@ export class ApplicationsService {
 
     return this.applicationRepository.save(application); // Save updated entity to the database
   }
-
 
   private async fetchCustomerData(customerId: number): Promise<any> {
     try {

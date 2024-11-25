@@ -21,7 +21,7 @@ import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 @Controller('api/v1/')
 @UseGuards(RolesGuard)
 export class TicketsController {
-  constructor(private readonly ticketsService: TicketsService) { }
+  constructor(private readonly ticketsService: TicketsService) {}
 
   @Post('create-ticket')
   async create(@Body() createTicketDto: CreateTicketDto) {
@@ -42,21 +42,29 @@ export class TicketsController {
 
   @Get('get-all-tickets/:userId?')
   async findAll(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
     @Param('userId') userId?: number,
-    @Query('isAgent') isAgent: boolean = false
-  ) {
+    @Query('isAgent') isAgent: boolean = false,
+    @Query('status') status: string = '',
+  ): Promise<any> {
     try {
-      const tickets = await this.ticketsService.findAllByUserId(userId, isAgent);
-      return ResponseFormatter.success(
-        200,
-        'Tickets retrieved successfully',
-        tickets,
+      return await this.ticketsService.findAllByUserId(
+        page,
+        limit,
+        userId,
+        isAgent,
+        status,
       );
     } catch (error) {
-      return ResponseFormatter.error(
-        error.status || 500,
-        error.message || 'Internal server error',
-      );
+      return {
+        results: [],
+        total: 0,
+        page,
+        limit,
+        totalPages: 0,
+        errorMessage: error.message,
+      };
     }
   }
 
