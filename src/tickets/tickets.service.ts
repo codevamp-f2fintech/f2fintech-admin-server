@@ -18,7 +18,7 @@ export class TicketsService {
   constructor(
     @InjectRepository(Ticket)
     private readonly ticketRepository: Repository<Ticket>,
-  ) {}
+  ) { }
 
   async create(createUserDto: CreateTicketDto): Promise<Ticket> {
     const newTicket = this.ticketRepository.create(createUserDto);
@@ -43,34 +43,24 @@ export class TicketsService {
 
     // Apply filters based on parameters
     if (userId) {
-      if (isAgent) {
-        if (status === 'forwarded') {
-          query
-            .where('ticket.forwarded_to = :userId', { userId })
-            .andWhere('ticket.status = :status', { status });
-        } else {
-          query
-            .where('ticket.user_id = :userId', { userId })
-            .andWhere('ticket.status = :status', { status });
-        }
+      if (status === 'forwarded') {
+        query.where('ticket.forwarded_to = :userId', { userId })
+          .andWhere('ticket.status = :status', { status });
       } else {
-        if (status === 'forwarded') {
-          query
-            .where('ticket.forwarded_to = :userId', { userId })
-            .andWhere('ticket.status = :status', { status });
-        } else {
-          query
-            .where('ticket.user_id = :userId', { userId })
-            .andWhere('ticket.status = :status', { status });
+        query.where('ticket.user_id = :userId', { userId });
+        if (status && status !== 'all' && status.trim() !== '') {   // Only add status if valid
+          query.andWhere('ticket.status = :status', { status });
         }
       }
-    } else if (status) {
+    } else if (status && status !== 'all' && status.trim() !== '') {   // General status filter
       query.where('ticket.status = :status', { status });
     }
 
     // Apply pagination
     query.skip(skip).take(limit);
 
+    // Log the generated SQL query and parameters
+    // console.log(query.getSql(), query.getParameters());
     // Execute queries for results and total count
     const [results, total] = await Promise.all([
       query.getMany(),
