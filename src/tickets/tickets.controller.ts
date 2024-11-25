@@ -42,27 +42,29 @@ export class TicketsController {
 
   @Get('get-all-tickets/:userId?')
   async findAll(
+    @Query('page') page: number,
+    @Query('limit') limit: number,
     @Param('userId') userId?: number,
     @Query('isAgent') isAgent: boolean = false,
     @Query('status') status: string = '',
-  ) {
-    console.log('status', status);
+  ): Promise<any> {
     try {
-      const tickets = await this.ticketsService.findAllByUserId(
+      return await this.ticketsService.findAllByUserId(
+        page,
+        limit,
         userId,
         isAgent,
         status,
       );
-      return ResponseFormatter.success(
-        200,
-        'Tickets retrieved successfully',
-        tickets,
-      );
     } catch (error) {
-      return ResponseFormatter.error(
-        error.status || 500,
-        error.message || 'Internal server error',
-      );
+      return {
+        results: [],
+        total: 0,
+        page,
+        limit,
+        totalPages: 0,
+        errorMessage: error.message,
+      };
     }
   }
 
