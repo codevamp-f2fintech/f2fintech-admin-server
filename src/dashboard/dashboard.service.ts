@@ -12,7 +12,7 @@ export class DashboardService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Ticket)
     private readonly ticketRepository: Repository<Ticket>,
-  ) { }
+  ) {}
 
   private readonly logger = new Logger(DashboardService.name);
 
@@ -23,16 +23,19 @@ export class DashboardService {
   async findTicketsCount(id = null, status = null): Promise<number> {
     const where: any = {};
 
+    console.log('id & status', id, status);
+
     if (id) {
       where.user_id = id;
     }
     if (status) {
-      if (status === "forwarded" && id) {
+      if (status === 'forwarded' && id) {
         // Use query builder for OR condition
         return this.ticketRepository
           .createQueryBuilder('ticket')
           .where('ticket.status = :status', { status })
-          .andWhere('ticket.forwarded_to = :id', { id })
+          .andWhere('ticket.user_id = :id', { id })
+          .andWhere('ticket.forwarded_to IS NOT NULL')
           .getCount();
       } else {
         where.status = status;
@@ -52,7 +55,9 @@ export class DashboardService {
     return { startOfMonth, endOfMonth };
   }
 
-  async getTotalTicketsByMonth(year: number): Promise<{ month: string; count: number }[]> {
+  async getTotalTicketsByMonth(
+    year: number,
+  ): Promise<{ month: string; count: number }[]> {
     const results = [];
 
     for (let month = 0; month < 12; month++) {
@@ -63,12 +68,17 @@ export class DashboardService {
           created_at: Between(startOfMonth, endOfMonth),
         },
       });
-      results.push({ month: startOfMonth.toLocaleString('default', { month: 'long' }), count });
+      results.push({
+        month: startOfMonth.toLocaleString('default', { month: 'long' }),
+        count,
+      });
     }
     return results;
   }
 
-  async getDoneTicketsByMonth(year: number): Promise<{ month: string; count: number }[]> {
+  async getDoneTicketsByMonth(
+    year: number,
+  ): Promise<{ month: string; count: number }[]> {
     const results = [];
 
     for (let month = 0; month < 12; month++) {
@@ -80,7 +90,10 @@ export class DashboardService {
           created_at: Between(startOfMonth, endOfMonth),
         },
       });
-      results.push({ month: startOfMonth.toLocaleString('default', { month: 'long' }), count });
+      results.push({
+        month: startOfMonth.toLocaleString('default', { month: 'long' }),
+        count,
+      });
     }
     return results;
   }

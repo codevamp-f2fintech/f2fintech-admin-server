@@ -5,34 +5,58 @@ import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { Ticket } from './entities/ticket.entity';
 
+export enum Status {
+  TO_DO = 'to do',
+  IN_PROGRESS = 'in progress',
+  ON_HOLD = 'on hold',
+  DONE = 'done',
+  CLOSE = 'close',
+}
+
 @Injectable()
 export class TicketsService {
   constructor(
     @InjectRepository(Ticket)
     private readonly ticketRepository: Repository<Ticket>,
-  ) { }
+  ) {}
 
   async create(createUserDto: CreateTicketDto): Promise<Ticket> {
     const newTicket = this.ticketRepository.create(createUserDto);
     return await this.ticketRepository.save(newTicket);
   }
 
-  async findAllByUserId(userId?: number, isAgent?: boolean) {
+  async findAllByUserId(userId?: number, isAgent?: boolean, status?: string) {
     if (!userId) {
       // If no userId is provided, return all tickets
-      return await this.ticketRepository.find();
+      return await this.ticketRepository.find({
+        where: {
+          status: status as Status, // Add your condition here
+        },
+      });
     }
 
     const query = this.ticketRepository.createQueryBuilder('ticket');
     // Exclude Tickets where the current agent has forwarded them
     if (isAgent) {
-      query
-        .where('ticket.user_id = :userId', { userId })
-        .orWhere('ticket.forwarded_to = :userId', { userId })
-        .andWhere('ticket.status != :status', { status: 'forwarded' }); // Exclude tickets with status 'forwarded'
+      if (status === 'forwarded') {
+        query
+          .where('ticket.forwarded_to = :userId', { userId })
+          .andWhere('ticket.status = :status', { status });
+      } else {
+        query
+          .where('ticket.user_id = :userId', { userId })
+          .andWhere('ticket.status = :status', { status });
+      }
     } else {
-      query
-        .where('ticket.user_id = :userId', { userId });
+      if (status === 'forwarded') {
+        query
+          .where('ticket.forwarded_to = :userId', { userId })
+          .andWhere('ticket.status = :status', { status });
+      } else {
+        query
+          .where('ticket.user_id = :userId', { userId })
+          .andWhere('ticket.status = :status', { status });
+      }
     }
     return await query.getMany();
   }
