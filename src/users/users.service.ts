@@ -91,6 +91,7 @@ export class UsersService {
         where: { status: Status.ACTIVE }, // Fetch users with active status
         skip,                             // Offset for pagination
         take: limit,                      // Limit for pagination
+        order: { updated_at: 'DESC' },     // Sort by last_updated field in descending order
       }),
       this.userRepository.count({
         where: {
