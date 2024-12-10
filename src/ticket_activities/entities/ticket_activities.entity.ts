@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
 @Entity('ticket-activities')
 export class TicketActivity {
@@ -7,6 +7,10 @@ export class TicketActivity {
 
   @Column({ length: 20 })
   ticket_id: string;
+
+  @Column()
+  @Index()
+  user_id: number;
 
   @Column({ length: 250 })
   comment: string;

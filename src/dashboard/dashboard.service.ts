@@ -86,7 +86,7 @@ export class DashboardService {
 
       const count = await this.ticketRepository.count({
         where: {
-          status: Status.DONE,
+          status: Status.TO_BE_DISBURSED,
           created_at: Between(startOfMonth, endOfMonth),
         },
       });

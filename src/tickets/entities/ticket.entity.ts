@@ -1,13 +1,25 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index, BeforeInsert, OneToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  Index,
+  BeforeInsert,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
 
 import { Application } from 'src/applications/entities/applications.entity';
 
 export enum Status {
-  TO_DO = 'to do',
-  IN_PROGRESS = 'in progress',
-  ON_HOLD = 'on hold',
-  DONE = 'done',
-  CLOSE = 'close',
+  UNDER_CREDIT_REVIEW = 'under credit review',
+  TO_BE_LOGIN = 'to be login',
+  PENDENCY_IN_FILE = 'pendency in file',
+  TO_BE_APPROVED = 'to be approved',
+  TO_BE_DISBURSED = 'to be disbursed',
+  FILE_SEND_TO_BANKER = 'file send to banker',
+  TVR_DONE = 'tvr done',
+  CAM_REPORT_DONE = 'cam report done',
+  RELOOK = 'relook'
 }
 
 @Entity('tickets')
@@ -21,8 +33,8 @@ export class Ticket {
   customer_application_id: number;
 
   @OneToOne(() => Application, (application) => application.ticket)
-  @JoinColumn({ name: 'customer_application_id' })  // Specify the foreign key column name
-  application: Application;  // This will create the relationship with the Application entity
+  @JoinColumn({ name: 'customer_application_id' }) // Specify the foreign key column name
+  application: Application; // This will create the relationship with the Application entity
 
   @Column()
   @Index()
@@ -31,14 +43,24 @@ export class Ticket {
   @Column({ nullable: true })
   forwarded_to: number;
 
+  @Column({
+    type: 'tinyint',
+    width: 1,          // Width 1 because it’s used as a boolean-like field
+    default: 0,
+  })
+  is_forwarded: number;
+
   @Column()
   original_estimate: string;
 
   @Column({
     type: 'enum',
-    enum: Status
+    enum: Status,
   })
   status: Status;
+
+  @Column()
+  voice_note_url: string;
 
   @Column({ type: 'date', nullable: true })
   due_date: Date;
