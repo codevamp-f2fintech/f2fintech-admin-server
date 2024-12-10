@@ -22,7 +22,7 @@ export class ApplicationsService {
     private readonly httpService: HttpService,
     @InjectRepository(Application)
     private readonly applicationRepository: Repository<Application>,
-  ) {}
+  ) { }
 
   async getApplicationData(
     page: number,
@@ -128,6 +128,7 @@ export class ApplicationsService {
     }
   }
 
+  // remove this 
   async getApplicationsAsTickets(applicationId: string): Promise<any> {
     if (!applicationId) {
       console.log(`Application ID not provided`);
@@ -147,7 +148,7 @@ export class ApplicationsService {
         throw new Error(`No application data found ${applicationsUrl} ${applicationsData}`);
       }
 
-      console.log('Fetched Applications Data Length:', applicationsData.length);
+      console.log('Fetched Applications Data Length:', applicationsData);
 
       const combinedDataList = await Promise.all(
         applicationsData.map(async (application) => {
@@ -252,7 +253,7 @@ export class ApplicationsService {
     return this.applicationRepository.save(application); // Save updated entity to the database
   }
 
-  private async fetchCustomerData(customerId: number): Promise<any> {
+  public async fetchCustomerData(customerId: number): Promise<any> {
     try {
       const customerUrl = `https://web.f2fintech.in/api/v1/get-customer/${customerId}`;
       const customerResponse = await firstValueFrom(
@@ -268,7 +269,7 @@ export class ApplicationsService {
     }
   }
 
-  private async fetchAllCustomerDocuments(customerId: number): Promise<any> {
+  public async fetchAllCustomerDocuments(customerId: number): Promise<any> {
     try {
       const documentUrl = `https://web.f2fintech.in/api/v1/get-customer-documents/${customerId}`;
       const documentResponse = await firstValueFrom(
@@ -286,7 +287,7 @@ export class ApplicationsService {
     }
   }
 
-  private async fetchCustomerDocument(customerId: number): Promise<any> {
+  public async fetchCustomerDocument(customerId: number): Promise<any> {
     try {
       const documentUrl = `https://web.f2fintech.in/api/v1/get-customer-document/${customerId}`;
       const documentResponse = await firstValueFrom(
@@ -302,7 +303,7 @@ export class ApplicationsService {
     }
   }
 
-  private async fetchCustomerInfo(customerId: number): Promise<any> {
+  public async fetchCustomerInfo(customerId: number): Promise<any> {
     try {
       const locationUrl = `https://web.f2fintech.in/api/v1/customer-info/${customerId}`;
       const locationResponse = await firstValueFrom(
@@ -318,7 +319,7 @@ export class ApplicationsService {
     }
   }
 
-  private async fetchLoanTrackingStatus(applicationId: number): Promise<any> {
+  public async fetchLoanTrackingStatus(applicationId: number): Promise<any> {
     try {
       const statusUrl = `https://web.f2fintech.in/api/v1/get-loan-tracking-by-id/${applicationId}`;
       const statusResponse = await firstValueFrom(

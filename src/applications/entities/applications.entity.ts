@@ -1,4 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
+
+import { Ticket } from 'src/tickets/entities/ticket.entity';
 
 @Entity('customer_application')
 export class Application {
@@ -7,6 +9,12 @@ export class Application {
 
   @Column({ type: 'int' })
   customer_id: number;
+
+  @Column({ type: 'int' })
+  application_no: number;
+
+  @OneToOne(() => Ticket, (ticket) => ticket.application)  // One-to-one relationship
+  ticket: Ticket;  // This will hold the related ticket for this application
 
   @Column({ type: 'decimal' })
   amount: number;

@@ -1,4 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index, BeforeInsert } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index, BeforeInsert, OneToOne, JoinColumn } from 'typeorm';
+
+import { Application } from 'src/applications/entities/applications.entity';
 
 export enum Status {
   TO_DO = 'to do',
@@ -17,6 +19,10 @@ export class Ticket {
   @Column()
   @Index()
   customer_application_id: number;
+
+  @OneToOne(() => Application, (application) => application.ticket)
+  @JoinColumn({ name: 'customer_application_id' })  // Specify the foreign key column name
+  application: Application;  // This will create the relationship with the Application entity
 
   @Column()
   @Index()
