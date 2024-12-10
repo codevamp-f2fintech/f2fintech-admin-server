@@ -1,13 +1,21 @@
 import { Module } from '@nestjs/common';
-import { TicketsService } from './tickets.service';
-import { TicketsController } from './tickets.controller';
+import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { Ticket } from './entities/ticket.entity';
+import { ApplicationsModule } from 'src/applications/applications.module';
+import { TicketsController } from './tickets.controller';
+import { TicketsService } from './tickets.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Ticket])],
+  imports: [
+    HttpModule,
+    TypeOrmModule.forFeature([Ticket]),
+    ApplicationsModule
+  ],
   controllers: [TicketsController],
   providers: [TicketsService],
   exports: [TicketsService],
 })
-export class TicketsModule {}
+
+export class TicketsModule { }

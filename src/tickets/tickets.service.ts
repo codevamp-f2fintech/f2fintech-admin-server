@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { Ticket } from './entities/ticket.entity';
+import { ApplicationsService } from 'src/applications/applications.service';
 
 export enum Status {
   TO_DO = 'to do',
@@ -13,16 +15,37 @@ export enum Status {
   CLOSE = 'close',
 }
 
+export interface PaginationResult {
+  results: any[];
+  count: number;
+  pages: number;
+  errorMessage?: string;
+}
+
 @Injectable()
 export class TicketsService {
   constructor(
     @InjectRepository(Ticket)
     private readonly ticketRepository: Repository<Ticket>,
+    private readonly applicationsService: ApplicationsService
   ) { }
 
-  async create(createUserDto: CreateTicketDto): Promise<Ticket> {
-    const newTicket = this.ticketRepository.create(createUserDto);
-    return await this.ticketRepository.save(newTicket);
+  async create(createTicketDto: CreateTicketDto): Promise<any> {
+    try {
+      const newTicket = this.ticketRepository.create(createTicketDto);
+      await this.ticketRepository.save(newTicket);
+      return {
+        statusCode: 201,
+        message: 'Created Successfully',
+        data: newTicket,
+      };
+    } catch (error) {
+      return {
+        statusCode: 500,
+        message: 'Error Creating Ticket',
+        error
+      };
+    }
   }
 
   async findAllByUserId(
@@ -31,13 +54,7 @@ export class TicketsService {
     userId?: number,
     isAgent?: boolean,
     status?: string,
-  ): Promise<{
-    results: any[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  }> {
+  ): Promise<PaginationResult> {
     const skip = (page - 1) * limit; // Calculate offset for pagination
     const query = this.ticketRepository.createQueryBuilder('ticket');
 
@@ -56,23 +73,59 @@ export class TicketsService {
       query.where('ticket.status = :status', { status });
     }
 
+    // Join with Application table
+    query.leftJoinAndSelect('ticket.application', 'application');
+
     // Apply pagination
     query.skip(skip).take(limit);
 
     // Log the generated SQL query and parameters
     // console.log(query.getSql(), query.getParameters());
     // Execute queries for results and total count
-    const [results, total] = await Promise.all([
+    const [results, count] = await Promise.all([
       query.getMany(),
       query.getCount(),
     ]);
 
+    // Now fetch customer-related data for each ticket's application
+    const resultsWithCustomerData = await Promise.all(
+      results.map(async (ticket) => {
+        const customerId = ticket.application.customer_id;
+        // join customer, customer_info and customer_document tables so no need of loop
+        // folder of customer entities
+
+        // Fetch customer data, documents, info, and loan status from ApplicationsService
+        const [
+          customerData,
+          customerDocument,
+          customerInfo,
+        ] = await Promise.all([
+          this.applicationsService.fetchCustomerData(customerId),
+          this.applicationsService.fetchCustomerDocument(customerId),
+          this.applicationsService.fetchCustomerInfo(customerId),
+        ]);
+
+        return {
+          ticketId: ticket.id,
+          ticketStatus: ticket.status,
+          Amount: ticket.application.amount,
+          Tenure: ticket.application.tenure,
+          applicationDate: ticket.application.application_date,
+          customer_application_id: ticket.application.id,
+          Id: customerData?.id ?? 'No ID',
+          Name: customerData?.name ?? 'No Name',
+          Email: customerData?.email ?? 'No Email',
+          Contact: customerData?.contact ?? 'No Contact',
+          Image: customerDocument?.document_url ?? 'No image available',
+          Location: customerInfo?.city ?? 'No location available'
+        };
+      }),
+    );
+
     return {
-      results, // The paginated results
-      total, // The total number of matching tickets
-      page, // Current page
-      limit, // Limit per page
-      totalPages: Math.ceil(total / limit), // Calculate total pages
+      results: resultsWithCustomerData,
+      count,
+      pages: Math.ceil(count / limit),
     };
   }
 
