@@ -1,19 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { Ticket } from './entities/ticket.entity';
 import { ApplicationsService } from 'src/applications/applications.service';
-
-export enum Status {
-  TO_DO = 'to do',
-  IN_PROGRESS = 'in progress',
-  ON_HOLD = 'on hold',
-  DONE = 'done',
-  CLOSE = 'close',
-}
 
 export interface PaginationResult {
   results: any[];
@@ -60,9 +52,14 @@ export class TicketsService {
 
     // Apply filters based on parameters
     if (userId) {
+      //forwarded (field) === 1
       if (status === 'forwarded') {
-        query.where('ticket.forwarded_to = :userId', { userId })
-          .andWhere('ticket.status = :status', { status });
+        query
+          .where('ticket.is_forwarded = 1')
+          .andWhere(new Brackets((qb) => {
+            qb.where('ticket.forwarded_to = :userId', { userId })
+              .orWhere('ticket.user_id = :userId', { userId });
+          }));
       } else {
         query.where('ticket.user_id = :userId', { userId });
         if (status && status !== 'all' && status.trim() !== '') {   // Only add status if valid
