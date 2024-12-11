@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+
 import { CreateTicketActivityDto } from './dto/create_ticket_activity.dto';
 import { UpdateTicketActivityDto } from './dto/update_ticket_activity.dto';
 import { TicketActivity } from './entities/ticket_activities.entity';
@@ -24,14 +25,14 @@ export class ActivitiesService {
   // Retrieve all activities by ticket ID
   async findAllByTicketId(ticketId: number) {
     return await this.activityRepository.find({
-      where: { ticket_id: ticketId.toString() },
+      where: { ticket_id: ticketId },
       order: { created_at: 'DESC' }
     });
   }
 
 
   // Retrieve a single activity by ticket_id
-  async findOne(ticket_id: string): Promise<TicketActivity> {
+  async findOne(ticket_id: number): Promise<TicketActivity> {
     const activity = await this.activityRepository.findOne({ where: { ticket_id } });
     if (!activity) {
       throw new NotFoundException(`Activity with ticket ID ${ticket_id} not found`);
@@ -41,19 +42,16 @@ export class ActivitiesService {
 
   // Service method to update a ticket activity by ticket_id and id
   async updateByTicketIdAndId(
-    ticket_id: string,
-    id: string,
+    ticket_id: number,
+    id: number,
     updateTicketActivityDto: UpdateTicketActivityDto,
   ): Promise<TicketActivity> {
-    // Convert id to a number
-    const numericId = parseInt(id, 10);
-
-    if (isNaN(numericId)) {
+    if (isNaN(id)) {
       throw new BadRequestException(`Invalid ID format`);
     }
 
     // Find the activity using both ticket_id (string) and id (number)
-    const activity = await this.activityRepository.findOne({ where: { ticket_id, id: numericId } });
+    const activity = await this.activityRepository.findOne({ where: { ticket_id, id } });
 
     if (!activity) {
       throw new NotFoundException(`Activity with ticket ID ${ticket_id} and ID ${id} not found`);

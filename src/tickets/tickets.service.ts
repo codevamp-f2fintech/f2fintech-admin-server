@@ -52,7 +52,6 @@ export class TicketsService {
 
     // Apply filters based on parameters
     if (userId) {
-      //forwarded (field) === 1
       if (status === 'forwarded') {
         query
           .where('ticket.is_forwarded = 1')

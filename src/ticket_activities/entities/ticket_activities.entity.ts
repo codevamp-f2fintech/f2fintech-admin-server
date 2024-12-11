@@ -5,8 +5,8 @@ export class TicketActivity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 20 })
-  ticket_id: string;
+  @Column()
+  ticket_id: number;
 
   @Column()
   @Index()
