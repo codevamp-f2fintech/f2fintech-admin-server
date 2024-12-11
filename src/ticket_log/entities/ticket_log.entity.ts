@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
 @Entity('ticket_log')
 export class TicketLog {
@@ -6,7 +6,12 @@ export class TicketLog {
     id: number;
 
     @Column()
+    @Index()
     ticket_id: number;
+
+    @Column()
+    @Index()
+    user_id: number;
 
     @Column()
     time_spent: string;

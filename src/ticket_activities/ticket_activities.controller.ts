@@ -57,8 +57,8 @@ export class TicketActivitiesController {
 
   @Patch('update-ticket-activity/:ticket_id/:id')
   async update(
-    @Param('ticket_id') ticket_id: string,  // Get ticket_id from route
-    @Param('id') id: string,  // Get id from route
+    @Param('ticket_id') ticket_id: number,  // Get ticket_id from route
+    @Param('id') id: number,  // Get id from route
     @Body() updateTicketActivityDto: CreateTicketActivityDto,
   ) {
     try {

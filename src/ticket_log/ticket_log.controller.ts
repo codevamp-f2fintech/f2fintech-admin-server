@@ -2,7 +2,6 @@ import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 
 import { TicketLogService } from './ticket_log.service';
 import { CreateTicketLogDto } from './dto/create-ticket_log.dto';
-import { UpdateTicketLogDto } from './dto/update-ticket_log.dto';
 
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
