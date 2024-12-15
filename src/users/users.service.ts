@@ -1,27 +1,33 @@
 import * as bcrypt from 'bcryptjs';
-
 import {
-  ConflictException,
   Injectable,
   NotFoundException,
+  ConflictException,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 
-import { Status, User } from './entities/user.entity';
+import { User, Status } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
-import { ResponseFormatter } from 'src/common/utility/responseFormatter';
+
+export interface PaginationResult<T> {
+  results: T[];
+  count: number;
+  pages: number;
+  errorMessage?: string;
+}
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private jwtService: JwtService,
+    private readonly jwtService: JwtService,
   ) { }
 
   async create(createUserDto: CreateUserDto) {
@@ -29,20 +35,17 @@ export class UsersService {
     const hashedPassword = await this.generateHashedPassword(password);
 
     try {
-      const user = await this.userRepository.save({
+      const user = this.userRepository.create({
         ...createUserDto,
         password: hashedPassword,
       });
-
-      return ResponseFormatter.success(201, 'User created successfully', user);
+      return await this.userRepository.save(user);
     } catch (error) {
       if (error.code === 'ER_DUP_ENTRY') {
         // Unique constraint violation
-        throw new ConflictException(
-          ResponseFormatter.error(500, `Email ${email} already exists`),
-        );
+        throw new ConflictException(`Email ${email} already exists`);
       }
-      throw error; // Re-throw any other errors
+      throw new BadRequestException('User creation failed');
     }
   }
 
@@ -57,6 +60,7 @@ export class UsersService {
     if (!user) {
       throw new UnauthorizedException('User Not Found');
     }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid Password');
@@ -76,43 +80,26 @@ export class UsersService {
   async findAll(
     page: number,
     limit: number
-  ): Promise<{
-    results: any[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  }> {
-    const skip = (page - 1) * limit;
-
-    // Fetch paginated results
-    const [results, total] = await Promise.all([
-      this.userRepository.find({
-        where: { status: Status.ACTIVE }, // Fetch users with active status
-        skip,                             // Offset for pagination
-        take: limit,                      // Limit for pagination
-        order: { updated_at: 'DESC' },     // Sort by last_updated field in descending order
-      }),
-      this.userRepository.count({
-        where: {
-          status: Status.ACTIVE, // Count users where status is active
-        }
-      })
-    ]);
-
+  ): Promise<PaginationResult<User>> {
+    const [results, count] = await this.userRepository.findAndCount({
+      where: { status: Status.ACTIVE },
+      skip: (page - 1) * limit,
+      take: limit,
+      order: { updated_at: 'DESC' },
+    });
     return {
-      results,                       // The paginated results
-      total,                         // The total number of documents
-      page,                          // Current page
-      limit,                         // Limit per page
-      totalPages: Math.ceil(total / limit), // Calculate total pages
+      results,
+      count,
+      pages: Math.ceil(count / limit),
     };
   }
 
   async findOne(id: number): Promise<User> {
-    return await this.userRepository.findOne({
-      where: { id },
-    });
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User Not Found`);
+    }
+    return user;
   }
 
   async update(updateUserDto: UpdateUserDto): Promise<User> {
@@ -120,7 +107,7 @@ export class UsersService {
     // Ensure the user exists before updating
     const user = await this.findOne(id);
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`User Not Found`);
     }
     // mutable updateData object
     const updateData: Partial<User> = { ...updateFields };
@@ -130,9 +117,7 @@ export class UsersService {
       updateData.password = hashedPassword;
     }
 
-    // Update the user with the provided fields
     await this.userRepository.update(id, updateData);
-    // Fetch and return the updated user
     return this.findOne(id);
   }
 }

@@ -15,13 +15,14 @@ export enum Role {
   ADMIN = 'admin',
   AGENT = 'agent',
 }
+
 @Entity('users')
 @Unique(['email'])
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 100 })
+  @Column()
   username: string;
 
   @Column()

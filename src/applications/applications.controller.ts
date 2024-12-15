@@ -1,59 +1,30 @@
 import { Controller, Get, Query, Param, Patch, Body } from '@nestjs/common';
+
 import { ApplicationsService } from './applications.service';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 
-@Controller('api/v1/')
+@Controller('api/v1')
 export class ApplicationsController {
   constructor(private readonly applicationsService: ApplicationsService) { }
 
-  @Get('get-loan-applications')
+  @Get('get-customer-loan-applications')
   async getLoanApplications(
     @Query('page') page: number,
     @Query('limit') limit: number
   ): Promise<any> {
-    try {
-      return await this.applicationsService.getApplicationData(page, limit);
-    } catch (error) {
-      return {
-        results: [],
-        total: 0,
-        page,
-        limit,
-        totalPages: 0,
-        errorMessage: error.message
-      };
-    }
-  }
-
-  @Get('get-application-as-ticket/:applicationId')
-  async getApplicationsAsTickets(
-    @Param('applicationId') applicationId: string,
-  ): Promise<any> {
-    try {
-      const data =
-        await this.applicationsService.getApplicationsAsTickets(applicationId);
-      return { success: true, data: data || [] };
-    } catch (error) {
-      return { success: false, message: error.message };
-    }
+    const customerApplications = await this.applicationsService.getApplicationData(page, limit);
+    return ResponseFormatter.success(200, 'Applications Retrieved Successfully', customerApplications);
   }
 
   @Get('application/count')
   async getApplicationsCount(): Promise<any> {
-    try {
-      const count = await this.applicationsService.getApplicationsCount();
-      return ResponseFormatter.success(
-        200,
-        'Application count retrieved successfully',
-        count,
-      );
-    } catch (error) {
-      return ResponseFormatter.error(
-        error.status || 500,
-        error.message || 'Internal server error',
-      );
-    }
+    const count = await this.applicationsService.getApplicationsCount();
+    return ResponseFormatter.success(
+      200,
+      'Application Count retrieved successfully',
+      count,
+    );
   }
 
   @Get('get-status-and-documents/:customerId/:applicationId')

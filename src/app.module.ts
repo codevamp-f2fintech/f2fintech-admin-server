@@ -8,6 +8,10 @@ import { TicketActivitiesController } from './ticket_activities/ticket_activitie
 import { UsersController } from './users/users.controller';
 
 import { Application } from './applications/entities/applications.entity';
+import { Customer } from './applications/entities/customer.entity';
+import { LoanTracking } from './applications/entities/loanTracking.entity';
+import { CustomerDocument } from './applications/entities/customerDocuments.entity';
+import { CustomerInfo } from './applications/entities/customerInfo.entity';
 import { Ticket } from './tickets/entities/ticket.entity';
 import { TicketActivity } from './ticket_activities/entities/ticket_activities.entity';
 import { TicketLog } from './ticket_log/entities/ticket_log.entity';
@@ -45,6 +49,10 @@ import { ApplicationsController } from './applications/applications.controller';
         signOptions: { expiresIn: configService.get<string>('JWT_EXPIRY') },
         entities: [
           Application,
+          Customer,
+          CustomerDocument,
+          CustomerInfo,
+          LoanTracking,
           User,
           Ticket,
           TicketActivity,
@@ -74,4 +82,4 @@ import { ApplicationsController } from './applications/applications.controller';
   ],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

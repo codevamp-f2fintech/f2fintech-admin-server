@@ -7,6 +7,7 @@ import {
   Length,
 } from 'class-validator';
 import { PrimaryGeneratedColumn } from 'typeorm';
+
 import { Gender, Role } from '../entities/user.entity';
 import { Status } from '../entities/user.entity';
 
@@ -34,7 +35,7 @@ export class CreateUserDto {
   gender: Gender;
 
   @IsEnum(Status)
-  @IsOptional() // status is optional, so it can be omitted
+  @IsOptional()
   status?: Status;
 
   @IsEnum(Role)
