@@ -1,4 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
+
+import { Ticket } from 'src/tickets/entities/ticket.entity';
 
 @Entity('ticket-activities')
 export class TicketActivity {
@@ -27,4 +29,8 @@ export class TicketActivity {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updated_at: Date;
+
+  @ManyToOne(() => Ticket, (ticket) => ticket.activities)
+  @JoinColumn({ name: 'ticket_id' })
+  ticket: Ticket;
 }

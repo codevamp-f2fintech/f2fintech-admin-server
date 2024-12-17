@@ -111,7 +111,6 @@ export class UsersService {
     }
     // mutable updateData object
     const updateData: Partial<User> = { ...updateFields };
-    // Hash the password if it's provided in the payload
     if (password) {
       const hashedPassword = await this.generateHashedPassword(password);
       updateData.password = hashedPassword;
