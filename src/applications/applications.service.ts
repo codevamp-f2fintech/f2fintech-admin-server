@@ -70,39 +70,6 @@ export class ApplicationsService {
     return this.applicationRepository.count();
   }
 
-  async getCustomerStatusAndDocuments(
-    customerId: number,
-    applicationId: number,
-  ): Promise<any> {
-    try {
-      if (!customerId || !applicationId) {
-        return null;
-      }
-
-      try {
-        // Fetch customer details and loan status in parallel
-        const [customerDocuments, customerLoanStatus] = await Promise.all([
-          this.fetchAllCustomerDocuments(customerId),
-          this.fetchLoanTrackingStatus(applicationId),
-        ]);
-
-        return {
-          loanStatus: customerLoanStatus?.status ?? 'No status available',
-          documents:
-            customerDocuments.length > 0
-              ? customerDocuments
-              : 'No documents available',
-        };
-      } catch (error) {
-        console.error(`Error fetching details:`, error.message);
-        return null;
-      }
-    } catch (error) {
-      console.error('An Error Occurred', error.message);
-      throw error;
-    }
-  }
-
   // Update an existing loan application
   async update(
     id: number,
@@ -119,41 +86,6 @@ export class ApplicationsService {
     Object.assign(application, updateApplicationDto);
 
     return this.applicationRepository.save(application); // Save updated entity to the database
-  }
-
-  async fetchCustomerDataBatch(customerIds: number[]): Promise<Record<number, any>> {
-    try {
-      const customerUrl = `http://localhost:8080/api/v1/get-customers`;
-      const response = await firstValueFrom(
-        this.httpService.post(customerUrl, { customerIds })
-      );
-      return response.data.data.reduce((acc, customer) => {
-        acc[customer.id] = customer;
-        return acc;
-      }, {});
-    } catch (error) {
-      console.error(`Error fetching customer data batch:`, error.message);
-      return {};
-    }
-  }
-
-  public async fetchCustomerData(customerId: number): Promise<any> {
-    try {
-      const customerUrl = `http://localhost:8080/api/v1/get-customer/${customerId}`;
-      const customerResponse = await firstValueFrom(
-        this.httpService.get(customerUrl),
-      );
-      return customerResponse.data.data.reduce((acc, customer) => {
-        acc[customer.id] = customer;
-        return acc;
-      }, {});
-    } catch (error) {
-      console.error(
-        `Error fetching customer data for ID ${customerId}:`,
-        error.message,
-      );
-      return null;
-    }
   }
 
   public async fetchAllCustomerDocuments(customerId: number): Promise<any> {
@@ -184,38 +116,6 @@ export class ApplicationsService {
     } catch (error) {
       console.error(
         `Error fetching customer document for ID ${customerId}:`,
-        error.message,
-      );
-      return null;
-    }
-  }
-
-  public async fetchCustomerInfo(customerId: number): Promise<any> {
-    try {
-      const locationUrl = `http://localhost:8080/api/v1/customer-info/${customerId}`;
-      const locationResponse = await firstValueFrom(
-        this.httpService.get(locationUrl),
-      );
-      return locationResponse.data.data;
-    } catch (error) {
-      console.error(
-        `Error fetching customer info for ID ${customerId}:`,
-        error.message,
-      );
-      return null;
-    }
-  }
-
-  public async fetchLoanTrackingStatus(applicationId: number): Promise<any> {
-    try {
-      const statusUrl = `http://localhost:8080/api/v1/get-loan-tracking-by-id/${applicationId}`;
-      const statusResponse = await firstValueFrom(
-        this.httpService.get(statusUrl),
-      );
-      return statusResponse.data.data;
-    } catch (error) {
-      console.error(
-        `Error fetching loan tracking status for application ID ${applicationId}:`,
         error.message,
       );
       return null;

@@ -27,23 +27,6 @@ export class ApplicationsController {
     );
   }
 
-  @Get('get-status-and-documents/:customerId/:applicationId')
-  async getStatusAndDocuments(
-    @Param('customerId') customerId: number,
-    @Param('applicationId') applicationId: number,
-  ): Promise<any> {
-    try {
-      const data = await this.applicationsService.getCustomerStatusAndDocuments(
-        customerId,
-        applicationId,
-      );
-
-      return { success: true, data: data };
-    } catch (error) {
-      return { success: false, message: error.message };
-    }
-  }
-
   @Patch('update-loan-application/:id')
   async update(
     @Param('id') id: number,
