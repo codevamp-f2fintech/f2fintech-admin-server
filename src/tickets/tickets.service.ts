@@ -20,7 +20,11 @@ export interface TicketResponse {
   customerName: string;
   customerEmail: string;
   customerContact: string;
-  customerDocuments: string[];
+  customerDocuments: {
+    id: number;
+    type: "aadhaar front" | "aadhaar back" | "pancard" | "bank statement" | "form 16" | "payslips" | "profile" | "photo" | "certificate" | "audio";
+    document_url: string;
+  }[];
   customerLocation: string;
   customerDesignation: string;
   loanStatus: string;
@@ -173,7 +177,11 @@ export class TicketsService {
     }
 
     const customerDocuments = ticket.application?.customer?.customerDocuments?.map(
-      (doc) => doc.document_url
+      (doc) => ({
+        id: doc.id,
+        type: doc.type,
+        document_url: doc.document_url,
+      })
     ) ?? [];
     const ticketActivities = ticket.activities.map((activity) => ({
       id: activity.id,
