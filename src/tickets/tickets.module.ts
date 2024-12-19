@@ -3,15 +3,13 @@ import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Ticket } from './entities/ticket.entity';
-import { ApplicationsModule } from 'src/applications/applications.module';
 import { TicketsController } from './tickets.controller';
 import { TicketsService } from './tickets.service';
 
 @Module({
   imports: [
     HttpModule,
-    TypeOrmModule.forFeature([Ticket]),
-    ApplicationsModule
+    TypeOrmModule.forFeature([Ticket])
   ],
   controllers: [TicketsController],
   providers: [TicketsService],
