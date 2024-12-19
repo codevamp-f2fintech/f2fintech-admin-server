@@ -6,9 +6,12 @@ import {
   BeforeInsert,
   OneToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 
 import { Application } from 'src/applications/entities/applications.entity';
+import { TicketActivity } from 'src/ticket_activities/entities/ticket_activities.entity';
+import { TicketLog } from 'src/ticket_log/entities/ticket_log.entity';
 
 export enum Status {
   UNDER_CREDIT_REVIEW = 'under credit review',
@@ -74,6 +77,13 @@ export class Ticket {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updated_at: Date;
+
+  @OneToMany(() => TicketActivity, (activity) => activity.ticket)
+  activities: TicketActivity[];
+
+  // One-to-Many relation with TicketLog
+  @OneToMany(() => TicketLog, (log) => log.ticket)
+  logs: TicketLog[];
 
   @BeforeInsert()
   setDefaultDueDate() {

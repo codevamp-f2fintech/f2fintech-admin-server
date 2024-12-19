@@ -1,6 +1,8 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, ManyToOne, JoinColumn, OneToMany, CreateDateColumn } from 'typeorm';
 
 import { Ticket } from 'src/tickets/entities/ticket.entity';
+import { Customer } from './customer.entity';
+import { LoanTracking } from './loanTracking.entity';
 
 @Entity('customer_application')
 export class Application {
@@ -13,8 +15,6 @@ export class Application {
   @Column({ type: 'int' })
   application_no: number;
 
-  @OneToOne(() => Ticket, (ticket) => ticket.application)  // One-to-one relationship
-  ticket: Ticket;  // This will hold the related ticket for this application
 
   @Column({ type: 'decimal' })
   amount: number;
@@ -47,6 +47,16 @@ export class Application {
   @Column({ type: 'date' })
   end_date: Date;
 
-  @Column({ type: 'timestamp' })
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   last_updated: Date;
+
+  @OneToOne(() => Ticket, (ticket) => ticket.application)  // One-to-one relationship
+  ticket: Ticket;
+
+  @ManyToOne(() => Customer, (customer) => customer.applications)
+  @JoinColumn({ name: 'customer_id' })
+  customer: Customer;
+
+  @OneToMany(() => LoanTracking, (tracking) => tracking.application)
+  loanTracking: LoanTracking[];
 }

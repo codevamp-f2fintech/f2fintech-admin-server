@@ -15,42 +15,24 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 import { RolesGuard } from 'src/common/guards/roles.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { Role } from 'src/common/enum/role.enum';
+// import { Roles } from 'src/common/decorators/roles.decorator';
+// import { Role } from 'src/common/enum/role.enum';
 
-@Controller('api/v1/')
+@Controller('api/v1')
 @UseGuards(RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
   @Post('create-user')
   async create(@Body() createUserDto: CreateUserDto) {
-    try {
-      const newUser = await this.usersService.create(createUserDto);
-      return ResponseFormatter.success(
-        201,
-        'User created successfully',
-        newUser,
-      );
-    } catch (error) {
-      return ResponseFormatter.error(
-        error.status || 400,
-        error.message || 'User creation failed',
-      );
-    }
+    const newUser = await this.usersService.create(createUserDto);
+    return ResponseFormatter.success(201, 'User Created Successfully', newUser);
   }
 
   @Post('login')
   async login(@Body() loginUserDto: LoginUserDto) {
-    try {
-      const token = await this.usersService.login(loginUserDto);
-      return ResponseFormatter.success(200, 'Login successful', { token });
-    } catch (error) {
-      return ResponseFormatter.error(
-        error.status || 401,
-        error.message || 'Unauthorized',
-      );
-    }
+    const token = await this.usersService.login(loginUserDto);
+    return ResponseFormatter.success(200, 'Login Successful', token);
   }
 
   @Get('get-users')
@@ -58,51 +40,19 @@ export class UsersController {
     @Query('page') page: number,
     @Query('limit') limit: number
   ): Promise<any> {
-    try {
-      return await this.usersService.findAll(page, limit);
-    } catch (error) {
-      return {
-        results: [],
-        total: 0,
-        page,
-        limit,
-        totalPages: 0,
-        errorMessage: error.message
-      };
-    }
+    const users = await this.usersService.findAll(page, limit);
+    return ResponseFormatter.success(200, 'Users Retrieved Successfully', users);
   }
 
-  @Get('get-by-id/:id')
+  @Get('get-user-by-id/:id')
   async findOne(@Param('id') id: number) {
-    try {
-      const user = await this.usersService.findOne(id);
-      return ResponseFormatter.success(
-        200,
-        'User retrieved successfully',
-        user,
-      );
-    } catch (error) {
-      return ResponseFormatter.error(
-        error.status || 404,
-        error.message || 'User not found',
-      );
-    }
+    const user = await this.usersService.findOne(id);
+    return ResponseFormatter.success(200, 'User Retrieved Successfully', user);
   }
-  
+
   @Patch('update-user')
   async update(@Body() updateUserDto: UpdateUserDto) {
-    try {
-      const updatedUser = await this.usersService.update(updateUserDto);
-      return ResponseFormatter.success(
-        200,
-        'User updated successfully',
-        updatedUser,
-      );
-    } catch (error) {
-      return ResponseFormatter.error(
-        error.status || 500,
-        error.message || 'Internal server error',
-      );
-    }
+    const updatedUser = await this.usersService.update(updateUserDto);
+    return ResponseFormatter.success(200, 'User Updated Successfully', updatedUser);
   }
 }

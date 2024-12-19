@@ -14,14 +14,12 @@ import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 
 import { RolesGuard } from 'src/common/guards/roles.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { Role } from 'src/common/enum/role.enum';
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 
-@Controller('api/v1/')
+@Controller('api/v1')
 @UseGuards(RolesGuard)
 export class TicketsController {
-  constructor(private readonly ticketsService: TicketsService) {}
+  constructor(private readonly ticketsService: TicketsService) { }
 
   @Post('create-ticket')
   async create(@Body() createTicketDto: CreateTicketDto) {
@@ -41,31 +39,21 @@ export class TicketsController {
   }
 
   @Get('get-all-tickets/:userId?')
-  async findAll(
+  async findAllTickets(
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Param('userId') userId?: number,
     @Query('isAgent') isAgent: boolean = false,
     @Query('status') status: string = '',
   ): Promise<any> {
-    try {
-      return await this.ticketsService.findAllByUserId(
-        page,
-        limit,
-        userId,
-        isAgent,
-        status,
-      );
-    } catch (error) {
-      return {
-        results: [],
-        total: 0,
-        page,
-        limit,
-        totalPages: 0,
-        errorMessage: error.message,
-      };
-    }
+    const paginatedTickets = await this.ticketsService.findAllTickets(
+      page,
+      limit,
+      userId,
+      isAgent,
+      status,
+    );
+    return ResponseFormatter.success(200, 'Tickets Retrieved Successfully', paginatedTickets);
   }
 
   @Get('get-ticket/:ticketId')
@@ -85,22 +73,10 @@ export class TicketsController {
     }
   }
 
-  @Get('get-by-application-id/:applicationId')
-  async findByApplicationId(@Param('applicationId') applicationId: number) {
-    try {
-      const ticket =
-        await this.ticketsService.findByApplicationId(+applicationId);
-      return ResponseFormatter.success(
-        200,
-        'Ticket retrieved successfully',
-        ticket,
-      );
-    } catch (error) {
-      return ResponseFormatter.error(
-        error.status || 404,
-        error.message || 'Ticket not found',
-      );
-    }
+  @Get('get-ticket-with-detail/:ticketId')
+  async findTicketWithDetail(@Param('ticketId') ticketId: number) {
+    const ticket = await this.ticketsService.findTicketWithDetail(+ticketId);
+    return ResponseFormatter.success(200, 'Ticket with Details retrieved successfully', ticket);
   }
 
   @Patch('update-ticket/:ticketId')
