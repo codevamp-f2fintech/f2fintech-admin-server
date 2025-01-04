@@ -2,7 +2,6 @@ import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 
 import { TicketHistoryService } from './ticket_history.service';
 import { CreateTicketHistoryDto } from './dto/create-ticket_history.dto';
-import { UpdateTicketHistoryDto } from './dto/update-ticket_history.dto';
 
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -49,28 +48,4 @@ export class TicketHistoryController {
       );
     }
   }
-
-  // @Patch('update-ticket-history/:id')
-  // @Roles(Role.Admin, Role.Sales)
-  // async update(
-  //   @Param('id') id: string,
-  //   @Body() updateTicketHistoryDto: UpdateTicketHistoryDto,
-  // ) {
-  //   try {
-  //     const updatedHistory = await this.ticketHistoryService.update(
-  //       +id,
-  //       updateTicketHistoryDto,
-  //     );
-  //     return ResponseFormatter.success(
-  //       200,
-  //       'Ticket history updated successfully',
-  //       updatedHistory,
-  //     );
-  //   } catch (error) {
-  //     return ResponseFormatter.error(
-  //       error.status || 500,
-  //       error.message || 'Internal server error',
-  //     );
-  //   }
-  // }
 }

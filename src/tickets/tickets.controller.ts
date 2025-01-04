@@ -45,6 +45,9 @@ export class TicketsController {
     @Param('userId') userId?: number,
     @Query('isAgent') isAgent: boolean = false,
     @Query('status') status: string = '',
+    @Query('name') name: string = '',
+    @Query('startDate') startDate: string = '',
+    @Query('endDate') endDate: string = '',
   ): Promise<any> {
     const paginatedTickets = await this.ticketsService.findAllTickets(
       page,
@@ -52,6 +55,9 @@ export class TicketsController {
       userId,
       isAgent,
       status,
+      name,
+      startDate,
+      endDate
     );
     return ResponseFormatter.success(200, 'Tickets Retrieved Successfully', paginatedTickets);
   }

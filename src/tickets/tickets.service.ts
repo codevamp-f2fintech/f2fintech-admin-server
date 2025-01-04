@@ -8,9 +8,11 @@ import { Ticket } from './entities/ticket.entity';
 
 export interface TicketResponse {
   ticketId: number | string;
+  userId: number | string;
   employeeStatus: string;
   voiceNoteUrl: string;
   forwardedTo: number | string;
+  isForwarded: number | string;
   originalEstimate: string;
   applicationAmount: string | number;
   applicationTenure: number | string;
@@ -28,19 +30,6 @@ export interface TicketResponse {
   customerLocation: string;
   customerDesignation: string;
   loanStatus: string;
-  ticketActivities: {
-    id: number;
-    userId: number;
-    comment: string;
-    createdAt: Date;
-  }[];
-  ticketLogs: {
-    id: number;
-    userId: number;
-    timeSpent: string;
-    workDescription: string;
-    createdAt: Date;
-  }[];
 }
 
 export interface PaginationResult {
@@ -81,6 +70,9 @@ export class TicketsService {
     userId?: number,
     isAgent?: boolean,
     status?: string,
+    name?: string,
+    startDate?: string,
+    endDate?: string,
   ): Promise<PaginationResult> {
     const skip = (page - 1) * limit; // Calculate offset for pagination
 
@@ -114,9 +106,17 @@ export class TicketsService {
       query.where('ticket.status = :status', { status });
     }
 
+    if (name && name.trim() !== '') {
+      query.andWhere('LOWER(customer.name) LIKE :name', { name: `%${name.toLowerCase()}%` });
+    }
+    if (startDate) {
+      query.andWhere('ticket.created_at >= :startDate', { startDate });
+    }
+    if (endDate) {
+      query.andWhere('ticket.created_at <= :endDate', { endDate });
+    }
     // console.log(query.getSql(), query.getParameters());
 
-    // Execute the query
     const [tickets, count] = await query.getManyAndCount();
 
     const results = tickets.map((ticket) => {
@@ -130,6 +130,7 @@ export class TicketsService {
       return {
         ticketId: ticket.id,
         ticketStatus: ticket.status,
+        user_id: ticket.user_id,
         applicationAmount: application.amount,
         applicationTenure: application.tenure,
         applicationDate: application.application_date,
@@ -167,8 +168,6 @@ export class TicketsService {
       .leftJoinAndSelect('customer.info', 'info')
       .leftJoinAndSelect('customer.customerDocuments', 'documents')
       .leftJoinAndSelect('application.loanTracking', 'loanTracking')
-      .leftJoinAndSelect('ticket.activities', 'activities')
-      .leftJoinAndSelect('ticket.logs', 'logs')
       .where('ticket.id = :ticketId', { ticketId })
       .getOne();
 
@@ -183,31 +182,20 @@ export class TicketsService {
         document_url: doc.document_url,
       })
     ) ?? [];
-    const ticketActivities = ticket.activities.map((activity) => ({
-      id: activity.id,
-      userId: activity.user_id,
-      comment: activity.comment,
-      createdAt: activity.created_at
-    }));
-    const ticketLogs = ticket.logs.map((log) => ({
-      id: log.id,
-      userId: log.user_id,
-      timeSpent: log.time_spent,
-      workDescription: log.work_description,
-      createdAt: log.created_at,
-    }));
 
     return {
       ticketId: ticket.id,
+      userId: ticket.user_id,
       employeeStatus: ticket.status,
       voiceNoteUrl: ticket.voice_note_url,
       forwardedTo: ticket.forwarded_to,
+      isForwarded: ticket.is_forwarded,
       originalEstimate: ticket.original_estimate,
       applicationAmount: ticket.application?.amount ?? 'No Amount',
       applicationTenure: ticket.application?.tenure ?? 'No Tenure',
       applicationDate: ticket.application?.application_date ?? 'No Date',
-      applicationId: ticket.application?.id ?? 'No Application ID',
-      customerId: ticket.application?.customer?.id ?? 'No ID',
+      applicationId: ticket.application?.id ?? '',
+      customerId: ticket.application?.customer?.id ?? '',
       customerName: ticket.application?.customer?.name ?? 'No Name',
       customerEmail: ticket.application?.customer?.email ?? 'No Email',
       customerContact: ticket.application?.customer?.contact ?? 'No Contact',
@@ -215,9 +203,7 @@ export class TicketsService {
       customerDesignation: ticket.application?.customer?.info?.occupation_type ?? 'Not available',
       customerLocation: ticket.application?.customer?.info?.city ?? 'No Location available',
       loanStatus:
-        ticket.application?.loanTracking?.[0]?.status ?? 'No Status available',
-      ticketActivities: ticketActivities,
-      ticketLogs: ticketLogs
+        ticket.application?.loanTracking?.[0]?.status ?? '',
     };
   }
 
