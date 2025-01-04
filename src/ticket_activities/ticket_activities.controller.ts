@@ -38,7 +38,7 @@ export class TicketActivitiesController {
     }
   }
 
-  @Get('get-all-ticket-activities/:ticketId')
+  @Get('get-ticket-activities/:ticketId')
   async findAll(@Param('ticketId') ticketId: number) {
     try {
       const activities = await this.activitiesService.findAllByTicketId(ticketId);

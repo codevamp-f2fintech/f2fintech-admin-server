@@ -1,6 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
-
-import { Ticket } from 'src/tickets/entities/ticket.entity';
+import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
 @Entity('ticket_log')
 export class TicketLog {
@@ -23,8 +21,4 @@ export class TicketLog {
 
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     created_at: Date;
-
-    @ManyToOne(() => Ticket, (ticket) => ticket.logs)
-    @JoinColumn({ name: 'ticket_id' })
-    ticket: Ticket;
 }
