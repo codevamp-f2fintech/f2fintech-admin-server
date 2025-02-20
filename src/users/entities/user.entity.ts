@@ -14,6 +14,7 @@ export enum Status {
 export enum Role {
   ADMIN = 'admin',
   AGENT = 'agent',
+  SALES = 'sales',
 }
 
 @Entity('users')
