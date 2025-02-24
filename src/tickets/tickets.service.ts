@@ -97,7 +97,7 @@ export class TicketsService {
         // Tickets forwarded by me
         query
           .where('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
-          .andWhere('ticket.user_id = :userId', { userId });
+          .andWhere('ticket.forwarded_by = :userId', { userId });
       } else {
         // All other statuses, e.g. "under credit review", "to be login", etc.
         if (status === 'forwarded') {
