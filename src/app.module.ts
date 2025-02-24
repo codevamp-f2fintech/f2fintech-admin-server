@@ -24,12 +24,15 @@ import { TicketActivitiesModule } from './ticket_activities/ticket_activities.mo
 import { TicketLogModule } from './ticket_log/ticket_log.module';
 import { TicketHistoryModule } from './ticket_history/ticket_history.module';
 import { UsersModule } from './users/users.module';
+import { LoanProvidersModule } from './loan_providers/loanProvider.module';
 
 import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { DashboardController } from './dashboard/dashboard.controller';
 import { ApplicationsController } from './applications/applications.controller';
+import { LoanProvider } from './loan_providers/entities/loanProvider.entity';
+import { LoanProviderController } from './loan_providers/loanProvider.controller';
 
 @Module({
   imports: [
@@ -58,6 +61,7 @@ import { ApplicationsController } from './applications/applications.controller';
           TicketActivity,
           TicketLog,
           TicketHistory,
+          LoanProvider
         ],
         synchronize: false,
       }),
@@ -71,6 +75,7 @@ import { ApplicationsController } from './applications/applications.controller';
     TicketHistoryModule,
     UsersModule,
     DashboardModule,
+    LoanProvidersModule
   ],
   controllers: [
     AppController,
@@ -79,6 +84,7 @@ import { ApplicationsController } from './applications/applications.controller';
     TicketsController,
     DashboardController,
     ApplicationsController,
+    LoanProviderController
   ],
   providers: [AppService],
 })
