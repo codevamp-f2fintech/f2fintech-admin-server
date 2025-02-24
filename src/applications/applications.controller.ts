@@ -27,6 +27,16 @@ export class ApplicationsController {
     );
   }
 
+  @Get( 'application/new-count' )
+  async getNewApplicationsCount (): Promise<any> {
+    const count = await this.applicationsService.getNewApplicationsCount();
+    return ResponseFormatter.success(
+      200,
+      'Application Count retrieved successfully',
+      count,
+    );
+  }
+
   @Patch('update-loan-application/:id')
   async update(
     @Param('id') id: number,
