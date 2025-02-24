@@ -14,6 +14,9 @@ export class CreateTicketDto {
   forwarded_to: number;
 
   @IsNumber()
+  forwarded_by: number;
+
+  @IsNumber()
   is_forwarded: number;
 
   @IsString()

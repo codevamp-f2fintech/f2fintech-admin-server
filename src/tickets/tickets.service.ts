@@ -209,6 +209,7 @@ export class TicketsService {
 
   async update(id: number, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
     const ticket = await this.findOne(id);
+    console.log( 'updateTicketDto', updateTicketDto )
     Object.assign(ticket, updateTicketDto, { updatedAt: new Date() });
     return await this.ticketRepository.save(ticket);
   }

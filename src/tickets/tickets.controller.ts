@@ -91,6 +91,7 @@ export class TicketsController {
     @Body() updateTicketDto: UpdateTicketDto,
   ) {
     try {
+      console.log( 'logggg updateTicketDto', updateTicketDto );
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const updatedTicket = await this.ticketsService.update(
         +ticketId,
