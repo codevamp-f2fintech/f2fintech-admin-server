@@ -88,23 +88,44 @@ export class TicketsService {
 
     // Apply filters based on parameters
     if (userId) {
-      if (status === 'forwarded') {
-        query.where('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
-          .andWhere(
-            new Brackets((qb) => {
-              qb.where('ticket.forwarded_to = :userId', { userId })
-                .orWhere('ticket.user_id = :userId', { userId });
-            }),
-          );
+      if (status === 'forwardedtome') {
+        // Tickets forwarded to me
+        query
+          .where('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
+          .andWhere('ticket.forwarded_to = :userId', { userId });
+      } else if (status === 'forwardedbyme') {
+        // Tickets forwarded by me
+        query
+          .where('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
+          .andWhere('ticket.forwarded_by = :userId', { userId });
       } else {
-        query.where('ticket.user_id = :userId', { userId });
-        if (status && status !== 'all' && status.trim() !== '') {   // Only add status if valid
-          query.andWhere('ticket.status = :status', { status });
+        // All other statuses, e.g. "under credit review", "to be login", etc.
+        if (status === 'forwarded') {
+          // OPTIONAL: if you still want a plain "forwarded" status 
+          // that means "either forwarded to me OR forwarded by me":
+          query
+            .where('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
+            .andWhere(
+              new Brackets((qb) => {
+                qb.where('ticket.forwarded_to = :userId', { userId })
+                  .orWhere('ticket.user_id = :userId', { userId });
+              }),
+            );
+        }
+        else {
+          // Normal userId + status check
+          query.where('ticket.user_id = :userId', { userId });
+
+          if (status && status !== 'all' && status.trim() !== '') {
+            query.andWhere('ticket.status = :status', { status });
+          }
         }
       }
-    } else if (status && status !== 'all' && status.trim() !== '') {   // General status filter
+    } else if (status && status !== 'all' && status.trim() !== '') {
+      // If no userId but we do have a status
       query.where('ticket.status = :status', { status });
     }
+
 
     if (name && name.trim() !== '') {
       query.andWhere('LOWER(customer.name) LIKE :name', { name: `%${name.toLowerCase()}%` });
@@ -209,6 +230,7 @@ export class TicketsService {
 
   async update(id: number, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
     const ticket = await this.findOne(id);
+    console.log('updateTicketDto', updateTicketDto)
     Object.assign(ticket, updateTicketDto, { updatedAt: new Date() });
     return await this.ticketRepository.save(ticket);
   }

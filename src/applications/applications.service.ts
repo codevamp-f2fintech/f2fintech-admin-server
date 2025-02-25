@@ -16,6 +16,7 @@ export interface PaginationResult {
 
 @Injectable()
 export class ApplicationsService {
+  prisma: any;
   constructor(
     private readonly httpService: HttpService,
     @InjectRepository(Application)
@@ -68,6 +69,13 @@ export class ApplicationsService {
 
   async getApplicationsCount(): Promise<any> {
     return this.applicationRepository.count();
+  }
+
+  async getNewApplicationsCount (): Promise<any> {
+    return this.applicationRepository.count({
+      where: { is_picked: 0 },
+      order: { application_date: 'DESC' },
+    });
   }
 
   // Update an existing loan application
