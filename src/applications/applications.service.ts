@@ -29,8 +29,13 @@ export class ApplicationsService {
     private readonly customerInfoRepository: Repository<CustomerInfo>,
   ) { }
 
-  async getApplicationData ( page: number, limit: number ): Promise<PaginationResult> {
-    const skip = ( page - 1 ) * limit;
+  async getApplicationData(page: number, limit: number, appliedBy: number): Promise<PaginationResult> {
+    page = Number(page) || 1;
+    limit = Number(limit) || 10;
+    const skip = (page - 1) * limit;
+    const whereCondition = appliedBy
+      ? { is_picked: 0, applied_by: appliedBy }
+      : { is_picked: 0 };
 
     const [ applications, count ] = await this.applicationRepository.findAndCount( {
       relations: [
@@ -41,7 +46,7 @@ export class ApplicationsService {
       ],
       skip,
       take: limit,
-      where: { is_picked: 0 },
+      where: whereCondition,
       order: { application_date: 'DESC' },
     } );
 
@@ -77,8 +82,8 @@ export class ApplicationsService {
     return this.applicationRepository.count();
   }
 
-  async getNewApplicationsCount (): Promise<any> {
-    return this.applicationRepository.count( {
+  async getNewApplicationsCount(): Promise<any> {
+    return this.applicationRepository.count({
       where: { is_picked: 0 },
       order: { application_date: 'DESC' },
     } );

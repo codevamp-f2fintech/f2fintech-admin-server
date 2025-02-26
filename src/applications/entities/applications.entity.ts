@@ -13,8 +13,13 @@ export class Application {
   customer_id: number;
 
   @Column({ type: 'int' })
+  applied_by: number;
+
+  @Column({ type: 'int' })
   application_no: number;
 
+  @Column({ length: 500 })
+  provider: string;
 
   @Column({ type: 'decimal' })
   amount: number;
