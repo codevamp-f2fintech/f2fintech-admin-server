@@ -4,9 +4,11 @@ import { ApplicationsController } from './applications.controller';
 import { ApplicationsService } from './applications.service';
 import { Application } from './entities/applications.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Customer } from './entities/customer.entity';
+import { CustomerInfo } from './entities/customerInfo.entity';
 
 @Module({
-  imports: [HttpModule, TypeOrmModule.forFeature([Application])],
+  imports: [ HttpModule, TypeOrmModule.forFeature( [ Application, Customer, CustomerInfo ])],
   controllers: [ApplicationsController],
   providers: [ApplicationsService],
   exports: [ApplicationsService],
