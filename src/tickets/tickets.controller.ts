@@ -44,6 +44,7 @@ export class TicketsController {
     @Query('limit') limit: number,
     @Param('userId') userId?: number,
     @Query('isAgent') isAgent: boolean = false,
+    @Query('appliedBy') appliedBy?: number,
     @Query('status') status: string = '',
     @Query('name') name: string = '',
     @Query('startDate') startDate: string = '',
@@ -54,6 +55,7 @@ export class TicketsController {
       limit,
       userId,
       isAgent,
+      appliedBy,
       status,
       name,
       startDate,
@@ -91,7 +93,6 @@ export class TicketsController {
     @Body() updateTicketDto: UpdateTicketDto,
   ) {
     try {
-      console.log( 'logggg updateTicketDto', updateTicketDto );
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const updatedTicket = await this.ticketsService.update(
         +ticketId,

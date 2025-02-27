@@ -69,6 +69,7 @@ export class TicketsService {
     limit: number,
     userId?: number,
     isAgent?: boolean,
+    appliedBy?: number,
     status?: string,
     name?: string,
     startDate?: string,
@@ -129,12 +130,12 @@ export class TicketsService {
 
     if (name && name.trim() !== '') {
       query.andWhere('LOWER(customer.name) LIKE :name', { name: `%${name.toLowerCase()}%` });
-      query.orWhere( 'LOWER(customer.contact) LIKE :name', { name: `%${ name }%` } );
+      query.orWhere('LOWER(customer.contact) LIKE :name', { name: `%${name}%` });
     }
     if (startDate) {
       query.andWhere('ticket.created_at >= :startDate', { startDate });
     }
-    if (endDate) {
+    if (endDate) {    //include appliedBy & usi din k cards show krne ka logic
       query.andWhere('ticket.created_at <= :endDate', { endDate });
     }
     // console.log(query.getSql(), query.getParameters());
@@ -230,15 +231,9 @@ export class TicketsService {
   }
 
   async update(id: number, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
-    const ticket = await this.ticketRepository.findOne( {
-      where: { id },
-      relations: [
-        'customer',
-        'customer.info',
-      ],
-    } );
-    console.log('updateTicketDto', updateTicketDto)
+    const ticket = await this.findOne(id);
     Object.assign(ticket, updateTicketDto, { updatedAt: new Date() });
+
     return await this.ticketRepository.save(ticket);
   }
 }
