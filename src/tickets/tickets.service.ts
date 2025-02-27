@@ -129,6 +129,7 @@ export class TicketsService {
 
     if (name && name.trim() !== '') {
       query.andWhere('LOWER(customer.name) LIKE :name', { name: `%${name.toLowerCase()}%` });
+      query.orWhere( 'LOWER(customer.contact) LIKE :name', { name: `%${ name }%` } );
     }
     if (startDate) {
       query.andWhere('ticket.created_at >= :startDate', { startDate });
@@ -229,7 +230,13 @@ export class TicketsService {
   }
 
   async update(id: number, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
-    const ticket = await this.findOne(id);
+    const ticket = await this.ticketRepository.findOne( {
+      where: { id },
+      relations: [
+        'customer',
+        'customer.info',
+      ],
+    } );
     console.log('updateTicketDto', updateTicketDto)
     Object.assign(ticket, updateTicketDto, { updatedAt: new Date() });
     return await this.ticketRepository.save(ticket);

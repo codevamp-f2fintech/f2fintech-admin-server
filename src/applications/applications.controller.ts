@@ -11,9 +11,10 @@ export class ApplicationsController {
   @Get('get-customer-loan-applications')
   async getLoanApplications(
     @Query('page') page: number,
-    @Query('limit') limit: number
+    @Query('limit') limit: number,
+    @Query('appliedBy') appliedBy?: number
   ): Promise<any> {
-    const customerApplications = await this.applicationsService.getApplicationData(page, limit);
+    const customerApplications = await this.applicationsService.getApplicationData(page, limit, appliedBy);
     return ResponseFormatter.success(200, 'Applications Retrieved Successfully', customerApplications);
   }
 
@@ -27,8 +28,8 @@ export class ApplicationsController {
     );
   }
 
-  @Get( 'application/new-count' )
-  async getNewApplicationsCount (): Promise<any> {
+  @Get('application/new-count')
+  async getNewApplicationsCount(): Promise<any> {
     const count = await this.applicationsService.getNewApplicationsCount();
     return ResponseFormatter.success(
       200,

@@ -1,4 +1,4 @@
-import { IsInt, IsDecimal, IsDateString, IsOptional, Min, Max } from 'class-validator';
+import { IsInt, IsDecimal, IsDateString, IsOptional, Min, Max, IsString } from 'class-validator';
 import { PrimaryGeneratedColumn } from 'typeorm';
 
 export class CreateApplicationDto {
@@ -9,7 +9,13 @@ export class CreateApplicationDto {
   customer_id: number;
 
   @IsInt()
+  applied_by: number;
+
+  @IsInt()
   application_no: number;
+
+  @IsString()
+  provider: string;
 
   @IsDecimal()
   amount: number;
