@@ -77,15 +77,6 @@ import { LoanProviderController } from './loan_providers/loanProvider.controller
     DashboardModule,
     LoanProvidersModule
   ],
-  controllers: [
-    AppController,
-    UsersController,
-    TicketActivitiesController,
-    TicketsController,
-    DashboardController,
-    ApplicationsController,
-    LoanProviderController
-  ],
   providers: [AppService],
 })
 export class AppModule { }
