@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Between, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
 
 import { Application } from './entities/applications.entity';
 import { UpdateApplicationDto } from './dto/update-application.dto';
@@ -29,13 +29,18 @@ export class ApplicationsService {
     private readonly customerInfoRepository: Repository<CustomerInfo>,
   ) { }
 
-  async getApplicationData(page: number, limit: number, appliedBy: number): Promise<PaginationResult> {
-    page = Number(page) || 1;
-    limit = Number(limit) || 10;
-    const skip = (page - 1) * limit;
-    const whereCondition = appliedBy
-      ? { is_picked: 0, applied_by: appliedBy }
-      : { is_picked: 0 };
+  async getApplicationData ( page: number, limit: number, appliedBy: number ): Promise<PaginationResult> {
+    page = Number( page ) || 1;
+    limit = Number( limit ) || 10;
+    const skip = ( page - 1 ) * limit;
+    const whereCondition: any = {
+      is_picked: 0,
+    };
+
+    if ( appliedBy )
+    {
+      whereCondition.applied_by = appliedBy; // Include appliedBy condition if it's present
+    }
 
     const [ applications, count ] = await this.applicationRepository.findAndCount( {
       relations: [
@@ -82,8 +87,8 @@ export class ApplicationsService {
     return this.applicationRepository.count();
   }
 
-  async getNewApplicationsCount(): Promise<any> {
-    return this.applicationRepository.count({
+  async getNewApplicationsCount (): Promise<any> {
+    return this.applicationRepository.count( {
       where: { is_picked: 0 },
       order: { application_date: 'DESC' },
     } );

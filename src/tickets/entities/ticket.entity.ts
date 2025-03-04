@@ -32,7 +32,7 @@ export class Ticket {
 
   // Define customer_application_id as a foreign key with an index for fast lookups
   @Column()
-  @Index()
+  @Index()  
   customer_application_id: number;
 
   @OneToOne(() => Application, (application) => application.ticket)

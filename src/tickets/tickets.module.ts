@@ -5,11 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Ticket } from './entities/ticket.entity';
 import { TicketsController } from './tickets.controller';
 import { TicketsService } from './tickets.service';
+import { TicketHistory } from 'src/ticket_history/entities/ticket_history.entity';
+import { TicketLog } from 'src/ticket_log/entities/ticket_log.entity';
 
 @Module({
   imports: [
     HttpModule,
-    TypeOrmModule.forFeature([Ticket])
+    TypeOrmModule.forFeature([Ticket, TicketHistory, TicketLog])
   ],
   controllers: [TicketsController],
   providers: [TicketsService],
