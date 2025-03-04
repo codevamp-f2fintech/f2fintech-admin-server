@@ -7,6 +7,9 @@ import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { Ticket } from './entities/ticket.entity';
 import { TicketHistory } from 'src/ticket_history/entities/ticket_history.entity';
 import { TicketLog } from 'src/ticket_log/entities/ticket_log.entity';
+import { TicketActivity } from 'src/ticket_activities/entities/ticket_activities.entity';
+import { LoanTracking } from 'src/applications/entities/loanTracking.entity';
+import { Application } from 'src/applications/entities/applications.entity';
 
 export interface TicketResponse {
   ticketId: number | string;
@@ -49,7 +52,14 @@ export class TicketsService {
     @InjectRepository( TicketHistory )
     private readonly ticketHistoryRepository: Repository<TicketHistory>,
     @InjectRepository( TicketLog )
-    private readonly ticketLogRepository: Repository<TicketLog>
+    private readonly ticketLogRepository: Repository<TicketLog>,
+    @InjectRepository( TicketActivity )
+    private readonly ticketActivityRepository: Repository<TicketActivity>,
+    @InjectRepository( LoanTracking )
+    private readonly loanTrackingRepository: Repository<LoanTracking>,
+    @InjectRepository( Application )
+    private readonly customerApplicationRepository: Repository<Application>,
+
 
   ) { }
 
@@ -263,6 +273,9 @@ export class TicketsService {
     const ticket = await this.ticketRepository.findOne( { where: { id: ticketId } } );
     const ticketHistory = await this.ticketHistoryRepository.find( { where: { ticket_id: ticketId } } );
     const ticketLog = await this.ticketLogRepository.find( { where: { ticket_id: ticketId } } );
+    const ticketActivity = await this.ticketActivityRepository.find( { where: { ticket_id: ticketId } } );
+    const loanTracking = await this.loanTrackingRepository.find( { where: { customer_application_id: ticket.customer_application_id } } );
+    const customerApplication = await this.customerApplicationRepository.findOne( { where: { id: ticket.customer_application_id }});
     console.log( "ticketHistory>>>>", ticketHistory )
 
     if ( !ticket )
@@ -282,6 +295,21 @@ export class TicketsService {
         await this.ticketLogRepository.remove( log );
       } )
     }
+    if ( ticketActivity.length )
+    {
+      ticketActivity.forEach( async ( activity ) => {
+        await this.ticketActivityRepository.remove( activity );
+      } )
+    }
+    if ( loanTracking.length )
+    {
+      loanTracking.forEach( async ( tracking ) => {
+        await this.loanTrackingRepository.remove( tracking );
+      } )
+    }
+
+    await this.customerApplicationRepository.remove( customerApplication ); // Or use delete method
+
     await this.ticketRepository.remove( ticket ); // Or use delete method
   }
 }
