@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { Application } from './entities/applications.entity';
 import { UpdateApplicationDto } from './dto/update-application.dto';
@@ -56,13 +56,14 @@ export class ApplicationsService {
     } );
 
     const results = applications.map( ( application ) => {
-      const { customer, loanTracking, amount, tenure, application_date, id } = application;
+      const { customer, loanTracking, amount, provider, tenure, application_date, id } = application;
 
       return {
         customerId: customer?.id ?? 'No ID',
         customerName: customer?.name ?? 'No Name',
         customerEmail: customer?.email ?? 'No Email',
         customerContact: customer?.contact ?? 'No Contact',
+        applicationProvider: provider ?? 'No provider available',
         applicationAmount: amount,
         applicationTenure: tenure,
         applicationDate: application_date,
@@ -136,6 +137,11 @@ export class ApplicationsService {
     if ( updateApplicationDto.customerLocation )
     {
       application.customer.info.city = updateApplicationDto.customerLocation;
+    }
+    // Update customer info (e.g, provider)
+    if ( updateApplicationDto.customerLocation )
+    {
+      application.provider = updateApplicationDto.customerProvider;
     }
     // Save the updated customer entity (this is crucial)
     await this.customerRepository.save( application.customer );

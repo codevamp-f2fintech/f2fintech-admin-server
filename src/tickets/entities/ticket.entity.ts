@@ -19,6 +19,7 @@ export enum Status {
   TO_BE_DISBURSED = 'to be disbursed',
   APPROVED = 'approved',
   DISBURSED = 'disbursed',
+  CARRY_FORWARD = 'carry forward',
   // TO_BE_LOGIN = 'to be login',
   // TVR_DONE = 'tvr done',
   // CAM_REPORT_DONE = 'cam report done',

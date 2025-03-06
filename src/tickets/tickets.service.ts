@@ -19,6 +19,7 @@ export interface TicketResponse {
   forwardedTo: number | string;
   isForwarded: number | string;
   originalEstimate: string;
+  applicationProvider: string;
   applicationAmount: string | number;
   applicationTenure: number | string;
   applicationDate: Date | string;
@@ -195,6 +196,7 @@ export class TicketsService {
         customerProfileImage: customerProfileImages.length > 0 ? customerProfileImages : 'No image available',
         customerLocation: customer.info?.city ?? 'No location available',
         loanStatus: loanTracking[ 0 ]?.status ?? 'No status available',
+        applicationProvider: application.provider ?? 'No provider available',
       };
     } );
 
@@ -246,6 +248,7 @@ export class TicketsService {
       forwardedTo: ticket.forwarded_to,
       isForwarded: ticket.is_forwarded,
       originalEstimate: ticket.original_estimate,
+      applicationProvider: ticket.application?.provider ?? 'No Provider',
       applicationAmount: ticket.application?.amount ?? 'No Amount',
       applicationTenure: ticket.application?.tenure ?? 'No Tenure',
       applicationDate: ticket.application?.application_date ?? 'No Date',
@@ -275,7 +278,7 @@ export class TicketsService {
     const ticketLog = await this.ticketLogRepository.find( { where: { ticket_id: ticketId } } );
     const ticketActivity = await this.ticketActivityRepository.find( { where: { ticket_id: ticketId } } );
     const loanTracking = await this.loanTrackingRepository.find( { where: { customer_application_id: ticket.customer_application_id } } );
-    const customerApplication = await this.customerApplicationRepository.findOne( { where: { id: ticket.customer_application_id }});
+    const customerApplication = await this.customerApplicationRepository.findOne( { where: { id: ticket.customer_application_id } } );
     console.log( "ticketHistory>>>>", ticketHistory )
 
     if ( !ticket )
@@ -308,8 +311,8 @@ export class TicketsService {
       } )
     }
 
-    await this.customerApplicationRepository.remove( customerApplication ); // Or use delete method
-
     await this.ticketRepository.remove( ticket ); // Or use delete method
+
+    await this.customerApplicationRepository.remove( customerApplication ); // Or use delete method
   }
 }
