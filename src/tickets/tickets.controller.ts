@@ -7,6 +7,7 @@ import {
   Param,
   UseGuards,
   Query,
+  Delete,
 } from '@nestjs/common';
 
 import { TicketsService } from './tickets.service';
@@ -100,6 +101,29 @@ export class TicketsController {
       );
       return ResponseFormatter.success(200, 'Ticket updated successfully');
     } catch (error) {
+      return ResponseFormatter.error(
+        error.status || 500,
+        error.message || 'Internal server error',
+      );
+    }
+  }
+  @Delete( 'delete-ticket/:ticketId' ) // Add this endpoint
+  async remove ( @Param( 'ticketId' ) ticketId: number ) {
+    try
+    {
+      // Validate the ticketId before proceeding
+      if ( !ticketId || isNaN( ticketId ) )
+      {
+        throw new Error( 'Invalid ticket ID' );
+      }
+
+      // Call the service to delete the ticket
+      await this.ticketsService.remove( ticketId );
+
+      return ResponseFormatter.success( 200, 'Ticket deleted successfully' );
+    } catch ( error )
+    {
+      console.error( 'Error deleting ticket:', error ); // Log error for debugging
       return ResponseFormatter.error(
         error.status || 500,
         error.message || 'Internal server error',

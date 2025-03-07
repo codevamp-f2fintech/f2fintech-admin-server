@@ -29,13 +29,18 @@ export class ApplicationsService {
     private readonly customerInfoRepository: Repository<CustomerInfo>,
   ) { }
 
-  async getApplicationData(page: number, limit: number, appliedBy: number): Promise<PaginationResult> {
-    page = Number(page) || 1;
-    limit = Number(limit) || 10;
-    const skip = (page - 1) * limit;
-    const whereCondition = appliedBy
-      ? { is_picked: 0, applied_by: appliedBy }
-      : { is_picked: 0 };
+  async getApplicationData ( page: number, limit: number, appliedBy: number ): Promise<PaginationResult> {
+    page = Number( page ) || 1;
+    limit = Number( limit ) || 10;
+    const skip = ( page - 1 ) * limit;
+    const whereCondition: any = {
+      is_picked: 0,
+    };
+
+    if ( appliedBy )
+    {
+      whereCondition.applied_by = appliedBy; // Include appliedBy condition if it's present
+    }
 
     const [ applications, count ] = await this.applicationRepository.findAndCount( {
       relations: [
@@ -51,13 +56,14 @@ export class ApplicationsService {
     } );
 
     const results = applications.map( ( application ) => {
-      const { customer, loanTracking, amount, tenure, application_date, id } = application;
+      const { customer, loanTracking, amount, provider, tenure, application_date, id } = application;
 
       return {
         customerId: customer?.id ?? 'No ID',
         customerName: customer?.name ?? 'No Name',
         customerEmail: customer?.email ?? 'No Email',
         customerContact: customer?.contact ?? 'No Contact',
+        applicationProvider: provider ?? 'No provider available',
         applicationAmount: amount,
         applicationTenure: tenure,
         applicationDate: application_date,
@@ -82,8 +88,8 @@ export class ApplicationsService {
     return this.applicationRepository.count();
   }
 
-  async getNewApplicationsCount(): Promise<any> {
-    return this.applicationRepository.count({
+  async getNewApplicationsCount (): Promise<any> {
+    return this.applicationRepository.count( {
       where: { is_picked: 0 },
       order: { application_date: 'DESC' },
     } );
@@ -131,6 +137,11 @@ export class ApplicationsService {
     if ( updateApplicationDto.customerLocation )
     {
       application.customer.info.city = updateApplicationDto.customerLocation;
+    }
+    // Update customer info (e.g, provider)
+    if ( updateApplicationDto.customerLocation )
+    {
+      application.provider = updateApplicationDto.customerProvider;
     }
     // Save the updated customer entity (this is crucial)
     await this.customerRepository.save( application.customer );
