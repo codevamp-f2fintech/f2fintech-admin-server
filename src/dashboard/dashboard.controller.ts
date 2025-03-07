@@ -40,8 +40,9 @@ export class DashboardController {
     @Param( 'idOrStatus' ) idOrStatus?: string,
     @Param( 'status' ) status?: string,
     @Query( 'date' ) date?: string,
+    @Query( 'month' ) month?: string,
   ) {
-    console.log( 'idOrStatus and status and date>>>', idOrStatus, status, date );
+    console.log( 'idOrStatus and status and date>>>', idOrStatus, status, month );
     try
     {
       let count = 0;
@@ -51,20 +52,21 @@ export class DashboardController {
         count = await this.dashboardService.findTicketsCount(
           idOrStatus,
           status,
-          date
+          date,
+          month,
         );
       } else if ( idOrStatus && !isNaN( Number( idOrStatus ) ) )
       {
         // idOrStatus is a number, so treat it as an ID with no status
-        count = await this.dashboardService.findTicketsCount( idOrStatus, null, date );
+        count = await this.dashboardService.findTicketsCount( idOrStatus, null, date,month );
       } else if ( idOrStatus && isNaN( Number( idOrStatus ) ) )
       {
         // idOrStatus is a string and not a number, so treat it as a status
-        count = await this.dashboardService.findTicketsCount( null, idOrStatus, date );
+        count = await this.dashboardService.findTicketsCount( null, idOrStatus, date, month );
       } else
       {
         // no parameters, return total count
-        count = await this.dashboardService.findTicketsCount( null, null, date );
+        count = await this.dashboardService.findTicketsCount( null, null, date, month );
       }
 
       return ResponseFormatter.success(

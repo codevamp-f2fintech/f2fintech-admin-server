@@ -20,7 +20,7 @@ export class DashboardService {
     return this.userRepository.count();
   }
 
-  async findTicketsCount ( id = null, status = null, date = null ): Promise<number> {
+  async findTicketsCount ( id = null, status = null, date = null, month = null ): Promise<number> {
     const where: any = {};
 
     console.log( 'id & status<<>>', id, status );
@@ -44,6 +44,14 @@ export class DashboardService {
       {
         where.status = status;
       }
+    }
+    if ( month )
+    {
+      const currentYear = new Date().getFullYear()
+      const startOfMonth = new Date( `${ month } 1, ${ currentYear }` );
+      const endOfMonth = new Date( `${ month } 31, ${ currentYear } ` );
+
+      where.created_at = Between( startOfMonth, endOfMonth );
     }
     if ( date )
     {
