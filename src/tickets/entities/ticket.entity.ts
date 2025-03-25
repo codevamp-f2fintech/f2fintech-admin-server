@@ -22,6 +22,7 @@ export enum Status {
   CARRY_FORWARD = 'carry forward',
   REJECTED = 'rejected',
   DROP = 'drop',
+  HOLD = 'hold',
   // TO_BE_LOGIN = 'to be login',
   // TVR_DONE = 'tvr done',
   // CAM_REPORT_DONE = 'cam report done',
