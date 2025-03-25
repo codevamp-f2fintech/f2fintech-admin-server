@@ -19,10 +19,10 @@ export class LoanTracking {
 
     @Column({
         type: 'enum',
-        enum: ['submitted', 'under credit review', 'login', 'carry forward', 'drop', 'relook', 'approved','rejected'],
+        enum: ['submitted', 'under credit review', 'login', 'carry forward', 'drop', 'relook', 'approved', 'rejected', 'disbursed'],
         default: 'submitted',
     })
-    status: 'submitted' | 'under credit review' | 'login' | 'carry forward' | 'drop' | 'relook' | 'approved' | 'rejected';
+    status: 'submitted' | 'under credit review' | 'login' | 'carry forward' | 'drop' | 'relook' | 'approved' | 'rejected' | 'disbursed';
 
     @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     updated_at: Date;
