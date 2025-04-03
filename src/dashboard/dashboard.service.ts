@@ -27,6 +27,21 @@ export class DashboardService {
     if (id) {
       where.user_id = id;
     }
+
+    if (month) {
+      const currentYear = new Date().getFullYear()
+      const startOfMonth = new Date(`${month} 1, ${currentYear}`);
+      const endOfMonth = new Date(`${month} 31, ${currentYear} `);
+      where.updated_at = Between(startOfMonth, endOfMonth);
+    }
+
+    if (date) {
+      const parsedDate = new Date(date);
+      const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));  // Set time to 00:00:00
+      const endOfDay = new Date(parsedDate.setHours(28, 59, 59, 999)); // Set time to 23:59:59
+      where.updated_at = Between(startOfDay, endOfDay); //  date provided
+    }
+
     if (status) {
       if (status === 'forwarded' && id) {
         // Use query builder for OR condition
@@ -55,24 +70,7 @@ export class DashboardService {
       const totalAmount = tickets.reduce((sum, ticket) => {
         return sum + (parseFloat(String(ticket?.application?.amount || '0')));
       }, 0);
-      // Return both count and totalAmount
       return { count: tickets.length, amount: totalAmount };
-    }
-
-    if (month) {
-      const currentYear = new Date().getFullYear()
-      const startOfMonth = new Date(`${month} 1, ${currentYear}`);
-      const endOfMonth = new Date(`${month} 31, ${currentYear} `);
-      where.created_at = Between(startOfMonth, endOfMonth);
-    }
-
-    if (date) {
-      console.log("date<<>>", date);
-      const parsedDate = new Date(date);
-      const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));  // Set time to 00:00:00
-      const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999)); // Set time to 23:59:59
-
-      where.created_at = Between(startOfDay, endOfDay); //  date provided
     }
 
     // Return count based on the conditions in 'where'
