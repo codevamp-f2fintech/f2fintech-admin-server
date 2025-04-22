@@ -13,6 +13,7 @@ export enum Status {
 
 export enum Role {
   ADMIN = 'admin',
+  SUBADMIN = 'sub admin',
   AGENT = 'agent',
   SALES = 'sales',
 }
