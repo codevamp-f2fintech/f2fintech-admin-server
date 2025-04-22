@@ -56,9 +56,15 @@ export class UsersService {
 
   async login(loginUserDto: LoginUserDto): Promise<{ access_token: string }> {
     const { email, password } = loginUserDto;
-    const user = await this.userRepository.findOne({ where: { email } });
+    const user = await this.userRepository.findOne({
+      where: {
+        email,
+        status: Status.ACTIVE
+
+      }
+    });
     if (!user) {
-      throw new UnauthorizedException('User Not Found');
+      throw new UnauthorizedException('User Not Found or Inactive');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
