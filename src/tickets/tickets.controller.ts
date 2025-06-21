@@ -60,7 +60,7 @@ export class TicketsController {
       status,
       name,
       startDate,
-      endDate
+      endDate,
     );
     return ResponseFormatter.success(200, 'Tickets Retrieved Successfully', paginatedTickets);
   }
