@@ -4,6 +4,12 @@ import { Ticket } from 'src/tickets/entities/ticket.entity';
 import { Customer } from './customer.entity';
 import { LoanTracking } from './loanTracking.entity';
 
+export enum Loan_type {
+  TERM_LOAN = 'term loan',
+  PERSONAL_LOAN = 'personal loan',
+  BUSINESS_LOAN = 'business loan',
+}
+
 @Entity('customer_application')
 export class Application {
   @PrimaryGeneratedColumn()
@@ -23,6 +29,12 @@ export class Application {
 
   @Column({ type: 'decimal' })
   amount: number;
+
+  @Column( {
+    type: 'enum',
+    enum: Loan_type,
+  } )
+  loan_type: Loan_type;
 
   @Column({ type: 'int' })
   tenure: number;

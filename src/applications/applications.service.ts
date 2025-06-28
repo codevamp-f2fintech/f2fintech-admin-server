@@ -2,9 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 
 import { Application } from './entities/applications.entity';
+import { LoanTracking } from 'src/applications/entities/loanTracking.entity';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import { Customer } from './entities/customer.entity';
 import { CustomerInfo } from './entities/customerInfo.entity';
@@ -21,6 +22,8 @@ export class ApplicationsService {
   prisma: any;
   constructor (
     private readonly httpService: HttpService,
+    @InjectRepository( LoanTracking )
+    private readonly loanTrackingRepository: Repository<LoanTracking>,
     @InjectRepository( Application )
     private readonly applicationRepository: Repository<Application>,
     @InjectRepository( Customer )
@@ -39,7 +42,7 @@ export class ApplicationsService {
 
     if ( appliedBy )
     {
-      whereCondition.applied_by = appliedBy; // Include appliedBy condition if it's present
+      whereCondition.applied_by = appliedBy;
     }
 
     const [ applications, count ] = await this.applicationRepository.findAndCount( {
@@ -57,6 +60,7 @@ export class ApplicationsService {
 
     const results = applications.map( ( application ) => {
       const { customer, loanTracking, amount, provider, tenure, application_date, id } = application;
+      
 
       return {
         customerId: customer?.id ?? 'No ID',
@@ -74,6 +78,7 @@ export class ApplicationsService {
           ?.filter( doc => doc.type === 'profile' ) // Filter objects with type: 'profile'
           .map( doc => doc.document_url ) ?? [ 'No image available' ],
         customerLocation: customer.info?.city ?? 'No location available',
+        customerState: customer.info?.state ?? 'No location available',
       };
     } );
 
@@ -84,13 +89,88 @@ export class ApplicationsService {
     };
   }
 
-  async getApplicationsCount (): Promise<any> {
-    return this.applicationRepository.count();
+  private getMonthNumber ( monthName: string ): number {
+    const months = {
+      'January': 1, 'February': 2, 'March': 3, 'April': 4,
+      'May': 5, 'June': 6, 'July': 7, 'August': 8,
+      'September': 9, 'October': 10, 'November': 11, 'December': 12
+    };
+    return months[ monthName ] || 1;
   }
 
-  async getNewApplicationsCount (): Promise<any> {
+  async getApplicationsCount ( month?: string, year?: number, date?: string ): Promise<any> {
+    const whereCondition: any = {};
+
+    // If specific date is provided, filter by that exact date
+    if ( date )
+    {
+      const parsedDate = new Date( date );
+      const startOfDay = new Date( parsedDate.setHours( 0, 0, 0, 0 ) );  // Set time to 00:00:00
+      const endOfDay = new Date( parsedDate.setHours( 28, 59, 59, 999 ) ); // Set time to 23:59:59
+      whereCondition.application_date = Between( startOfDay, endOfDay ); //  date provided
+    }
+    // If only month and year are provided (no specific date)
+    if ( month && year )
+    {
+      const monthNumber = this.getMonthNumber( month );
+      const startDate = new Date( year, monthNumber - 1, 1 ); // Start of month
+      const endDate = new Date( year, monthNumber, 0, 23, 59, 59 ); // End of month
+
+      whereCondition.application_date = Between( startDate, endDate );
+    }
+    // If only year is provided
+    if ( year )
+    {
+      const startDate = new Date( year, 0, 1 ); // Start of year
+      const endDate = new Date( year, 11, 31, 23, 59, 59 ); // End of year
+
+      whereCondition.application_date = Between( startDate, endDate );
+    }
+
+    // If no filters are provided, return total count
+    if ( Object.keys( whereCondition ).length === 0 )
+    {
+      return this.applicationRepository.count();
+    }
+
     return this.applicationRepository.count( {
-      where: { is_picked: 0 },
+      where: whereCondition
+    } );
+  }
+  
+
+  async getNewApplicationsCount ( month?: string, year?: number, date?: string ): Promise<any> {
+    const whereCondition: any = { is_picked: 0 };
+
+    // If specific date is provided, filter by that exact date
+    if ( date )
+    {
+      const selectedDate = new Date( date );
+      const startOfDay = new Date( selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0, 0, 0 );
+      const endOfDay = new Date( selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59 );
+
+      whereCondition.application_date = Between( startOfDay, endOfDay );
+    }
+    // If only month and year are provided (no specific date)
+    else if ( month && year )
+    {
+      const monthNumber = this.getMonthNumber( month );
+      const startDate = new Date( year, monthNumber - 1, 1 ); // Start of month
+      const endDate = new Date( year, monthNumber, 0, 23, 59, 59 ); // End of month
+
+      whereCondition.application_date = Between( startDate, endDate );
+    }
+    // If only year is provided
+    else if ( year )
+    {
+      const startDate = new Date( year, 0, 1 );
+      const endDate = new Date( year, 11, 31, 23, 59, 59 );
+
+      whereCondition.application_date = Between( startDate, endDate );
+    }
+
+    return this.applicationRepository.count( {
+      where: whereCondition,
       order: { application_date: 'DESC' },
     } );
   }
@@ -138,6 +218,10 @@ export class ApplicationsService {
     {
       application.customer.info.city = updateApplicationDto.customerLocation;
     }
+    if ( updateApplicationDto.customerState )
+    {
+      application.customer.info.state = updateApplicationDto.customerState;
+      }
     // Update customer info (e.g, provider)
     if ( updateApplicationDto.customerLocation )
     {
@@ -187,6 +271,38 @@ export class ApplicationsService {
         error.message,
       );
       return null;
+    }
+  }
+
+  async remove ( applicationId: number ): Promise<void> {
+    try
+    {
+      // First check if the application exists
+      const application = await this.applicationRepository.findOne( {
+        where: { id: applicationId }
+      } );
+
+      if ( !application )
+      {
+        throw new NotFoundException( `Application with ID ${ applicationId } not found` );
+      }
+      // Find the loan tracking record
+      const loanTracking = await this.loanTrackingRepository.findOne( {
+        where: { customer_application_id: applicationId }
+      } );
+
+      // Delete loan tracking first (if it exists) to avoid foreign key constraint issues
+      if ( loanTracking )
+      {
+        await this.loanTrackingRepository.remove( loanTracking );
+      }
+      // Then delete the application
+      await this.applicationRepository.remove( application );
+
+    } catch ( error )
+    {
+      console.error( `Error deleting application ${ applicationId }:`, error );
+      throw error; // Let the controller handle the error response
     }
   }
 }
