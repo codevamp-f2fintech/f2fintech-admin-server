@@ -218,6 +218,10 @@ export class ApplicationsService {
     {
       application.customer.info.city = updateApplicationDto.customerLocation;
     }
+    if ( updateApplicationDto.customerState )
+    {
+      application.customer.info.state = updateApplicationDto.customerState;
+      }
     // Update customer info (e.g, provider)
     if ( updateApplicationDto.customerLocation )
     {
