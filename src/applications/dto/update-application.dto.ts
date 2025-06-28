@@ -24,6 +24,10 @@ export class UpdateApplicationDto extends PartialType( CreateApplicationDto ) {
   customerLocation?: string;
 
   @IsOptional()
+  @IsString()
+  customerState?: string;
+
+  @IsOptional()
   @IsDecimal()
   applicationAmount?: number;
 
