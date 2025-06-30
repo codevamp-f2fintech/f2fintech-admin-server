@@ -140,6 +140,7 @@ export class TicketsService {
           // Normal userId + status check
           query.where('ticket.user_id = :userId', { userId });
 
+          // Apply status filter if provided and not 'all'
           if (status && status !== 'all' && status.trim() !== '') {
             query.andWhere('ticket.status = :status', { status });
           }
@@ -150,13 +151,18 @@ export class TicketsService {
       query.where('ticket.status = :status', { status });
     }
 
-    // if (provider && provider.trim() !== '') {
-    //   query.andWhere('LOWER(application.provider) LIKE :provider', { provider: `%${provider.toLowerCase()}%` });
-    // }
+    // Apply provider filter (works for both userId and admin)
+    if (provider && provider !== 'all' && provider.trim() !== '') {
+      query.andWhere('LOWER(application.provider) = LOWER(:provider)', { provider });
+    }
 
     if (name && name.trim() !== '') {
-      query.andWhere('LOWER(customer.name) LIKE :name', { name: `%${name.toLowerCase()}%` });
-      query.orWhere('LOWER(customer.contact) LIKE :name', { name: `%${name}%` });
+      query.andWhere(
+        new Brackets((qb) => {
+          qb.where('LOWER(customer.name) LIKE :name', { name: `%${name.toLowerCase()}%` })
+            .orWhere('LOWER(customer.contact) LIKE :name', { name: `%${name.toLowerCase()}%` });
+        }),
+      );
     }
 
     if (startDate) {
@@ -174,7 +180,7 @@ export class TicketsService {
 
       query.andWhere('ticket.created_at <= :endDate', { endDate });
     }
-    // console.log(query.getSql(), query.getParameters());
+    console.log(query.getSql(), query.getParameters());
 
     const [tickets, count] = await query.getManyAndCount();
     // Calculate total disbursed amount if status is 'disbursed'
@@ -207,9 +213,9 @@ export class TicketsService {
         customerContact: customer?.contact ?? 'No Contact',
         customerProfileImage: customerProfileImages.length > 0 ? customerProfileImages : 'No image available',
         customerLocation: customer.info?.city ?? 'No location available',
+        customerState: customer.info?.state ?? 'No location available',
         loanStatus: loanTracking[0]?.status ?? 'No status available',
         applicationProvider: application.provider ?? 'No provider available',
-        customerState: customer.info?.state ?? 'No location available',
       };
     });
 
