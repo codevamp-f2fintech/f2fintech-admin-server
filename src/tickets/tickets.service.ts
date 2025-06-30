@@ -34,6 +34,7 @@ export interface TicketResponse {
     document_url: string;
   }[];
   customerLocation: string;
+  customerState: string;
   customerDesignation: string;
   loanStatus: string;
 }
@@ -208,6 +209,7 @@ export class TicketsService {
         customerLocation: customer.info?.city ?? 'No location available',
         loanStatus: loanTracking[0]?.status ?? 'No status available',
         applicationProvider: application.provider ?? 'No provider available',
+        customerState: customer.info?.state ?? 'No location available',
       };
     });
 
@@ -274,6 +276,7 @@ export class TicketsService {
       customerDocuments: customerDocuments,
       customerDesignation: ticket.application?.customer?.info?.occupation_type ?? 'Not available',
       customerLocation: ticket.application?.customer?.info?.city ?? 'No Location available',
+      customerState: ticket.application?.customer?.info?.state ?? 'No Location available',
       loanStatus:
         ticket.application?.loanTracking?.[0]?.status ?? '',
     };
