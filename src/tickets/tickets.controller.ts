@@ -47,6 +47,7 @@ export class TicketsController {
     @Query('isAgent') isAgent: boolean = false,
     @Query('appliedBy') appliedBy?: number,
     @Query('status') status: string = '',
+    @Query('provider') provider: string = '',
     @Query('name') name: string = '',
     @Query('startDate') startDate: string = '',
     @Query('endDate') endDate: string = '',
@@ -58,6 +59,7 @@ export class TicketsController {
       isAgent,
       appliedBy,
       status,
+      provider,
       name,
       startDate,
       endDate,
@@ -107,23 +109,20 @@ export class TicketsController {
       );
     }
   }
-  @Delete( 'delete-ticket/:ticketId' ) // Add this endpoint
-  async remove ( @Param( 'ticketId' ) ticketId: number ) {
-    try
-    {
+  @Delete('delete-ticket/:ticketId') // Add this endpoint
+  async remove(@Param('ticketId') ticketId: number) {
+    try {
       // Validate the ticketId before proceeding
-      if ( !ticketId || isNaN( ticketId ) )
-      {
-        throw new Error( 'Invalid ticket ID' );
+      if (!ticketId || isNaN(ticketId)) {
+        throw new Error('Invalid ticket ID');
       }
 
       // Call the service to delete the ticket
-      await this.ticketsService.remove( ticketId );
+      await this.ticketsService.remove(ticketId);
 
-      return ResponseFormatter.success( 200, 'Ticket deleted successfully' );
-    } catch ( error )
-    {
-      console.error( 'Error deleting ticket:', error ); // Log error for debugging
+      return ResponseFormatter.success(200, 'Ticket deleted successfully');
+    } catch (error) {
+      console.error('Error deleting ticket:', error); // Log error for debugging
       return ResponseFormatter.error(
         error.status || 500,
         error.message || 'Internal server error',
