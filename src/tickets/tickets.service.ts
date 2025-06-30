@@ -34,7 +34,6 @@ export interface TicketResponse {
     document_url: string;
   }[];
   customerLocation: string;
-  customerState: string;
   customerDesignation: string;
   loanStatus: string;
 }
@@ -43,6 +42,7 @@ export interface PaginationResult {
   results: any[];
   count: number;
   pages: number;
+  totalDisbursedAmount?: number;
   errorMessage?: string;
 }
 
@@ -61,6 +61,8 @@ export class TicketsService {
     private readonly loanTrackingRepository: Repository<LoanTracking>,
     @InjectRepository(Application)
     private readonly customerApplicationRepository: Repository<Application>,
+
+
   ) { }
 
   async create(createTicketDto: CreateTicketDto): Promise<any> {
@@ -88,6 +90,7 @@ export class TicketsService {
     isAgent?: boolean,
     appliedBy?: number,
     status?: string,
+    provider?: string,
     name?: string,
     startDate?: string,
     endDate?: string,
@@ -146,6 +149,9 @@ export class TicketsService {
       query.where('ticket.status = :status', { status });
     }
 
+    if (provider && provider.trim() !== '') {
+      query.andWhere('LOWER(application.provider) LIKE :provider', { provider: `%${provider.toLowerCase()}%` });
+    }
 
     if (name && name.trim() !== '') {
       query.andWhere('LOWER(customer.name) LIKE :name', { name: `%${name.toLowerCase()}%` });
@@ -170,6 +176,13 @@ export class TicketsService {
     // console.log(query.getSql(), query.getParameters());
 
     const [tickets, count] = await query.getManyAndCount();
+    // Calculate total disbursed amount if status is 'disbursed'
+    let totalDisbursedAmount = 0;
+    if (status === 'disbursed') {
+      totalDisbursedAmount = tickets.reduce((sum, ticket) => {
+        return sum + (parseFloat(String(ticket?.application?.amount || '0')));
+      }, 0);
+    }
 
     const results = tickets.map((ticket) => {
       const { application } = ticket;
@@ -193,17 +206,21 @@ export class TicketsService {
         customerContact: customer?.contact ?? 'No Contact',
         customerProfileImage: customerProfileImages.length > 0 ? customerProfileImages : 'No image available',
         customerLocation: customer.info?.city ?? 'No location available',
-        customerState: customer.info?.state ?? 'No location available',
         loanStatus: loanTracking[0]?.status ?? 'No status available',
         applicationProvider: application.provider ?? 'No provider available',
       };
     });
 
-    return {
+    const response: PaginationResult = {
       results,
       count,
       pages: Math.ceil(count / limit),
     };
+
+    if (status === 'disbursed') {
+      response.totalDisbursedAmount = totalDisbursedAmount;
+    }
+    return response;
   }
 
   async findOne(id: number): Promise<Ticket> {
@@ -257,7 +274,6 @@ export class TicketsService {
       customerDocuments: customerDocuments,
       customerDesignation: ticket.application?.customer?.info?.occupation_type ?? 'Not available',
       customerLocation: ticket.application?.customer?.info?.city ?? 'No Location available',
-      customerState: ticket.application?.customer?.info?.state ?? 'No Location available',
       loanStatus:
         ticket.application?.loanTracking?.[0]?.status ?? '',
     };
