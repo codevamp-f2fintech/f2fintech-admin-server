@@ -8,6 +8,12 @@ export enum Loan_type {
   TERM_LOAN = 'term loan',
   PERSONAL_LOAN = 'personal loan',
   BUSINESS_LOAN = 'business loan',
+  PROFESSIONAL_LOAN = 'professional loan',
+  HOME_LOAN = 'home loan',
+  EDUCATION_LOAN = 'education loan',
+  LAP = 'lap',
+  MACHINERY_LOAN = 'machinery loan',
+  AUTO_LOAN = 'auto loan'
 }
 
 @Entity('customer_application')
