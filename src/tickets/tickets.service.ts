@@ -150,9 +150,9 @@ export class TicketsService {
       query.where('ticket.status = :status', { status });
     }
 
-    if (provider && provider.trim() !== '') {
-      query.andWhere('LOWER(application.provider) LIKE :provider', { provider: `%${provider.toLowerCase()}%` });
-    }
+    // if (provider && provider.trim() !== '') {
+    //   query.andWhere('LOWER(application.provider) LIKE :provider', { provider: `%${provider.toLowerCase()}%` });
+    // }
 
     if (name && name.trim() !== '') {
       query.andWhere('LOWER(customer.name) LIKE :name', { name: `%${name.toLowerCase()}%` });
