@@ -180,7 +180,7 @@ export class TicketsService {
 
       query.andWhere('ticket.created_at <= :endDate', { endDate });
     }
-    console.log(query.getSql(), query.getParameters());
+    // console.log(query.getSql(), query.getParameters());
 
     const [tickets, count] = await query.getManyAndCount();
     // Calculate total disbursed amount if status is 'disbursed'
