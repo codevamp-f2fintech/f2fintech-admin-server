@@ -13,7 +13,7 @@ export class TicketVoiceNote {
   @Index()
   user_id: number;
 
-  @Column()
+  @Column({ type: 'longtext' })
   voice_note_url: string;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

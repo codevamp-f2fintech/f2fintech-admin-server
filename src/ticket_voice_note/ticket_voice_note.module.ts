@@ -12,4 +12,4 @@ import { TicketVoiceNote } from './entities/ticket_voice_note.entity';
   exports: [TicketVoiceNoteService],
 })
 
-export class TicketActivitiesModule { }
+export class TicketVoiceNoteModule { }
