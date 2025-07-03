@@ -98,45 +98,40 @@ export class ApplicationsService {
     return months[ monthName ] || 1;
   }
 
-  async getApplicationsCount ( month?: string, year?: number, date?: string ): Promise<any> {
+  async getApplicationsCount ( month?: string, year?: number, date?: string ): Promise<number> {
     const whereCondition: any = {};
 
-    // If specific date is provided, filter by that exact date
     if ( date )
     {
+      // Filter by exact date
       const parsedDate = new Date( date );
-      const startOfDay = new Date( parsedDate.setHours( 0, 0, 0, 0 ) );  // Set time to 00:00:00
-      const endOfDay = new Date( parsedDate.setHours( 28, 59, 59, 999 ) ); // Set time to 23:59:59
-      whereCondition.application_date = Between( startOfDay, endOfDay ); //  date provided
-    }
-    // If only month and year are provided (no specific date)
-    if ( month && year )
-    {
-      const monthNumber = this.getMonthNumber( month );
-      const startDate = new Date( year, monthNumber - 1, 1 ); // Start of month
-      const endDate = new Date( year, monthNumber, 0, 23, 59, 59 ); // End of month
+      const startOfDay = new Date( parsedDate );
+      startOfDay.setHours( 0, 0, 0, 0 );
+      const endOfDay = new Date( parsedDate );
+      endOfDay.setHours( 23, 59, 59, 999 );
+      whereCondition.application_date = Between( startOfDay, endOfDay );
 
+    } else if ( month && year )
+    {
+      // Filter by month
+      const monthNumber = this.getMonthNumber( month ); // Ensure this returns 1-based index (Jan = 1)
+      const startDate = new Date( year, monthNumber - 1, 1 );
+      const endDate = new Date( year, monthNumber, 0, 23, 59, 59, 999 );
+      whereCondition.application_date = Between( startDate, endDate );
+
+    } else if ( year )
+    {
+      // Filter by year
+      const startDate = new Date( year, 0, 1, 0, 0, 0, 0 );
+      const endDate = new Date( year, 11, 31, 23, 59, 59, 999 );
       whereCondition.application_date = Between( startDate, endDate );
     }
-    // If only year is provided
-    if ( year )
-    {
-      const startDate = new Date( year, 0, 1 ); // Start of year
-      const endDate = new Date( year, 11, 31, 23, 59, 59 ); // End of year
 
-      whereCondition.application_date = Between( startDate, endDate );
-    }
-
-    // If no filters are provided, return total count
-    if ( Object.keys( whereCondition ).length === 0 )
-    {
-      return this.applicationRepository.count();
-    }
-
-    return this.applicationRepository.count( {
-      where: whereCondition
-    } );
+    return Object.keys( whereCondition ).length === 0
+      ? this.applicationRepository.count()
+      : this.applicationRepository.count( { where: whereCondition } );
   }
+  
   
 
   async getNewApplicationsCount ( month?: string, year?: number, date?: string ): Promise<any> {
