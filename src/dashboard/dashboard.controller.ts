@@ -40,7 +40,6 @@ export class DashboardController {
     @Query('date') date?: string,
     @Query('month') month?: string,
   ) {
-    console.log('idOrStatus and status and date>>>', idOrStatus, status, month);
     try {
       let result: any;
       if (idOrStatus && status) {
