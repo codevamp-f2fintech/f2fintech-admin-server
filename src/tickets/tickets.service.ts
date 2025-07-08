@@ -171,12 +171,11 @@ export class TicketsService {
 
     if (endDate) {
       const endDateObj = new Date(endDate);
-      // If startDate and endDate are the same day
-      if (startDate && startDate.split(' ')[0] === endDate.split(' ')[0]) {
-        endDateObj.setHours(28, 59, 59, 999);
-        endDate = endDateObj.toISOString().replace('T', ' ').substring(0, 19);
-        console.log('new End Date:', endDate);
-      }
+      endDateObj.setHours(28, 59, 59, 999);
+      endDate = endDateObj
+        .toISOString()                    // -> "2025-07-08T23:29:59.999Z"
+        .replace("T", " ")                // -> "2025-07-08 23:29:59.999Z"
+        .substring(0, 19);                // -> "2025-07-08 23:29:59"
 
       query.andWhere('ticket.created_at <= :endDate', { endDate });
     }
