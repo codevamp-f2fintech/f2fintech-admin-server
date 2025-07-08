@@ -14,12 +14,13 @@ export enum Status {
 export enum Role {
   ADMIN = 'admin',
   SUBADMIN = 'sub admin',
-  AGENT = 'agent',
   SALES = 'sales',
+  OPERATIONS = 'operations',
+  CREDIT = 'credit'
 }
 
-@Entity('users')
-@Unique(['email'])
+@Entity( 'users' )
+@Unique( [ 'email' ] )
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -30,43 +31,43 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ unique: true })
+  @Column( { unique: true } )
   email: string;
 
-  @Column({ length: 15 })
+  @Column( { length: 15 } )
   number: string;
 
   @Column()
   designation: string;
 
-  @Column({
+  @Column( {
     type: 'enum',
     enum: Gender,
     default: Gender.OTHER,
-  })
+  } )
   gender: Gender;
 
-  @Column({
+  @Column( {
     type: 'enum',
     enum: Status,
     default: Status.ACTIVE,
-  })
+  } )
   status: Status;
 
-  @Column({
+  @Column( {
     type: 'enum',
     enum: Role,
-    default: Role.AGENT,
-  })
+    default: Role.SALES,
+  } )
   role: Role;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column( { type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' } )
   created_at: Date;
 
-  @Column({
+  @Column( {
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP',
-  })
+  } )
   updated_at: Date;
 }
