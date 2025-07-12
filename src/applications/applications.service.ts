@@ -218,9 +218,13 @@ export class ApplicationsService {
       application.customer.info.state = updateApplicationDto.customerState;
       }
     // Update customer info (e.g, provider)
-    if ( updateApplicationDto.customerLocation )
+    // if ( updateApplicationDto.customerLocation )
+    // {
+    //   application.provider = updateApplicationDto.provider;
+    // }
+    if ( updateApplicationDto.provider )
     {
-      application.provider = updateApplicationDto.customerProvider;
+      application.provider = updateApplicationDto.provider;
     }
     // Save the updated customer entity (this is crucial)
     await this.customerRepository.save( application.customer );

@@ -93,6 +93,7 @@ export class ApplicationsController {
       );
     }
   }
+
   @Delete( 'delete-loan-application/:applicationId' )
   async remove ( @Param( 'applicationId' ) applicationId: number ) {
     try
