@@ -23,19 +23,32 @@ export class DashboardService {
 
   async findTicketsCount ( id = null, status = null, date = null, month = null ): Promise<number | { count: number, amount: number }> {
     const where: any = {};
-    console.log("date", date)
 
+    const qb = this.ticketRepository.createQueryBuilder( 'ticket' );
     if ( id )
     {
-      where.user_id = id;
+      const user_info = await this.userRepository.findOne( { where: { id } } );
+      if ( user_info.role && user_info.role !== 'admin' && user_info.role !== 'sub admin' )
+      {
+        console.log( 'got id and role', user_info.role );
+        qb.innerJoin( 'users', 'user', 'user.id = ticket.user_id' )
+          .where( 'user.role = :role', { role: user_info.role } );
+      }
+      // where.user_id = id;
     }
 
     if ( month )
     {
+      console.log( 'got month' );
+
       const currentYear = new Date().getFullYear()
       const startOfMonth = new Date( `${ month } 1, ${ currentYear }` );
       const endOfMonth = new Date( `${ month } 31, ${ currentYear } ` );
-      where.updated_at = Between( startOfMonth, endOfMonth );
+      qb.andWhere( 'ticket.created_at BETWEEN :start AND :end', {
+        start: startOfMonth,
+        end: endOfMonth,
+      } );
+      // where.created_at = Between( startOfMonth, endOfMonth );
     }
 
     if ( date )
@@ -50,7 +63,12 @@ export class DashboardService {
       const endOfDay = new Date( parsedDate );
       endOfDay.setHours( 23, 59, 59, 999 );
 
-      where.created_at = Between( startOfDay, endOfDay );
+      qb.andWhere( 'ticket.created_at BETWEEN :start AND :end', {
+        start: startOfDay,
+        end: endOfDay,
+      } );
+
+      // where.created_at = Between( startOfDay, endOfDay );
     }
 
     if ( status )
@@ -66,20 +84,23 @@ export class DashboardService {
           .getCount();
       } else
       {
-        where.status = status;
+        qb.andWhere( 'ticket.status = :status', { status: status } );
+        // where.status = status;
       }
     }
+
+    console.log( 'got till here' );
+
 
     // Handling "disbursed" status to calculate total amount
     if ( status === 'disbursed' )
     {
       // Use `EntityManager` to join Ticket with Application and fetch data
-      const tickets = await this.manager
-        .createQueryBuilder( Ticket, 'ticket' )
-        .leftJoinAndSelect( 'ticket.application', 'application' )
-        .where( 'ticket.status = :status', { status } )
-        .andWhere( where )
+      const tickets = await qb.leftJoinAndSelect( 'ticket.application', 'application' )
         .getMany();
+      const [ sql, parameters ] = qb.getQueryAndParameters();
+      console.log( "SQL:", sql );
+      console.log( "Parameters:", parameters );
 
       // The sum of amounts from related applications
       const totalAmount = tickets.reduce( ( sum, ticket ) => {
@@ -87,9 +108,11 @@ export class DashboardService {
       }, 0 );
       return { count: tickets.length, amount: totalAmount };
     }
-    console.log("where>>>reject", where)
+    const [ sql, parameters ] = qb.getQueryAndParameters();
+    console.log( "SQL:", sql );
+    console.log( "Parameters:", parameters );
     // Return count based on the conditions in 'where'
-    return this.ticketRepository.count( { where } );
+    return qb.getCount();
   }
 
   // Helper function to generate start and end of month dates

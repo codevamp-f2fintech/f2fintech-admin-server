@@ -40,6 +40,7 @@ export class DashboardController {
     @Query('date') date?: string,
     @Query('month') month?: string,
   ) {
+    console.log("findTicketsCount>>>>>>",date,month, status, idOrStatus)
     try {
       let result: any;
       if (idOrStatus && status) {

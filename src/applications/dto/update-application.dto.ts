@@ -38,7 +38,11 @@ export class UpdateApplicationDto extends PartialType( CreateApplicationDto ) {
   @IsOptional()
   @IsDateString()
   applicationDate?: string;
-  // applicationProvider: any;
+
+  @IsOptional()
+  @IsString()
+  provider?: string;
+  // applicationProvider: any; 
   @IsOptional()
   @IsString()
   customerProvider?: string;
