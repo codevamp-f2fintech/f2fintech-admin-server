@@ -165,19 +165,30 @@ export class TicketsService {
       );
     }
 
-    if (startDate) {
-      query.andWhere('ticket.created_at >= :startDate', { startDate });
-    }
+    if (!startDate && !endDate) {
+      // Default to current month
+      query.andWhere('ticket.created_at >= DATE_FORMAT(NOW(), :startOfMonth)', {
+        startOfMonth: '%Y-%m-01 00:00:00',
+      });
+      query.andWhere('ticket.created_at <= DATE_FORMAT(LAST_DAY(NOW()), :endOfMonth)', {
+        endOfMonth: '%Y-%m-%d 23:59:59',
+      });
+    } else {
+      // Apply provided startDate and endDate if available
+      if (startDate) {
+        query.andWhere('ticket.created_at >= :startDate', { startDate });
+      }
 
-    if (endDate) {
-      const endDateObj = new Date(endDate);
-      endDateObj.setHours(28, 59, 59, 999);
-      endDate = endDateObj
-        .toISOString()                    // -> "2025-07-08T23:29:59.999Z"
-        .replace("T", " ")                // -> "2025-07-08 23:29:59.999Z"
-        .substring(0, 19);                // -> "2025-07-08 23:29:59"
+      if (endDate) {
+        const endDateObj = new Date(endDate);
+        endDateObj.setHours(28, 59, 59, 999);
+        endDate = endDateObj
+          .toISOString()                    // -> "2025-07-08T23:29:59.999Z"
+          .replace("T", " ")                // -> "2025-07-08 23:29:59.999Z"
+          .substring(0, 19);                // -> "2025-07-08 23:29:59"
 
-      query.andWhere('ticket.created_at <= :endDate', { endDate });
+        query.andWhere('ticket.created_at <= :endDate', { endDate });
+      }
     }
     console.log(query.getSql(), query.getParameters());
 
