@@ -19,7 +19,7 @@ export interface TicketResponse {
   forwardedTo: number | string;
   isForwarded: number | string;
   originalEstimate: string;
-  applicationProvider: string;
+  provider: string;
   applicationAmount: string | number;
   applicationTenure: number | string;
   applicationDate: Date | string;
@@ -269,7 +269,7 @@ export class TicketsService {
       forwardedTo: ticket.forwarded_to,
       isForwarded: ticket.is_forwarded,
       originalEstimate: ticket.original_estimate,
-      applicationProvider: ticket.application?.provider ?? 'No Provider',
+      provider: ticket.application?.provider ?? 'No Provider',
       applicationAmount: ticket.application?.amount ?? 'No Amount',
       applicationTenure: ticket.application?.tenure ?? 'No Tenure',
       applicationDate: ticket.application?.application_date ?? 'No Date',
