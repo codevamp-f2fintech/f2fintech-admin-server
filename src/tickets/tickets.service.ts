@@ -10,6 +10,7 @@ import { TicketLog } from 'src/ticket_log/entities/ticket_log.entity';
 import { TicketActivity } from 'src/ticket_activities/entities/ticket_activities.entity';
 import { LoanTracking } from 'src/applications/entities/loanTracking.entity';
 import { Application } from 'src/applications/entities/applications.entity';
+import { TicketArchive } from './entities/ticketArchive.entity';
 
 export interface TicketResponse {
   ticketId: number | string;
@@ -52,6 +53,8 @@ export class TicketsService {
   constructor(
     @InjectRepository(Ticket)
     private readonly ticketRepository: Repository<Ticket>,
+    @InjectRepository(TicketArchive)
+    private readonly ticketArchiveRepository: Repository<TicketArchive>,
     @InjectRepository(TicketHistory)
     private readonly ticketHistoryRepository: Repository<TicketHistory>,
     @InjectRepository(TicketLog)
@@ -108,7 +111,7 @@ export class TicketsService {
       .leftJoinAndSelect('application.loanTracking', 'loanTracking') // Join loan tracking
       .skip(skip) // Apply pagination
       .take(limit) // Limit number of results
-      .orderBy('ticket.due_date', 'DESC'); // Sort by ticket due date
+      .orderBy( 'ticket.created_at', 'DESC'); // Sort by ticket due date
 
     // Apply filters based on parameters
     if (userId) {
@@ -213,6 +216,7 @@ export class TicketsService {
         ticketId: ticket.id,
         ticketStatus: ticket.status,
         user_id: ticket.user_id,
+        createdAt: ticket.created_at,
         applicationAmount: application.amount,
         applicationTenure: application.tenure,
         applicationDate: application.application_date,
@@ -312,7 +316,6 @@ export class TicketsService {
     const ticketActivity = await this.ticketActivityRepository.find({ where: { ticket_id: ticketId } });
     const loanTracking = await this.loanTrackingRepository.find({ where: { customer_application_id: ticket.customer_application_id } });
     const customerApplication = await this.customerApplicationRepository.findOne({ where: { id: ticket.customer_application_id } });
-    console.log("ticketHistory>>>>", ticketHistory)
 
     if (!ticket) {
       throw new Error('Ticket not found');
@@ -339,8 +342,35 @@ export class TicketsService {
       })
     }
 
-    await this.ticketRepository.remove(ticket); // Or use delete method
+    // Move ticket to ticket_archive
+    const archivedTicket = this.ticketArchiveRepository.create({
+      ...ticket,
+      original_ticket_id: ticket.id,
+      archived_at: new Date(),
+      // archived_by: userId,
+    });
+    await this.ticketArchiveRepository.save(archivedTicket);
+
+    await this.ticketRepository.remove(ticket);
 
     await this.customerApplicationRepository.remove(customerApplication); // Or use delete method
+  }
+
+  // Restore Original ticket from archive
+  async restoreOriginalTicket(archiveId: number): Promise<void> {
+    const archivedTicket = await this.ticketArchiveRepository.findOneBy({ id: archiveId });
+    if (!archivedTicket) {
+      throw new Error('Archived ticket not found');
+    }
+
+    // Create a new ticket from the archived data
+    const restoredTicket = this.ticketRepository.create({
+      ...archivedTicket,
+      updated_at: new Date(),
+      due_date: archivedTicket.due_date,
+    });
+    await this.ticketRepository.save(restoredTicket);
+
+    await this.ticketArchiveRepository.delete(archiveId);
   }
 }
