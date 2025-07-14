@@ -10,11 +10,12 @@ import { TicketLog } from 'src/ticket_log/entities/ticket_log.entity';
 import { TicketActivity } from 'src/ticket_activities/entities/ticket_activities.entity';
 import { LoanTracking } from 'src/applications/entities/loanTracking.entity';
 import { Application } from 'src/applications/entities/applications.entity';
+import { TicketArchive } from './entities/ticketArchive.entity';
 
 @Module({
   imports: [
     HttpModule,
-    TypeOrmModule.forFeature( [ Ticket, TicketHistory, TicketLog, TicketActivity, LoanTracking, Application ])
+    TypeOrmModule.forFeature([Ticket, TicketArchive, TicketHistory, TicketLog, TicketActivity, LoanTracking, Application])
   ],
   controllers: [TicketsController],
   providers: [TicketsService],

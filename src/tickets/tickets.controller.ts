@@ -129,4 +129,21 @@ export class TicketsController {
       );
     }
   }
+
+  @Post('restore-original-ticket/:archiveId')
+  async restoreOriginalTicket(@Param('archiveId') archiveId: number) {
+    try {
+      const newTicket = await this.ticketsService.restoreOriginalTicket(archiveId);
+      return ResponseFormatter.success(
+        201,
+        'Ticket restored successfully',
+        newTicket,
+      );
+    } catch (error) {
+      return ResponseFormatter.error(
+        error.status || 500,
+        error.message || 'Internal server error',
+      );
+    }
+  }
 }

@@ -9,6 +9,7 @@ import { CustomerInfo } from './applications/entities/customerInfo.entity';
 import { LoanProvider } from './loan_providers/entities/loanProvider.entity';
 import { LoanTracking } from './applications/entities/loanTracking.entity';
 import { Ticket } from './tickets/entities/ticket.entity';
+import { TicketArchive } from './tickets/entities/ticketArchive.entity';
 import { TicketActivity } from './ticket_activities/entities/ticket_activities.entity';
 import { TicketLog } from './ticket_log/entities/ticket_log.entity';
 import { TicketVoiceNote } from './ticket_voice_note/entities/ticket_voice_note.entity';
@@ -51,6 +52,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
           LoanProvider,
           LoanTracking,
           Ticket,
+          TicketArchive,
           TicketActivity,
           TicketLog,
           TicketHistory,
@@ -74,4 +76,5 @@ import { DashboardModule } from './dashboard/dashboard.module';
   ],
   providers: [AppService],
 })
+
 export class AppModule { }
