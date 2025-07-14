@@ -108,7 +108,7 @@ export class TicketsService {
       .leftJoinAndSelect('application.loanTracking', 'loanTracking') // Join loan tracking
       .skip(skip) // Apply pagination
       .take(limit) // Limit number of results
-      .orderBy('ticket.due_date', 'DESC'); // Sort by ticket due date
+      .orderBy( 'ticket.created_at', 'DESC'); // Sort by ticket due date
 
     // Apply filters based on parameters
     if (userId) {
@@ -213,6 +213,7 @@ export class TicketsService {
         ticketId: ticket.id,
         ticketStatus: ticket.status,
         user_id: ticket.user_id,
+        createdAt: ticket.created_at,
         applicationAmount: application.amount,
         applicationTenure: application.tenure,
         applicationDate: application.application_date,
