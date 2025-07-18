@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { json, urlencoded } from 'body-parser';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,6 +13,7 @@ async function bootstrap() {
     methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
     credentials: true, // Set to true if you need to allow cookies or authentication headers
   });
+  app.use( express.json() );
   await app.listen(3001);
 }
 bootstrap();
