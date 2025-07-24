@@ -180,6 +180,7 @@ export class TicketsController {
     @Query( 'name' ) name: string = '',
     @Query( 'startDate' ) startDate: string = '',
     @Query( 'endDate' ) endDate: string = '',
+    @Query( 'search' ) search: string = '',
   ): Promise<any> {
     try
     {
@@ -191,6 +192,7 @@ export class TicketsController {
         name,
         startDate,
         endDate,
+        search
       );
       return ResponseFormatter.success(
         200,
