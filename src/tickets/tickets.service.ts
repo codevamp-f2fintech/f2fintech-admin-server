@@ -409,6 +409,7 @@ export class TicketsService {
     name?: string,
     startDate?: string,
     endDate?: string,
+    search?: string,
   ): Promise<PaginationResult> {
     page = Number( page ) || 1;
     limit = Number( limit ) || 10;
@@ -442,6 +443,23 @@ export class TicketsService {
         new Brackets( ( qb ) => {
           qb.where( 'LOWER(customer.name) LIKE :name', { name: `%${ name.toLowerCase() }%` } )
             .orWhere( 'LOWER(customer.contact) LIKE :name', { name: `%${ name.toLowerCase() }%` } );
+        } ),
+      );
+    }
+
+    // Add search functionality
+    if ( search && search.trim() !== '' )
+    {
+      query.andWhere(
+        new Brackets( ( qb ) => {
+          qb.where( 'archive.id = :searchId', { searchId: Number( search ) || 0 } )
+            .orWhere( 'archive.original_ticket_id = :searchOriginalId', { searchOriginalId: Number( search ) || 0 } )
+            .orWhere( 'archive.archived_by = :searchUserId', { searchUserId: Number( search ) || 0 } )
+            .orWhere( 'customer.contact LIKE :searchContact', { searchContact: `%${ search }%` } )
+            .orWhere( 'customer.email LIKE :searchEmail', { searchEmail: `%${ search }%` } )
+            .orWhere( 'CAST(archive.id AS CHAR) LIKE :searchIdStr', { searchIdStr: `%${ search }%` } )
+            .orWhere( 'CAST(archive.archived_by AS CHAR) LIKE :searchUserIdStr', { searchUserIdStr: `%${ search }%` } );
+            
         } ),
       );
     }
@@ -504,6 +522,7 @@ export class TicketsService {
         customerState: customer?.info?.state ?? 'No location available',
         loanStatus: loanTracking?.[ 0 ]?.status ?? 'No status available',
         applicationProvider: application?.provider ?? 'No provider available',
+        reason: archive?.reason_to_delete,
       };
     } );
 
@@ -564,6 +583,7 @@ export class TicketsService {
       customerLocation: archivedTicket.application?.customer?.info?.city ?? 'No Location available',
       customerState: archivedTicket.application?.customer?.info?.state ?? 'No Location available',
       loanStatus: archivedTicket.application?.loanTracking?.[ 0 ]?.status ?? '',
+      reason: archivedTicket?.reason_to_delete,
     };
   }
 }
