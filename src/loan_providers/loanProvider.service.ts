@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -60,4 +60,43 @@ export class LoanProviderService {
     };
   }
 
+  async deleteLoanProvider ( id: number ): Promise<any> {
+    try
+    {
+      // First, check if the loan provider exists
+      const loanProvider = await this.LoanProviderRepository.findOne( {
+        where: { id }
+      } );
+
+      if ( !loanProvider )
+      {
+        throw new NotFoundException( 'Loan Provider not found' );
+      }
+
+      // Delete the loan provider
+      const deleteResult = await this.LoanProviderRepository.delete( id );
+
+      if ( deleteResult.affected === 0 )
+      {
+        throw new NotFoundException( 'Loan Provider not found or already deleted' );
+      }
+
+      return {
+        statusCode: 200,
+        message: 'Loan Provider deleted successfully',
+        data: { id, deletedAt: new Date() }
+      };
+    } catch ( error )
+    {
+      if ( error instanceof NotFoundException )
+      {
+        throw error;
+      }
+      return {
+        statusCode: 500,
+        message: 'Error deleting Loan Provider',
+        error
+      };
+    }
+  }
 }

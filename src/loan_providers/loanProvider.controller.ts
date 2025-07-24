@@ -4,6 +4,8 @@ import {
   Post,
   Body,
   Query,
+  Delete,
+  Param,
 } from '@nestjs/common';
 
 import { LoanProviderService } from './loanProvider.service';
@@ -44,5 +46,24 @@ export class LoanProviderController {
       country,
     );
     return ResponseFormatter.success(200, 'Tickets Retrieved Successfully', paginatedTickets);
+  }
+
+  @Delete( 'delete-loan-provider/:id' )
+  async deleteLoanProvider ( @Param( 'id' ) id: number ): Promise<any> {
+    try
+    {
+      const result = await this.LoanProviderService.deleteLoanProvider( id );
+      return ResponseFormatter.success(
+        200,
+        'Loan Provider deleted successfully',
+        result,
+      );
+    } catch ( error )
+    {
+      return ResponseFormatter.error(
+        error.status || 500,
+        error.message || 'Internal server error',
+      );
+    }
   }
 }
