@@ -314,7 +314,7 @@ export class TicketsService {
       customerEmail: ticket.application?.customer?.email ?? 'No Email',
       customerContact: ticket.application?.customer?.contact ?? 'No Contact',
       customerDocuments: customerDocuments,
-      customerDesignation: ticket.application?.customer?.info?.occupation_type ?? 'Not available',
+      customerDesignation: ticket.application?.customer?.info?.employment_type ?? 'Not available',
       customerLocation: ticket.application?.customer?.info?.city ?? 'No Location available',
       customerState: ticket.application?.customer?.info?.state ?? 'No Location available',
       loanStatus:
@@ -579,7 +579,7 @@ export class TicketsService {
       customerEmail: archivedTicket.application?.customer?.email ?? 'No Email',
       customerContact: archivedTicket.application?.customer?.contact ?? 'No Contact',
       customerDocuments: customerDocuments,
-      customerDesignation: archivedTicket.application?.customer?.info?.occupation_type ?? 'Not available',
+      customerDesignation: archivedTicket.application?.customer?.info?.employment_type ?? 'Not available',
       customerLocation: archivedTicket.application?.customer?.info?.city ?? 'No Location available',
       customerState: archivedTicket.application?.customer?.info?.state ?? 'No Location available',
       loanStatus: archivedTicket.application?.loanTracking?.[ 0 ]?.status ?? '',

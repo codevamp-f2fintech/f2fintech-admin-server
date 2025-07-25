@@ -73,7 +73,7 @@ export class ApplicationsService {
         applicationDate: application_date,
         applicationId: id,
         loanStatus: loanTracking[ 0 ]?.status ?? 'No status available',
-        customerDesignation: customer.info?.occupation_type ?? 'Not available',
+        customerDesignation: customer.info?.employment_type ?? 'Not available',
         customerProfileImage: customer.customerDocuments
           ?.filter( doc => doc.type === 'profile' ) // Filter objects with type: 'profile'
           .map( doc => doc.document_url ) ?? [ 'No image available' ],
