@@ -50,7 +50,7 @@ export class CustomerInfo {
         type: 'enum',
         enum: ['salaried', 'business', 'professional']
     })
-    occupation_type: 'salaried' | 'business' | 'professional';
+    employment_type: 'salaried' | 'business' | 'professional';
 
     @Column({ type: 'varchar', length: 100, nullable: true })
     occupation: string;
