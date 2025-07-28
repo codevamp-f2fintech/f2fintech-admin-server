@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository } from 'typeorm';
+import { Between, Brackets, Repository } from 'typeorm';
 
 import { Application } from './entities/applications.entity';
 import { LoanTracking } from 'src/applications/entities/loanTracking.entity';
@@ -32,41 +32,61 @@ export class ApplicationsService {
     private readonly customerInfoRepository: Repository<CustomerInfo>,
   ) { }
 
-  async getApplicationData ( page: number, limit: number, appliedBy: number ): Promise<PaginationResult> {
+  async getApplicationData (
+    page: number,
+    limit: number,
+    appliedBy?: number,
+    searchTerm?: string
+  ): Promise<PaginationResult> {
     page = Number( page ) || 1;
     limit = Number( limit ) || 10;
     const skip = ( page - 1 ) * limit;
-    const whereCondition: any = {
-      is_picked: 0,
-    };
 
+    // Create query builder
+    const queryBuilder = this.applicationRepository
+      .createQueryBuilder( 'application' )
+      .leftJoinAndSelect( 'application.customer', 'customer' )
+      .leftJoinAndSelect( 'customer.info', 'info' )
+      .leftJoinAndSelect( 'customer.customerDocuments', 'documents' )
+      .leftJoinAndSelect( 'application.loanTracking', 'loanTracking' )
+      .where( 'application.is_picked = :isPicked', { isPicked: 0 } );
+
+    // Add appliedBy condition if provided
     if ( appliedBy )
     {
-      whereCondition.applied_by = appliedBy;
+      queryBuilder.andWhere( 'application.applied_by = :appliedBy', { appliedBy } );
     }
 
-    const [ applications, count ] = await this.applicationRepository.findAndCount( {
-      relations: [
-        'customer',
-        'customer.info',
-        'customer.customerDocuments',
-        'loanTracking',
-      ],
-      skip,
-      take: limit,
-      where: whereCondition,
-      order: { application_date: 'DESC' },
-    } );
+    // Add search conditions if searchTerm is provided
+    if ( searchTerm && searchTerm.trim() !== '' )
+    {
+      const searchPattern = `%${ searchTerm.toLowerCase() }%`;
+      queryBuilder.andWhere(
+        new Brackets( qb => {
+          qb.where( 'LOWER(customer.name) LIKE :search', { search: searchPattern } )
+            .orWhere( 'customer.contact LIKE :search', { search: searchPattern } )
+            .orWhere( 'info.pan LIKE :search', { search: searchPattern } );
+        } )
+      );
+    }
 
+    // Get results and count
+    const [ applications, totalCount ] = await queryBuilder
+      .orderBy( 'application.application_date', 'DESC' )
+      .skip( skip )
+      .take( limit )
+      .getManyAndCount();
+
+    // Map results
     const results = applications.map( ( application ) => {
       const { customer, loanTracking, amount, provider, tenure, application_date, id } = application;
-      
 
       return {
         customerId: customer?.id ?? 'No ID',
         customerName: customer?.name ?? 'No Name',
         customerEmail: customer?.email ?? 'No Email',
         customerContact: customer?.contact ?? 'No Contact',
+        customerPAN: customer?.info?.pan ?? 'No PAN', // Add this line to verify PAN
         applicationProvider: provider ?? 'No provider available',
         applicationAmount: amount,
         applicationTenure: tenure,
@@ -75,7 +95,7 @@ export class ApplicationsService {
         loanStatus: loanTracking[ 0 ]?.status ?? 'No status available',
         customerDesignation: customer.info?.employment_type ?? 'Not available',
         customerProfileImage: customer.customerDocuments
-          ?.filter( doc => doc.type === 'profile' ) // Filter objects with type: 'profile'
+          ?.filter( doc => doc.type === 'profile' )
           .map( doc => doc.document_url ) ?? [ 'No image available' ],
         customerLocation: customer.info?.city ?? 'No location available',
         customerState: customer.info?.state ?? 'No location available',
@@ -84,8 +104,8 @@ export class ApplicationsService {
 
     return {
       results,
-      count,
-      pages: Math.ceil( count / limit ),
+      count: totalCount,
+      pages: Math.ceil( totalCount / limit ),
     };
   }
 
