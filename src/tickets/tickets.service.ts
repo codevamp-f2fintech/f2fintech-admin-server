@@ -65,8 +65,6 @@ export class TicketsService {
     private readonly loanTrackingRepository: Repository<LoanTracking>,
     @InjectRepository( Application )
     private readonly customerApplicationRepository: Repository<Application>,
-
-
   ) { }
 
   async create ( createTicketDto: CreateTicketDto ): Promise<any> {
@@ -175,7 +173,8 @@ export class TicketsService {
       query.andWhere(
         new Brackets( ( qb ) => {
           qb.where( 'LOWER(customer.name) LIKE :name', { name: `%${ name.toLowerCase() }%` } )
-            .orWhere( 'LOWER(customer.contact) LIKE :name', { name: `%${ name.toLowerCase() }%` } );
+            .orWhere( 'LOWER(customer.contact) LIKE :name', { name: `%${ name.toLowerCase() }%` } )
+            .orWhere( 'LOWER(info.pan) LIKE :name', { name: `%${ name.toLowerCase() }%` } )
         } ),
       );
     }
