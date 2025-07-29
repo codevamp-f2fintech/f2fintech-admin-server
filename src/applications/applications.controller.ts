@@ -13,8 +13,9 @@ export class ApplicationsController {
     @Query( 'page' ) page: number,
     @Query( 'limit' ) limit: number,
     @Query( 'appliedBy' ) appliedBy?: number,
+    @Query( 'search' ) searchTerm?: string,
   ): Promise<any> {
-    const customerApplications = await this.applicationsService.getApplicationData( page, limit, appliedBy );
+    const customerApplications = await this.applicationsService.getApplicationData( page, limit, appliedBy, searchTerm );
     return ResponseFormatter.success( 200, 'Applications Retrieved Successfully', customerApplications );
   }
 
