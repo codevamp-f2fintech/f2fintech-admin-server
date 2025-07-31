@@ -30,7 +30,6 @@ export class DashboardService {
       const user_info = await this.userRepository.findOne( { where: { id } } );
       if ( user_info.role && user_info.role !== 'admin' && user_info.role !== 'sub admin' )
       {
-        console.log( 'got id and role', user_info.role );
         qb.innerJoin( 'users', 'user', 'user.id = ticket.user_id' )
           .where( 'user.role = :role', { role: user_info.role } );
       }
@@ -39,16 +38,23 @@ export class DashboardService {
 
     if ( month )
     {
-      console.log( 'got month' );
+      // Use the same reliable month calculation as getTotalTicketsByMonth
+      const monthNames = [ "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December" ];
+      const monthIndex = monthNames.indexOf( month );
+      if ( monthIndex === -1 )
+      {
+        throw new Error( 'Invalid month name' );
+      }
 
-      const currentYear = new Date().getFullYear()
-      const startOfMonth = new Date( `${ month } 1, ${ currentYear }` );
-      const endOfMonth = new Date( `${ month } 31, ${ currentYear } ` );
+      const currentYear = new Date().getFullYear();
+      const startOfMonth = new Date( currentYear, monthIndex, 1, 0, 0, 0 );
+      const endOfMonth = new Date( currentYear, monthIndex + 1, 0, 23, 59, 59 );
+
       qb.andWhere( 'ticket.created_at BETWEEN :start AND :end', {
         start: startOfMonth,
         end: endOfMonth,
       } );
-      // where.created_at = Between( startOfMonth, endOfMonth );
     }
 
     if ( date )
@@ -88,9 +94,6 @@ export class DashboardService {
         // where.status = status;
       }
     }
-
-    console.log( 'got till here' );
-
 
     // Handling "disbursed" status to calculate total amount
     if ( status === 'disbursed' )
