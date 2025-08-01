@@ -463,22 +463,17 @@ export class TicketsService {
       );
     }
 
-    // Date filtering based on archived_at
     if ( !startDate && !endDate )
     {
-      query.andWhere( 'archive.archived_at >= DATE_FORMAT(NOW(), :startOfMonth)', {
-        startOfMonth: '%Y-%m-01 00:00:00',
-      } );
-      query.andWhere( 'archive.archived_at <= DATE_FORMAT(LAST_DAY(NOW()), :endOfMonth)', {
-        endOfMonth: '%Y-%m-%d 23:59:59',
-      } );
+      // Show tickets from the last 6 months by default
+      query.andWhere( 'archive.archived_at >= DATE_SUB(NOW(), INTERVAL 11 MONTH)' );
     } else
     {
+      // Apply provided date filters
       if ( startDate )
       {
         query.andWhere( 'archive.archived_at >= :startDate', { startDate } );
       }
-
       if ( endDate )
       {
         const endDateObj = new Date( endDate );
