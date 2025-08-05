@@ -24,52 +24,57 @@ export interface PaginationResult<T> {
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(User)
+  constructor (
+    @InjectRepository( User )
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
   ) { }
 
-  async create(createUserDto: CreateUserDto) {
+  async create ( createUserDto: CreateUserDto ) {
     const { password, email } = createUserDto;
-    const hashedPassword = await this.generateHashedPassword(password);
+    const hashedPassword = await this.generateHashedPassword( password );
 
-    try {
-      const user = this.userRepository.create({
+    try
+    {
+      const user = this.userRepository.create( {
         ...createUserDto,
         password: hashedPassword,
-      });
-      return await this.userRepository.save(user);
-    } catch (error) {
-      if (error.code === 'ER_DUP_ENTRY') {
+      } );
+      return await this.userRepository.save( user );
+    } catch ( error )
+    {
+      if ( error.code === 'ER_DUP_ENTRY' )
+      {
         // Unique constraint violation
-        throw new ConflictException(`Email ${email} already exists`);
+        throw new ConflictException( `Email ${ email } already exists` );
       }
-      throw new BadRequestException('User creation failed');
+      throw new BadRequestException( 'User creation failed' );
     }
   }
 
-  private async generateHashedPassword(password: string): Promise<string> {
+  private async generateHashedPassword ( password: string ): Promise<string> {
     const salt = await bcrypt.genSalt();
-    return bcrypt.hash(password, salt);
+    return bcrypt.hash( password, salt );
   }
 
-  async login(loginUserDto: LoginUserDto): Promise<{ access_token: string }> {
+  async login ( loginUserDto: LoginUserDto ): Promise<{ access_token: string }> {
     const { email, password } = loginUserDto;
-    const user = await this.userRepository.findOne({
+    const user = await this.userRepository.findOne( {
       where: {
         email,
         status: Status.ACTIVE
 
       }
-    });
-    if (!user) {
-      throw new UnauthorizedException('User Not Found or Inactive');
+    } );
+    if ( !user )
+    {
+      throw new UnauthorizedException( 'User Not Found or Inactive' );
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid Password');
+    const isPasswordValid = await bcrypt.compare( password, user.password );
+    if ( !isPasswordValid )
+    {
+      throw new UnauthorizedException( 'Invalid Password' );
     }
     const payload = {
       username: user.username,
@@ -78,51 +83,55 @@ export class UsersService {
     };
 
     const access_token = {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign( payload ),
     };
     return access_token;
   }
 
-  async findAll(
+  async findAll (
     page: number,
-    limit: number
+    limit: number,
+    status: Status = Status.ACTIVE
   ): Promise<PaginationResult<User>> {
-    const [results, count] = await this.userRepository.findAndCount({
-      where: { status: Status.ACTIVE },
-      skip: (page - 1) * limit,
+    const [ results, count ] = await this.userRepository.findAndCount( {
+      where: { status },
+      skip: ( page - 1 ) * limit,
       take: limit,
       order: { updated_at: 'DESC' },
-    });
+    } );
     return {
       results,
       count,
-      pages: Math.ceil(count / limit),
+      pages: Math.ceil( count / limit ),
     };
   }
 
-  async findOne(id: number): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
-    if (!user) {
-      throw new NotFoundException(`User Not Found`);
+  async findOne ( id: number ): Promise<User> {
+    const user = await this.userRepository.findOne( { where: { id } } );
+    if ( !user )
+    {
+      throw new NotFoundException( `User Not Found` );
     }
     return user;
   }
 
-  async update(updateUserDto: UpdateUserDto): Promise<User> {
+  async update ( updateUserDto: UpdateUserDto ): Promise<User> {
     const { id, password, ...updateFields } = updateUserDto;
     // Ensure the user exists before updating
-    const user = await this.findOne(id);
-    if (!user) {
-      throw new NotFoundException(`User Not Found`);
+    const user = await this.findOne( id );
+    if ( !user )
+    {
+      throw new NotFoundException( `User Not Found` );
     }
     // mutable updateData object
     const updateData: Partial<User> = { ...updateFields };
-    if (password) {
-      const hashedPassword = await this.generateHashedPassword(password);
+    if ( password )
+    {
+      const hashedPassword = await this.generateHashedPassword( password );
       updateData.password = hashedPassword;
     }
 
-    await this.userRepository.update(id, updateData);
-    return this.findOne(id);
+    await this.userRepository.update( id, updateData );
+    return this.findOne( id );
   }
 }
