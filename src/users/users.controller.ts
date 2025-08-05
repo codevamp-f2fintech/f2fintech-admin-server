@@ -15,6 +15,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 import { RolesGuard } from 'src/common/guards/roles.guard';
+import { Status } from './entities/user.entity';
 // import { Roles } from 'src/common/decorators/roles.decorator';
 // import { Role } from 'src/common/enum/role.enum';
 
@@ -38,10 +39,20 @@ export class UsersController {
   @Get('get-users')
   async findAll(
     @Query('page') page: number,
-    @Query('limit') limit: number
+    @Query('limit') limit: number,
+    @Query( 'status' ) status: Status = Status.ACTIVE
   ): Promise<any> {
-    const users = await this.usersService.findAll(page, limit);
+    const users = await this.usersService.findAll( page, limit, status );
     return ResponseFormatter.success(200, 'Users Retrieved Successfully', users);
+  }
+
+  @Get( 'get-inactive-users' )
+  async findInactiveUsers (
+    @Query( 'page' ) page: number,
+    @Query( 'limit' ) limit: number
+  ): Promise<any> {
+    const users = await this.usersService.findAll( page, limit, Status.INACTIVE );
+    return ResponseFormatter.success( 200, 'Inactive Users Retrieved Successfully', users );
   }
 
   @Get('get-user-by-id/:id')
