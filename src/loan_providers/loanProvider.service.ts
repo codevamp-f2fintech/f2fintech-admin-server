@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 
 import { CreateLoanProviderDto } from './dto/create-loanProvider.dto';
 import { LoanProvider } from './entities/loanProvider.entity';
+import { UpdateLoanProviderDto } from './dto/update-loanProvider.dto';
 
 export interface PaginationResult {
   results: any[];
@@ -39,6 +40,44 @@ export class LoanProviderService {
     }
   }
 
+  async updateLoanProvider (
+    id: number,
+    updateDto: UpdateLoanProviderDto,
+  ): Promise<any> {
+    try
+    {
+      // Option A: use preload (recommended — merges and returns entity or undefined)
+      const preloaded = await this.LoanProviderRepository.preload( {
+        id,
+        ...updateDto,
+      } );
+
+      if ( !preloaded )
+      {
+        throw new NotFoundException( 'Loan Provider not found' );
+      }
+
+      const saved = await this.LoanProviderRepository.save( preloaded );
+
+      return {
+        statusCode: 200,
+        message: 'Updated Successfully',
+        data: saved,
+      };
+    } catch ( error )
+    {
+      if ( error instanceof NotFoundException )
+      {
+        throw error; // let controller ResponseFormatter handle
+      }
+      return {
+        statusCode: 500,
+        message: 'Error updating Loan Provider',
+        error,
+      };
+    }
+  }
+
   async getAllLoanProviders (
     page: number,
     limit: number,
@@ -58,6 +97,15 @@ export class LoanProviderService {
       count,
       pages: Math.ceil( count / limit ),
     };
+  }
+
+  async findOne ( id: number ): Promise<any> {
+    const loanProvider = await this.LoanProviderRepository.findOne( { where: { id } } );
+    if ( !loanProvider )
+    {
+      throw new NotFoundException( 'Loan Provider not found' );
+    }
+    return loanProvider;
   }
 
   async deleteLoanProvider ( id: number ): Promise<any> {
