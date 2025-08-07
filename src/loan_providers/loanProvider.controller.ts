@@ -6,12 +6,15 @@ import {
   Query,
   Delete,
   Param,
+  Put,
+  ParseIntPipe,
 } from '@nestjs/common';
 
 import { LoanProviderService } from './loanProvider.service';
 import { CreateLoanProviderDto } from './dto/create-loanProvider.dto';
 
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
+import { UpdateLoanProviderDto } from './dto/update-loanProvider.dto';
 
 @Controller('api/v1')
 export class LoanProviderController {
@@ -34,6 +37,31 @@ export class LoanProviderController {
     }
   }
 
+  @Put( 'update-loan-provider/:id' )
+  async updateLoanProvider (
+    @Param( 'id', ParseIntPipe ) id: number,
+    @Body() updateDto: UpdateLoanProviderDto,
+  ) {
+    try
+    {
+      const updated = await this.LoanProviderService.updateLoanProvider(
+        id,
+        updateDto,
+      );
+      return ResponseFormatter.success(
+        200,
+        'Loan Provider updated successfully',
+        updated,
+      );
+    } catch ( error )
+    {
+      return ResponseFormatter.error(
+        error.status || 500,
+        error.message || 'Internal server error',
+      );
+    }
+  }
+
   @Get('get-all-loan-providers')
   async getAllLoanProviders(
     @Query('page') page: number,
@@ -46,6 +74,24 @@ export class LoanProviderController {
       country,
     );
     return ResponseFormatter.success(200, 'Tickets Retrieved Successfully', paginatedTickets);
+  }
+
+
+  @Get( 'get-loan-provider-by-id/:id' )
+  async findOne ( @Param( 'id' ) id: string ) {
+    const numericId = parseInt( id, 10 );
+    if ( Number.isNaN( numericId ) )
+    {
+      return ResponseFormatter.error( 400, 'Invalid id parameter' );
+    }
+
+    const loanProvider = await this.LoanProviderService.findOne( numericId );
+    if ( !loanProvider )
+    {
+      return ResponseFormatter.error( 404, 'Loan Provider not found' );
+    }
+
+    return ResponseFormatter.success( 200, 'Loan Provider Retrieved Successfully', loanProvider );
   }
 
   @Delete( 'delete-loan-provider/:id' )
