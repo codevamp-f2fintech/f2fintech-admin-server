@@ -70,13 +70,27 @@ export class TicketsService {
   async create ( createTicketDto: CreateTicketDto ): Promise<any> {
     try
     {
-      const newTicket = this.ticketRepository.create( createTicketDto );
-      await this.ticketRepository.save( newTicket );
-      return {
-        statusCode: 201,
-        message: 'Created Successfully',
-        data: newTicket,
-      };
+      return this.ticketRepository.findOne( {
+        where: { customer_application_id: createTicketDto.customer_application_id },
+      } ).then( async ( existingTicket ) => {
+        if ( existingTicket )
+        {
+          return {
+            statusCode: 409,
+            message: 'This Application Is Already Picked By Another User.',
+          };
+        } else
+        {
+          const newTicket = this.ticketRepository.create( createTicketDto );
+          await this.ticketRepository.save( newTicket );
+          return {
+            statusCode: 201,
+            message: 'Ticket Created Successfully',
+            data: newTicket,
+          };
+        }
+      }
+      );
     } catch ( error )
     {
       return {
@@ -208,8 +222,6 @@ export class TicketsService {
         query.andWhere( 'ticket.created_at <= :endDate', { endDate } );
       }
     }
-    console.log( query.getSql(), query.getParameters() );
-
     const [ tickets, count ] = await query.getManyAndCount();
     // Calculate total disbursed amount if status is 'disbursed'
     let totalDisbursedAmount = 0;
@@ -458,7 +470,7 @@ export class TicketsService {
             .orWhere( 'customer.email LIKE :searchEmail', { searchEmail: `%${ search }%` } )
             .orWhere( 'CAST(archive.id AS CHAR) LIKE :searchIdStr', { searchIdStr: `%${ search }%` } )
             .orWhere( 'CAST(archive.archived_by AS CHAR) LIKE :searchUserIdStr', { searchUserIdStr: `%${ search }%` } );
-            
+
         } ),
       );
     }
