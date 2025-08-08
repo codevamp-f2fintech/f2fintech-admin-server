@@ -7,7 +7,6 @@ import {
   Param,
   UseGuards,
   Query,
-  Delete,
 } from '@nestjs/common';
 
 import { TicketsService } from './tickets.service';
@@ -28,9 +27,8 @@ export class TicketsController {
     {
       const newTicket = await this.ticketsService.create( createTicketDto );
       return ResponseFormatter.success(
-        201,
-        'Ticket created successfully',
-        newTicket,
+        newTicket.statusCode || 201,
+        newTicket.message || 'Ticket created successfully',
       );
     } catch ( error )
     {
@@ -122,7 +120,6 @@ export class TicketsController {
   ) {
     try
     {
-      console.log( "Body>>", body )
       // Validate the ticketId before proceeding
       if ( !ticketId || isNaN( ticketId ) )
       {
