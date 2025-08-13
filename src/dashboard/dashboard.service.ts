@@ -96,7 +96,7 @@ export class DashboardService {
     }
 
     // Handling "disbursed" status to calculate total amount
-    if ( status === 'disbursed' )
+    if ( status === 'disbursed' || status === 'approved' )
     {
       // Use `EntityManager` to join Ticket with Application and fetch data
       const tickets = await qb.leftJoinAndSelect( 'ticket.application', 'application' )
