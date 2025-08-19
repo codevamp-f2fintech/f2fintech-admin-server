@@ -21,7 +21,7 @@ export class DashboardService {
     return this.userRepository.count();
   }
 
-  async findTicketsCount ( id = null, status = null, date = null, month = null ): Promise<number | { count: number, amount: number }> {
+  async findTicketsCount ( id = null, status = null, date = null, month = null, year = null ): Promise<number | { count: number, amount: number }> {
     const where: any = {};
 
     const qb = this.ticketRepository.createQueryBuilder( 'ticket' );
@@ -35,7 +35,17 @@ export class DashboardService {
       }
       // where.user_id = id;
     }
+    // ✅ Year filter (if provided and month is empty)
+    if ( year && !month )
+    {
+      const startOfYear = new Date( Number( year ), 0, 1, 0, 0, 0 );
+      const endOfYear = new Date( Number( year ), 11, 31, 23, 59, 59 );
 
+      qb.andWhere( 'ticket.created_at BETWEEN :start AND :end', {
+        start: startOfYear,
+        end: endOfYear,
+      } );
+    }
     if ( month )
     {
       // Use the same reliable month calculation as getTotalTicketsByMonth

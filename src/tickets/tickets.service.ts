@@ -179,12 +179,14 @@ export class TicketsService {
     }
 
     if (name && name.trim() !== '') {
+      const searchTerm = name.trim();
       query.andWhere(
-        new Brackets((qb) => {
-          qb.where('LOWER(customer.name) LIKE :name', { name: `%${name.toLowerCase()}%` })
-            .orWhere('LOWER(customer.contact) LIKE :name', { name: `%${name.toLowerCase()}%` })
-            .orWhere('LOWER(info.pan) LIKE :name', { name: `%${name.toLowerCase()}%` })
-        }),
+        new Brackets( ( qb ) => {
+          qb.where( 'LOWER(customer.name) LIKE :name', { name: `%${ searchTerm.toLowerCase() }%` } )
+            .orWhere( 'LOWER(customer.contact) LIKE :name', { name: `%${ searchTerm.toLowerCase() }%` } )
+            .orWhere( 'LOWER(info.pan) LIKE :name', { name: `%${ searchTerm.toLowerCase() }%` } )
+            .orWhere( 'ticket.id = :ticketId', { ticketId: Number( searchTerm ) } );
+        } ),
       );
     }
 
