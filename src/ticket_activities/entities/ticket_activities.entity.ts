@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
+import { User } from 'src/users/entities/user.entity';
+import { Entity, Column, PrimaryGeneratedColumn, Index, ManyToOne, JoinColumn } from 'typeorm';
 
 @Entity('ticket-activities')
 export class TicketActivity {
@@ -7,6 +8,10 @@ export class TicketActivity {
 
   @Column()
   ticket_id: number;
+
+  @ManyToOne( () => User )
+  @JoinColumn( { name: 'user_id' } )
+  user: User;
 
   @Column()
   @Index()
