@@ -26,6 +26,7 @@ export class ActivitiesService {
   async findAllByTicketId(ticketId: number) {
     return await this.activityRepository.find({
       where: { ticket_id: ticketId },
+      relations: [ 'user' ],
       order: { created_at: 'DESC' }
     });
   }
