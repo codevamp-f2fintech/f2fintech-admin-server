@@ -122,40 +122,54 @@ export class TicketsService {
       .take(limit)
       .orderBy('ticket.created_at', 'DESC');
 
-    if (appliedBy === 'sales' && userId) {
-      // Sales filter → tickets linked to applications applied by this sales user
-      query.where('application.applied_by = :userId', { userId });
+    // Apply filters based on parameters
+    if (userId) {
+      if (appliedBy === 'sales') {
+        // Special case: check application.applied_by instead of ticket.user_id
+        query.where('application.applied_by = :userId', { userId });
 
-      if (status && status !== 'all' && status.trim() !== '') {
-        query.andWhere('ticket.status = :status', { status });
-      }
-    } else if (userId) {
-      // UserId filters (ops, credit, etc.)
-      if (status === 'forwardedtome') {
-        query
-          .where('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
-          .andWhere('ticket.forwarded_to = :userId', { userId });
-      } else if (status === 'forwardedbyme') {
-        query
-          .where('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
-          .andWhere('ticket.forwarded_by = :userId', { userId });
-      } else if (status === 'forwarded') {
-        query
-          .where('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
-          .andWhere(
-            new Brackets(qb => {
-              qb.where('ticket.forwarded_to = :userId', { userId })
-                .orWhere('ticket.user_id = :userId', { userId });
-            }),
-          );
-      } else {
-        query.where('ticket.user_id = :userId', { userId });
-
+        // Apply status filter if provided and not 'all'
         if (status && status !== 'all' && status.trim() !== '') {
           query.andWhere('ticket.status = :status', { status });
         }
+
+      } else if (status === 'forwardedtome') {
+        // Tickets forwarded to me
+        query
+          .where('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
+          .andWhere('ticket.forwarded_to = :userId', { userId });
+
+      } else if (status === 'forwardedbyme') {
+        // Tickets forwarded by me
+        query
+          .where('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
+          .andWhere('ticket.forwarded_by = :userId', { userId });
+
+      } else {
+        // All other statuses, e.g. "under credit review", "to be login", etc.
+        if (status === 'forwarded') {
+          // OPTIONAL: if you still want a plain "forwarded" status 
+          // that means "either forwarded to me OR forwarded by me":
+          query
+            .where('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
+            .andWhere(
+              new Brackets((qb) => {
+                qb.where('ticket.forwarded_to = :userId', { userId })
+                  .orWhere('ticket.user_id = :userId', { userId });
+              }),
+            );
+        } else {
+          // Normal userId + status check
+          query.where('ticket.user_id = :userId', { userId });
+
+          // Apply status filter if provided and not 'all'
+          if (status && status !== 'all' && status.trim() !== '') {
+            query.andWhere('ticket.status = :status', { status });
+          }
+        }
       }
     } else if (status && status !== 'all' && status.trim() !== '') {
+      // If no userId but we do have a status
       query.where('ticket.status = :status', { status });
     }
 
