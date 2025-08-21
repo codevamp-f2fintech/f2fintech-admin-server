@@ -22,19 +22,30 @@ export class DashboardService {
   }
 
   async findTicketsCount ( id = null, status = null, date = null, month = null, year = null ): Promise<number | { count: number, amount: number }> {
-    const where: any = {};
-
+     const where: any = {};
     const qb = this.ticketRepository.createQueryBuilder( 'ticket' );
+
     if ( id )
     {
       const user_info = await this.userRepository.findOne( { where: { id } } );
+
       if ( user_info.role && user_info.role !== 'admin' && user_info.role !== 'sub admin' )
       {
-        qb.innerJoin( 'users', 'user', 'user.id = ticket.user_id' )
-          .where( 'user.role = :role', { role: user_info.role } );
+        if ( user_info.role === 'sales' )
+        {
+          // For sales users, join with application and filter by applied_by
+          qb.leftJoinAndSelect( 'ticket.application', 'application' )
+            .where( 'application.applied_by = :userId', { userId: id } );
+        }
+        else
+        {
+          // For other roles (operations, credit), filter by user_id
+          qb.leftJoinAndSelect( 'users', 'user', 'user.id = ticket.user_id' )
+            .where( 'user.role = :role', { role: user_info.role } );
+        }
       }
-      // where.user_id = id;
     }
+
     // ✅ Year filter (if provided and month is empty)
     if ( year && !month )
     {
@@ -46,6 +57,7 @@ export class DashboardService {
         end: endOfYear,
       } );
     }
+
     if ( month )
     {
       // Use the same reliable month calculation as getTotalTicketsByMonth
@@ -83,8 +95,6 @@ export class DashboardService {
         start: startOfDay,
         end: endOfDay,
       } );
-
-      // where.created_at = Between( startOfDay, endOfDay );
     }
 
     if ( status )
@@ -101,16 +111,20 @@ export class DashboardService {
       } else
       {
         qb.andWhere( 'ticket.status = :status', { status: status } );
-        // where.status = status;
       }
     }
 
     // Handling "disbursed" status to calculate total amount
     if ( status === 'disbursed' || status === 'approved' )
     {
-      // Use `EntityManager` to join Ticket with Application and fetch data
-      const tickets = await qb.leftJoinAndSelect( 'ticket.application', 'application' )
-        .getMany();
+      // Make sure application is joined for amount calculation
+      if ( !qb.expressionMap.joinAttributes.find( join => join.alias.name === 'application' ) )
+      {
+        qb.leftJoinAndSelect( 'ticket.application', 'application' );
+      }
+
+      const tickets = await qb.getMany();
+
       const [ sql, parameters ] = qb.getQueryAndParameters();
       console.log( "SQL:", sql );
       console.log( "Parameters:", parameters );
@@ -121,13 +135,14 @@ export class DashboardService {
       }, 0 );
       return { count: tickets.length, amount: totalAmount };
     }
+
     const [ sql, parameters ] = qb.getQueryAndParameters();
     console.log( "SQL:", sql );
     console.log( "Parameters:", parameters );
-    // Return count based on the conditions in 'where'
+
+    // Return count based on the conditions
     return qb.getCount();
   }
-
   // Helper function to generate start and end of month dates
   private getMonthDateRange ( year: number, month: number ) {
     const startOfMonth = new Date( year, month, 1, 0, 0, 0 );
