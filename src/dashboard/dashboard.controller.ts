@@ -33,47 +33,88 @@ export class DashboardController {
     }
   }
 
-  @Get('tickets/count/:idOrStatus?/:status?')
-  async findTicketsCount(
-    @Param('idOrStatus') idOrStatus?: string,
-    @Param('status') status?: string,
-    @Query('date') date?: string,
-    @Query('month') month?: string,
+  @Get( 'tickets/count' )
+  async findTicketsCount (
+    @Query( 'userId' ) userId?: string,
+    @Query( 'status' ) status?: string,
+    @Query( 'date' ) date?: string,
+    @Query( 'month' ) month?: string,
+    @Query( 'year' ) year?: string,
   ) {
-    console.log("findTicketsCount>>>>>>",date,month, status, idOrStatus)
-    try {
-      let result: any;
-      if (idOrStatus && status) {
-        // idOrStatus is treated as an ID, and status is provided
-        result = await this.dashboardService.findTicketsCount(
-          idOrStatus,
-          status,
-          date,
-          month,
-        );
-      } else if (idOrStatus && !isNaN(Number(idOrStatus))) {
-        // idOrStatus is a number, so treat it as an ID with no status
-        result = await this.dashboardService.findTicketsCount(idOrStatus, null, date, month);
-      } else if (idOrStatus && isNaN(Number(idOrStatus))) {
-        // idOrStatus is a string and not a number, so treat it as a status
-        result = await this.dashboardService.findTicketsCount(null, idOrStatus, date, month);
-      } else {
-        // no parameters, return total result
-        result = await this.dashboardService.findTicketsCount(null, null, date, month);
-      }
+    try
+    {
+      // Convert userId to number if it exists and is a valid number
+      const userIdNumber = userId && !isNaN( Number( userId ) ) ? Number( userId ) : null;
+
+      const result = await this.dashboardService.findTicketsCount(
+        userIdNumber,
+        status || null,
+        date || null,
+        month || null,
+        year || null,
+      );
 
       return ResponseFormatter.success(
         200,
         'Tickets result and amount retrieved successfully',
         result,
       );
-    } catch (error) {
+    } catch ( error )
+    {
       return ResponseFormatter.error(
         error.status || 500,
         error.message || 'Internal server error',
       );
     }
   }
+
+  // Keep the old route structure for backward compatibility if needed
+  @Get( 'tickets/count/:userId/:status?' )
+  async findTicketsCountLegacy (
+    @Param( 'userId' ) userId: string,
+    @Param( 'status' ) status?: string,
+    @Query( 'date' ) date?: string,
+    @Query( 'month' ) month?: string,
+    @Query( 'year' ) year?: string,
+  ) {
+    try
+    {
+      // Convert userId to number if it's a valid number, otherwise treat as status
+      let userIdNumber: number | null = null;
+      let finalStatus = status;
+
+      if ( !isNaN( Number( userId ) ) )
+      {
+        userIdNumber = Number( userId );
+      } else
+      {
+        // userId is actually a status
+        finalStatus = userId;
+        userIdNumber = null;
+      }
+
+      const result = await this.dashboardService.findTicketsCount(
+        userIdNumber,
+        finalStatus || null,
+        date || null,
+        month || null,
+        year || null,
+      );
+
+      return ResponseFormatter.success(
+        200,
+        'Tickets result and amount retrieved successfully',
+        result,
+      );
+    } catch ( error )
+    {
+      return ResponseFormatter.error(
+        error.status || 500,
+        error.message || 'Internal server error',
+      );
+    }
+  }
+
 
   @Get('tickets/counts-by-month')
   async getTotalTicketsByMonth(@Query('year') year: string) {
