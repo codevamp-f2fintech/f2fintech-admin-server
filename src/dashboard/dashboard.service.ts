@@ -22,7 +22,7 @@ export class DashboardService {
   }
 
   async findTicketsCount ( id = null, status = null, date = null, month = null, year = null ): Promise<number | { count: number, amount: number }> {
-     const where: any = {};
+    const where: any = {};
     const qb = this.ticketRepository.createQueryBuilder( 'ticket' );
 
     if ( id )
@@ -52,10 +52,20 @@ export class DashboardService {
       const startOfYear = new Date( Number( year ), 0, 1, 0, 0, 0 );
       const endOfYear = new Date( Number( year ), 11, 31, 23, 59, 59 );
 
-      qb.andWhere( 'ticket.created_at BETWEEN :start AND :end', {
-        start: startOfYear,
-        end: endOfYear,
-      } );
+      if ( status === 'disbursed' )
+      {
+        qb.andWhere( 'ticket.disbursed_at BETWEEN :start AND :end', {
+          start: startOfYear,
+          end: endOfYear,
+        } );
+      }
+      else
+      {
+        qb.andWhere( 'ticket.created_at BETWEEN :start AND :end', {
+          start: startOfYear,
+          end: endOfYear,
+        } );
+      }
     }
 
     if ( month )
@@ -73,10 +83,20 @@ export class DashboardService {
       const startOfMonth = new Date( currentYear, monthIndex, 1, 0, 0, 0 );
       const endOfMonth = new Date( currentYear, monthIndex + 1, 0, 23, 59, 59 );
 
-      qb.andWhere( 'ticket.created_at BETWEEN :start AND :end', {
-        start: startOfMonth,
-        end: endOfMonth,
-      } );
+      if ( status === 'disbursed' )
+      {
+        qb.andWhere( 'ticket.disbursed_at BETWEEN :start AND :end', {
+          start: startOfMonth,
+          end: endOfMonth,
+        } );
+      }
+      else
+      {
+        qb.andWhere( 'ticket.created_at BETWEEN :start AND :end', {
+          start: startOfMonth,
+          end: endOfMonth,
+        } );
+      }
     }
 
     if ( date )
@@ -91,10 +111,20 @@ export class DashboardService {
       const endOfDay = new Date( parsedDate );
       endOfDay.setHours( 23, 59, 59, 999 );
 
-      qb.andWhere( 'ticket.created_at BETWEEN :start AND :end', {
-        start: startOfDay,
-        end: endOfDay,
-      } );
+      if ( status === 'disbursed' )
+      {
+        qb.andWhere( 'ticket.disbursed_at BETWEEN :start AND :end', {
+          start: startOfDay,
+          end: endOfDay,
+        } );
+      }
+      else
+      {
+        qb.andWhere( 'ticket.created_at BETWEEN :start AND :end', {
+          start: startOfDay,
+          end: endOfDay,
+        } );
+      }
     }
 
     if ( status )
@@ -131,14 +161,16 @@ export class DashboardService {
 
       // The sum of amounts from related applications
       const totalAmount = tickets.reduce( ( sum, ticket ) => {
-        return sum + ( parseFloat( String( ticket?.application?.amount || '0' ) ) );
+        return sum + ( parseFloat( String( ticket?.disbursed_amount || '0' ) ) );
       }, 0 );
+
+      console.log( "tickets", tickets, totalAmount )
       return { count: tickets.length, amount: totalAmount };
     }
 
-    const [ sql, parameters ] = qb.getQueryAndParameters();
-    console.log( "SQL:", sql );
-    console.log( "Parameters:", parameters );
+    // const [ sql, parameters ] = qb.getQueryAndParameters();
+    // console.log( "SQL:", sql );
+    // console.log( "Parameters:", parameters );
 
     // Return count based on the conditions
     return qb.getCount();
