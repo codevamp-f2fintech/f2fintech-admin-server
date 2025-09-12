@@ -39,4 +39,11 @@ export class CreateTicketDto {
   @IsDate()
   @Type(() => Date)
   updated_at: Date;
+
+  @IsDate()
+  @Type( () => Date )
+  disbursed_at: Date;
+
+  @IsNumber()
+  disbursed_amount: number;
 }
