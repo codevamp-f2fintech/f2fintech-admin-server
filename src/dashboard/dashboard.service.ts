@@ -161,7 +161,19 @@ export class DashboardService {
 
       // The sum of amounts from related applications
       const totalAmount = tickets.reduce( ( sum, ticket ) => {
-        return sum + ( parseFloat( String( ticket?.disbursed_amount || '0' ) ) );
+        let amount = 0;
+
+        if ( status === 'disbursed' )
+        {
+          // For disbursed tickets, use disbursed_amount
+          amount = parseFloat( String( ticket?.disbursed_amount || '0' ) );
+        } else if ( status === 'approved' )
+        {
+          // For approved tickets, use application amount
+          amount = parseFloat( String( ticket?.application?.amount || '0' ) );
+        }
+
+        return sum + amount;
       }, 0 );
 
       console.log( "tickets", tickets, totalAmount )
