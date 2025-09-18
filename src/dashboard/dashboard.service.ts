@@ -156,10 +156,6 @@ export class DashboardService {
 
       const tickets = await qb.getMany();
 
-      const [ sql, parameters ] = qb.getQueryAndParameters();
-      console.log( "SQL:", sql );
-      console.log( "Parameters:", parameters );
-
       // The sum of amounts from related applications
       const totalAmount = tickets.reduce( ( sum, ticket ) => {
         let amount = 0;
@@ -177,13 +173,8 @@ export class DashboardService {
         return sum + amount;
       }, 0 );
 
-      console.log( "tickets", tickets, totalAmount )
       return { count: tickets.length, amount: totalAmount };
     }
-
-    // const [ sql, parameters ] = qb.getQueryAndParameters();
-    // console.log( "SQL:", sql );
-    // console.log( "Parameters:", parameters );
 
     // Return count based on the conditions
     return qb.getCount();
