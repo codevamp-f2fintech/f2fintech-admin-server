@@ -27,6 +27,8 @@ import { UsersModule } from './users/users.module';
 import { AppService } from './app.service';
 import { HealthModule } from './health/health.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { AiLeads } from './ai_leads/entities/aiLeads.entity';
+import { AiLeadsModule } from './ai_leads/ai_leads.module';
 
 @Module({
   imports: [
@@ -45,6 +47,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: configService.get<string>('JWT_EXPIRY') },
         entities: [
+          AiLeads,
           Application,
           Customer,
           CustomerDocument,
@@ -63,6 +66,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
       }),
       inject: [ConfigService],
     }),
+    AiLeadsModule,
     ApplicationsModule,
     DashboardModule,
     HealthModule,

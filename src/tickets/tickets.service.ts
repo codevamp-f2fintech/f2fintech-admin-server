@@ -11,11 +11,15 @@ import { TicketActivity } from 'src/ticket_activities/entities/ticket_activities
 import { LoanTracking } from 'src/applications/entities/loanTracking.entity';
 import { Application } from 'src/applications/entities/applications.entity';
 import { TicketArchive } from './entities/ticketArchive.entity';
+import { Collection } from 'typeorm/browser';
+import e from 'express';
 
 export interface TicketResponse {
   ticketId: number | string;
   userId: number | string;
   employeeStatus: string;
+  disbursed_at: Date | string;
+  disbursed_amount: number | string;
   voiceNoteUrl: string;
   forwardedTo: number | string;
   isForwarded: number | string;
@@ -224,15 +228,15 @@ export class TicketsService {
     } else
     {
       // Apply provided startDate and endDate if available
-      if ( startDate )
+      if ( status !== 'disbursed' && startDate )
       {
         query.andWhere( 'ticket.created_at >= :startDate', { startDate } );
       }
 
-      if ( endDate )
+      if ( status !== 'disbursed' && endDate )
       {
         const endDateObj = new Date( endDate );
-        endDateObj.setHours( 28, 59, 59, 999 );
+        endDateObj.setHours( 23, 59, 59, 999 );
         endDate = endDateObj
           .toISOString()                    // -> "2025-07-08T23:29:59.999Z"
           .replace( "T", " " )                // -> "2025-07-08 23:29:59.999Z"
@@ -241,6 +245,37 @@ export class TicketsService {
         query.andWhere( 'ticket.created_at <= :endDate', { endDate } );
       }
     }
+
+    if ( status === 'disbursed' && startDate && endDate )
+    {
+      if ( startDate )
+      {
+        query.andWhere( 'ticket.disbursed_at >= :startDate', { startDate } );
+      }
+
+      if ( endDate )
+      {
+        const endDateObj = new Date( endDate );
+        endDateObj.setHours( 23, 59, 59, 999 );
+        endDate = endDateObj
+          .toISOString()                    // -> "2025-07-08T23:29:59.999Z"
+          .replace( "T", " " )                // -> "2025-07-08 23:29:59.999Z"
+          .substring( 0, 19 );                // -> "2025-07-08 23:29:59"
+
+        query.andWhere( 'ticket.disbursed_at <= :endDate', { endDate } );
+      }
+    } else if ( status === 'disbursed' && !startDate && !endDate )
+    {
+
+      query.andWhere( 'ticket.disbursed_at >= DATE_FORMAT(NOW(), :startOfMonth)', {
+        startOfMonth: '%Y-%m-01 00:00:00',
+      } );
+
+      query.andWhere( 'ticket.created_at <= DATE_FORMAT(LAST_DAY(NOW()), :endOfMonth)', {
+        endOfMonth: '%Y-%m-%d 23:59:59',
+      } );
+    }
+    console.log( query.getSql(), "queyyy>>", query.getParameters() );
     const [ tickets, count ] = await query.getManyAndCount();
     // Calculate total disbursed amount if status is 'disbursed'
     let totalDisbursedAmount = 0;
@@ -264,6 +299,8 @@ export class TicketsService {
         ticketStatus: ticket.status,
         user_id: ticket.user_id,
         createdAt: ticket.created_at,
+        disbursedAt: ticket.disbursed_at,
+        disbursedAmount: ticket.disbursed_amount,
         applicationAmount: application.amount,
         applicationTenure: application.tenure,
         applicationDate: application.application_date,
@@ -330,6 +367,8 @@ export class TicketsService {
       ticketId: ticket.id,
       userId: ticket.user_id,
       employeeStatus: ticket.status,
+      disbursed_at: ticket.disbursed_at,
+      disbursed_amount: ticket.disbursed_amount,
       voiceNoteUrl: ticket.voice_note_url,
       forwardedTo: ticket.forwarded_to,
       isForwarded: ticket.is_forwarded,
@@ -353,6 +392,7 @@ export class TicketsService {
   }
 
   async update ( id: number, updateTicketDto: UpdateTicketDto ): Promise<Ticket> {
+    console.log( "updateTicketDto", updateTicketDto )
     const ticket = await this.findOne( id );
     Object.assign( ticket, updateTicketDto, { updatedAt: new Date() } );
 
