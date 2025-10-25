@@ -275,7 +275,6 @@ export class TicketsService {
         endOfMonth: '%Y-%m-%d 23:59:59',
       } );
     }
-    console.log( query.getSql(), "queyyy>>", query.getParameters() );
     const [ tickets, count ] = await query.getManyAndCount();
     // Calculate total disbursed amount if status is 'disbursed'
     let totalDisbursedAmount = 0;

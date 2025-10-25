@@ -14,7 +14,9 @@ async function bootstrap() {
       'http://localhost:3000',                // Local development
       'https://admin-f2fintech.netlify.app',  // Admin portal on Netlify
       'https://web.f2fintech.in/api/v1',
-      'https://admin.f2fintech.in'            // API domain on EC2
+      'https://admin.f2fintech.in', // API domain on EC2
+      'http://localhost:5173',
+      'https://f2fintech.com'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,  // Enable credentials (cookies/auth headers)
