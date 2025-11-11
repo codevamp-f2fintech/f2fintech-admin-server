@@ -11,8 +11,6 @@ import { TicketActivity } from 'src/ticket_activities/entities/ticket_activities
 import { LoanTracking } from 'src/applications/entities/loanTracking.entity';
 import { Application } from 'src/applications/entities/applications.entity';
 import { TicketArchive } from './entities/ticketArchive.entity';
-import { Collection } from 'typeorm/browser';
-import e from 'express';
 
 export interface TicketResponse {
   ticketId: number | string;
@@ -42,6 +40,7 @@ export interface TicketResponse {
   customerState: string;
   customerDesignation: string;
   loanStatus: string;
+  loanCategory: string;
 }
 
 export interface PaginationResult {
@@ -302,6 +301,7 @@ export class TicketsService {
         disbursedAt: ticket.disbursed_at,
         disbursedAmount: ticket.disbursed_amount,
         applicationAmount: application.amount,
+        loanCategory: application.loan_category,
         applicationTenure: application.tenure,
         applicationDate: application.application_date,
         applicationId: application.id,
@@ -377,6 +377,7 @@ export class TicketsService {
       applicationAmount: ticket.application?.amount ?? 'No Amount',
       applicationTenure: ticket.application?.tenure ?? 'No Tenure',
       applicationDate: ticket.application?.application_date ?? 'No Date',
+      loanCategory: ticket.application?.loan_category ?? 'No Category',
       applicationId: ticket.application?.id ?? '',
       customerId: ticket.application?.customer?.id ?? '',
       customerName: ticket.application?.customer?.name ?? 'No Name',
