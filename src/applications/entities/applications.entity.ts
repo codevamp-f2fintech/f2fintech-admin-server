@@ -16,24 +16,29 @@ export enum Loan_type {
   AUTO_LOAN = 'auto loan'
 }
 
-@Entity('customer_application')
+export enum Loan_category {
+  SECURED = 'secured',
+  UNSECURED = 'unsecured'
+}
+
+@Entity( 'customer_application' )
 export class Application {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'int' })
+  @Column( { type: 'int' } )
   customer_id: number;
 
-  @Column({ type: 'int' })
+  @Column( { type: 'int' } )
   applied_by: number;
 
-  @Column({ type: 'int' })
+  @Column( { type: 'int' } )
   application_no: number;
 
-  @Column({ length: 500 })
+  @Column( { length: 500 } )
   provider: string;
 
-  @Column({ type: 'decimal' })
+  @Column( { type: 'decimal' } )
   amount: number;
 
   @Column( {
@@ -42,44 +47,50 @@ export class Application {
   } )
   loan_type: Loan_type;
 
-  @Column({ type: 'int' })
+  @Column( {
+    type: 'enum',
+    enum: Loan_category,
+  } )
+  loan_category: Loan_category;
+
+  @Column( { type: 'int' } )
   tenure: number;
 
-  @Column({ type: 'decimal' })
+  @Column( { type: 'decimal' } )
   interest_rate: number;
 
-  @Column({ type: 'decimal' })
+  @Column( { type: 'decimal' } )
   emi_amount: number;
 
-  @Column({ type: 'int' })
+  @Column( { type: 'int' } )
   emi_count: number;
 
-  @Column({
+  @Column( {
     type: 'tinyint',
-    width: 1,          // Width 1 because it’s used as a boolean-like field
+    width: 1,
     default: 0,
-  })
+  } )
   is_picked: number;
 
-  @Column({ type: 'date' })
+  @Column( { type: 'date' } )
   application_date: Date;
 
-  @Column({ type: 'date' })
+  @Column( { type: 'date' } )
   start_date: Date;
 
-  @Column({ type: 'date' })
+  @Column( { type: 'date' } )
   end_date: Date;
 
-  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn( { type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' } )
   last_updated: Date;
 
-  @OneToOne(() => Ticket, (ticket) => ticket.application)  // One-to-one relationship
+  @OneToOne( () => Ticket, ( ticket ) => ticket.application )
   ticket: Ticket;
 
-  @ManyToOne(() => Customer, (customer) => customer.applications)
-  @JoinColumn({ name: 'customer_id' })
+  @ManyToOne( () => Customer, ( customer ) => customer.applications )
+  @JoinColumn( { name: 'customer_id' } )
   customer: Customer;
 
-  @OneToMany(() => LoanTracking, (tracking) => tracking.application)
+  @OneToMany( () => LoanTracking, ( tracking ) => tracking.application )
   loanTracking: LoanTracking[];
 }

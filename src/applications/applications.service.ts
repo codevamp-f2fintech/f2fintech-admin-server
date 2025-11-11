@@ -79,7 +79,7 @@ export class ApplicationsService {
 
     // Map results
     const results = applications.map( ( application ) => {
-      const { customer, loanTracking, amount, provider, tenure, application_date, id } = application;
+      const { customer, loanTracking, amount, loan_category, provider, tenure, application_date, id } = application;
 
       return {
         customerId: customer?.id ?? 'No ID',
@@ -89,6 +89,7 @@ export class ApplicationsService {
         customerPAN: customer?.info?.pan ?? 'No PAN', // Add this line to verify PAN
         applicationProvider: provider ?? 'No provider available',
         applicationAmount: amount,
+        loanCategory: loan_category,
         applicationTenure: tenure,
         applicationDate: application_date,
         applicationId: id,

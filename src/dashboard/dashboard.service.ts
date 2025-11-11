@@ -113,10 +113,11 @@ export class DashboardService {
 
       if ( status === 'disbursed' )
       {
-        qb.andWhere( 'ticket.disbursed_at BETWEEN :start AND :end', {
-          start: startOfDay,
-          end: endOfDay,
+        qb.andWhere( 'DATE(ticket.disbursed_at) = :date', {
+          date: date
         } );
+        const [ sql, params ] = qb.getQueryAndParameters();
+        console.log( "Final SQL:", sql, params );
       }
       else
       {
