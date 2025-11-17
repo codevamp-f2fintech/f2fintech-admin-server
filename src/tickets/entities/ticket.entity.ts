@@ -91,6 +91,12 @@ export class Ticket {
   @Column( { type: 'decimal', nullable: true } )
   disbursed_amount: number;
 
+  @Column( { type: 'date', nullable: true } )
+  approved_at: Date;
+
+  @Column( { type: 'decimal', nullable: true } )
+  approved_amount: number;
+
   @BeforeInsert()
   setDefaultDueDate() {
     if (!this.due_date) {

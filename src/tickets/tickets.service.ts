@@ -18,6 +18,8 @@ export interface TicketResponse {
   employeeStatus: string;
   disbursed_at: Date | string;
   disbursed_amount: number | string;
+  approved_at: Date | string;
+  approved_amount: number | string;
   voiceNoteUrl: string;
   forwardedTo: number | string;
   isForwarded: number | string;
@@ -300,6 +302,8 @@ export class TicketsService {
         createdAt: ticket.created_at,
         disbursedAt: ticket.disbursed_at,
         disbursedAmount: ticket.disbursed_amount,
+        approvedAt: ticket.approved_at,
+        approvedAmount: ticket.approved_amount,
         applicationAmount: application.amount,
         loanCategory: application.loan_category,
         applicationTenure: application.tenure,
@@ -369,6 +373,8 @@ export class TicketsService {
       employeeStatus: ticket.status,
       disbursed_at: ticket.disbursed_at,
       disbursed_amount: ticket.disbursed_amount,
+      approved_at: ticket.approved_at,
+      approved_amount: ticket.approved_amount,
       voiceNoteUrl: ticket.voice_note_url,
       forwardedTo: ticket.forwarded_to,
       isForwarded: ticket.is_forwarded,

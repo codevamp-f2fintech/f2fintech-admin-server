@@ -46,4 +46,11 @@ export class CreateTicketDto {
 
   @IsNumber()
   disbursed_amount: number;
+
+  @IsDate()
+  @Type( () => Date )
+  approved_at: Date;
+
+  @IsNumber()
+  approved_amount: number;
 }
