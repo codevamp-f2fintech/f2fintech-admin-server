@@ -171,7 +171,7 @@ export class DashboardService {
         } else if ( status === 'approved' )
         {
           // For approved tickets, use application amount
-          amount = parseFloat( String( ticket?.application?.amount || '0' ) );
+          amount = parseFloat( String( ticket?.approved_amount || '0' ) );
         }
 
         return sum + amount;
