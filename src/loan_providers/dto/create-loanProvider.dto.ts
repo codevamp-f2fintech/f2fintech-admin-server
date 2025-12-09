@@ -6,9 +6,6 @@ import {
   IsOptional,
 } from 'class-validator';
 
-// Assuming 'Status' is defined somewhere, uncomment it if you need
-// import { Status } from '../entities/loanProvider.entity';
-
 export class CreateLoanProviderDto {
   @IsNumber()
   id: number;
@@ -64,4 +61,8 @@ export class CreateLoanProviderDto {
 
   @IsDate()
   created_at: Date;
+
+  @IsNumber()
+  @IsOptional()
+  company_id: number;
 }

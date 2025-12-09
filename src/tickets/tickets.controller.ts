@@ -7,6 +7,7 @@ import {
   Param,
   UseGuards,
   Query,
+  Headers
 } from '@nestjs/common';
 
 import { TicketsService } from './tickets.service';
@@ -22,13 +23,20 @@ export class TicketsController {
   constructor ( private readonly ticketsService: TicketsService ) { }
 
   @Post( 'create-ticket' )
-  async create ( @Body() createTicketDto: CreateTicketDto ) {
+  async create (
+    @Body() createTicketDto: CreateTicketDto,
+    @Headers( 'Companyid' ) companyIdString?: string
+  ) {
     try
     {
-      const newTicket = await this.ticketsService.create( createTicketDto );
+      const companyId = companyIdString && !isNaN( Number( companyIdString ) )
+        ? Number( companyIdString )
+        : null;
+      const newTicket = await this.ticketsService.create( createTicketDto, companyId );
       return ResponseFormatter.success(
         newTicket.statusCode || 201,
         newTicket.message || 'Ticket created successfully',
+        newTicket.data || null,
       );
     } catch ( error )
     {
@@ -50,7 +58,9 @@ export class TicketsController {
     @Query( 'name' ) name: string = '',
     @Query( 'startDate' ) startDate: string = '',
     @Query( 'endDate' ) endDate: string = '',
+    @Headers( 'Companyid' ) companyIdString?: string
   ): Promise<any> {
+    const companyId = companyIdString && !isNaN( Number( companyIdString ) ) ? Number( companyIdString ) : null;
     const paginatedTickets = await this.ticketsService.findAllTickets(
       page,
       limit,
@@ -61,6 +71,7 @@ export class TicketsController {
       name,
       startDate,
       endDate,
+      companyId,
     );
     return ResponseFormatter.success( 200, 'Tickets Retrieved Successfully', paginatedTickets );
   }
@@ -114,7 +125,7 @@ export class TicketsController {
   @Post( 'delete-ticket/:ticketId' ) // Add this endpoint
   async remove (
     @Param( 'ticketId' ) ticketId: number,
-    @Body() body: { ticketId: number,reason: string, archivedBy: number },
+    @Body() body: { ticketId: number, reason: string, archivedBy: number },
   ) {
     try
     {
@@ -133,7 +144,7 @@ export class TicketsController {
 
       // Call the service to delete the ticket
       await this.ticketsService.remove( ticketId, deletingReason, archivedBy );
-      
+
 
       return ResponseFormatter.success( 200, 'Ticket deleted successfully' );
     } catch ( error )
@@ -176,9 +187,12 @@ export class TicketsController {
     @Query( 'startDate' ) startDate: string = '',
     @Query( 'endDate' ) endDate: string = '',
     @Query( 'search' ) search: string = '',
+    @Headers( 'Companyid' ) companyIdString?: string
   ): Promise<any> {
     try
     {
+      const companyId = companyIdString && !isNaN( Number( companyIdString ) ) ? Number( companyIdString ) : null;
+
       const paginatedArchivedTickets = await this.ticketsService.findAllArchivedTickets(
         page,
         limit,
@@ -187,7 +201,8 @@ export class TicketsController {
         name,
         startDate,
         endDate,
-        search
+        search,
+        companyId,
       );
       return ResponseFormatter.success(
         200,

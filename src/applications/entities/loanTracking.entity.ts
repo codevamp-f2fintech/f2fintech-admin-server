@@ -9,27 +9,27 @@ import {
 
 import { Application } from './applications.entity';
 
-@Entity('loan_tracking')
+@Entity( 'loan_tracking' )
 export class LoanTracking {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'int' })
+    @Column( { type: 'int' } )
     customer_application_id: number;
 
-    @Column({
+    @Column( {
         type: 'enum',
-        enum: ['submitted', 'under credit review', 'login', 'carry forward', 'drop', 'relook', 'approved', 'rejected', 'disbursed', 'hold'],
+        enum: [ 'submitted', 'under credit review', 'login', 'carry forward', 'drop', 'relook', 'approved', 'rejected', 'disbursed', 'hold' ],
         default: 'submitted',
-    })
+    } )
     status: 'submitted' | 'under credit review' | 'login' | 'carry forward' | 'drop' | 'relook' | 'approved' | 'rejected' | 'disbursed' | 'hold';
 
-    @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @CreateDateColumn( { type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' } )
     updated_at: Date;
 
-    @ManyToOne(() => Application, (application) => application.loanTracking, {
+    @ManyToOne( () => Application, ( application ) => application.loanTracking, {
         eager: false,
-    })
-    @JoinColumn({ name: 'customer_application_id' })
+    } )
+    @JoinColumn( { name: 'customer_application_id' } )
     application: Application;
 }

@@ -57,15 +57,25 @@ export class UsersService {
     return bcrypt.hash( password, salt );
   }
 
-  async login ( loginUserDto: LoginUserDto ): Promise<{ access_token: string }> {
+  // users.service.ts
+  async login ( loginUserDto: LoginUserDto ): Promise<{
+    access_token: string;
+    userId: number;
+    companyId?: number;
+    companyName?: string;
+    role: string;
+  }> {
     const { email, password } = loginUserDto;
+
+    // Include company relation in the query
     const user = await this.userRepository.findOne( {
       where: {
         email,
         status: Status.ACTIVE
-
-      }
+      },
+      relations: [ 'company' ] // Make sure this relation exists
     } );
+
     if ( !user )
     {
       throw new UnauthorizedException( 'User Not Found or Inactive' );
@@ -76,34 +86,86 @@ export class UsersService {
     {
       throw new UnauthorizedException( 'Invalid Password' );
     }
+
+    console.log( 'User Company:', user, user.company );
+
+    // Include company information in the JWT payload
     const payload = {
       username: user.username,
       id: user.id,
       role: user.role,
+      companyId: user.company?.id, // Add company ID to payload
+      companyName: user.company?.name // Add company name to payload
     };
 
-    const access_token = {
-      access_token: this.jwtService.sign( payload ),
+    const access_token = this.jwtService.sign( payload );
+
+    // Return comprehensive response with company data
+    return {
+      access_token: access_token,
+      userId: user.id,
+      companyId: user.company?.id,
+      companyName: user.company?.name,
+      role: user.role
     };
-    return access_token;
   }
 
+  // users.service.ts
   async findAll (
     page: number,
     limit: number,
-    status: Status = Status.ACTIVE
+    status: Status = Status.ACTIVE,
+    companyId?: string,
+    userRole?: string,
   ): Promise<PaginationResult<User>> {
-    const [ results, count ] = await this.userRepository.findAndCount( {
-      where: { status },
-      skip: ( page - 1 ) * limit,
-      take: limit,
-      order: { updated_at: 'DESC' },
-    } );
+    const queryBuilder = this.userRepository
+      .createQueryBuilder( 'user' )
+      .leftJoinAndSelect( 'user.company', 'company' )
+      .where( 'user.status = :status', { status } );
+
+    // Apply companyId filter only for non-super-admin
+    if ( userRole !== 'super admin' )
+    {
+      if ( !companyId )
+      {
+        throw new BadRequestException( 'Company ID is required' );
+      }
+
+      const companyIdNum = Number( companyId );
+      if ( Number.isNaN( companyIdNum ) )
+      {
+        throw new BadRequestException( 'Invalid companyId' );
+      }
+
+      queryBuilder.andWhere( 'user.company_id = :companyId', { companyId: companyIdNum } );
+    }
+
+    const [ results, count ] = await queryBuilder
+      .skip( ( page - 1 ) * limit )
+      .take( limit )
+      .orderBy( 'user.updated_at', 'DESC' )
+      .getManyAndCount();
+
+    // Transform results to include companyName at root level
+    const transformedResults = results.map( user => ( {
+      ...user,
+      companyName: user.company?.name || null,
+    } ) );
+
     return {
-      results,
+      results: transformedResults,
       count,
       pages: Math.ceil( count / limit ),
     };
+  }
+
+  async findInactiveUsers (
+    page: number,
+    limit: number,
+    companyId?: string,
+    userRole?: string,
+  ): Promise<PaginationResult<User>> {
+    return this.findAll( page, limit, Status.INACTIVE, companyId, userRole );
   }
 
   async findOne ( id: number ): Promise<User> {

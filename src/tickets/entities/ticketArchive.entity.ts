@@ -1,3 +1,4 @@
+// src/tickets/entities/ticketArchive.entity.ts
 import {
     Entity,
     Column,
@@ -5,9 +6,11 @@ import {
     Index,
     OneToOne,
     JoinColumn,
+    ManyToOne,
 } from 'typeorm';
 
 import { Application } from 'src/applications/entities/applications.entity';
+import { Company } from 'src/companies/entities/company.entity';
 
 export enum Status {
     UNDER_CREDIT_REVIEW = 'under credit review',
@@ -24,7 +27,7 @@ export enum Status {
     HOLD = 'hold',
 }
 
-@Entity('ticket_archive')
+@Entity( 'ticket_archive' )
 export class TicketArchive {
     @PrimaryGeneratedColumn()
     id: number;
@@ -33,8 +36,8 @@ export class TicketArchive {
     @Index()
     customer_application_id: number;
 
-    @OneToOne(() => Application, (application) => application.ticket)
-    @JoinColumn({ name: 'customer_application_id' })
+    @OneToOne( () => Application )
+    @JoinColumn( { name: 'customer_application_id' } )
     application: Application;
 
     @Column()
@@ -44,47 +47,67 @@ export class TicketArchive {
     @Column()
     original_ticket_id: number;
 
-    @Column({ nullable: true })
+    @Column( { nullable: true } )
     forwarded_to: number;
 
-    @Column({ nullable: true })
+    @Column( { nullable: true } )
     forwarded_by: number;
 
-    @Column({
+    @Column( {
         type: 'tinyint',
         width: 1,
         default: 0,
-    })
+    } )
     is_forwarded: number;
 
     @Column()
     original_estimate: string;
 
-    @Column({
+    @Column( {
         type: 'enum',
         enum: Status,
-    })
+    } )
     status: Status;
 
     @Column()
     voice_note_url: string;
 
-    @Column({ type: 'date', nullable: true })
+    @Column( { type: 'date', nullable: true } )
     due_date: Date;
 
-    @Column({ type: 'timestamp' })
+    @Column( { type: 'timestamp' } )
     created_at: Date;
 
-    @Column({ type: 'timestamp' })
+    @Column( { type: 'timestamp' } )
     updated_at: Date;
 
-    @Column({ type: 'text', nullable: true })
+    @Column( { type: 'date', nullable: true } )
+    disbursed_at: Date;
+
+    @Column( { type: 'decimal', nullable: true } )
+    disbursed_amount: number;
+
+    @Column( { type: 'date', nullable: true } )
+    approved_at: Date;
+
+    @Column( { type: 'decimal', nullable: true } )
+    approved_amount: number;
+
+    @Column( { type: 'text', nullable: true } )
     reason_to_delete: string;
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @Column( { type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' } )
     archived_at: Date;
+
+    @Column( { name: 'company_id' } )
+    companyId: number;
+
+    @ManyToOne( () => Company )
+    @JoinColumn( { name: 'company_id' } )
+    company: Company;
 
     @Column()
     @Index()
     archived_by: number;
+
 }

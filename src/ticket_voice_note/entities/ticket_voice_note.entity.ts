@@ -18,4 +18,7 @@ export class TicketVoiceNote {
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
+
+  @Column( { name: 'company_id', nullable: true } )
+  company_id: number | null;
 }

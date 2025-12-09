@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -7,22 +7,43 @@ import { TicketHistory } from './entities/ticket_history.entity';
 
 @Injectable()
 export class TicketHistoryService {
-  constructor(
-    @InjectRepository(TicketHistory)
+  constructor (
+    @InjectRepository( TicketHistory )
     private readonly ticketHistoryRepository: Repository<TicketHistory>,
   ) { }
 
-  async create(
-    createTicketHistoryDto: CreateTicketHistoryDto
+  async create (
+    createTicketHistoryDto: CreateTicketHistoryDto,
+    companyId?: number
   ): Promise<TicketHistory> {
-    const newTicketHistory = this.ticketHistoryRepository.create(createTicketHistoryDto);
-    return await this.ticketHistoryRepository.save(newTicketHistory);
+    const ticketHistoryData = {
+      ...createTicketHistoryDto,
+      ...( companyId !== undefined && companyId !== null && { company_id: companyId } )
+    };
+
+    const newTicketHistory = this.ticketHistoryRepository.create( ticketHistoryData );
+    return await this.ticketHistoryRepository.save( newTicketHistory );
   }
 
-  async findAllByTicketId(ticketId: number) {
-    return await this.ticketHistoryRepository.find({
-      where: { ticket_id: ticketId },
-      order: { created_at: 'DESC' }
-    });
+  async findAllByTicketId ( ticketId: number, companyId?: number ) {
+    const query = this.ticketHistoryRepository.createQueryBuilder( 'ticket_history' )
+      .where( 'ticket_history.ticket_id = :ticketId', { ticketId } )
+      .orderBy( 'ticket_history.created_at', 'DESC' );
+
+    // Apply company filter if companyId is provided
+    if ( companyId )
+    {
+      query.andWhere( 'ticket_history.company_id = :companyId', { companyId } );
+    }
+
+    const histories = await query.getMany();
+
+    // If no histories found, you might want to handle this case
+    if ( histories.length === 0 )
+    {
+      throw new NotFoundException( `No history found for ticket ID ${ ticketId }` );
+    }
+
+    return histories;
   }
 }

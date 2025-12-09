@@ -6,22 +6,22 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-@Module({
+@Module( {
   imports: [
-    TypeOrmModule.forFeature([User]),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => {
+    TypeOrmModule.forFeature( [ User ] ),
+    JwtModule.registerAsync( {
+      imports: [ ConfigModule ],
+      inject: [ ConfigService ],
+      useFactory: async ( configService: ConfigService ) => {
         return {
-          secret: configService.get<string>('JWT_SECRET'),
-          signOptions: { expiresIn: configService.get<string>('JWT_EXPIRY') },
+          secret: configService.get<string>( 'JWT_SECRET' ),
+          signOptions: { expiresIn: configService.get<string>( 'JWT_EXPIRY' ) },
         };
       },
-    }),
+    } ),
   ],
-  controllers: [UsersController],
-  providers: [UsersService],
-  exports: [UsersService],
-})
-export class UsersModule {}
+  controllers: [ UsersController ],
+  providers: [ UsersService ],
+  exports: [ UsersService ],
+} )
+export class UsersModule { }

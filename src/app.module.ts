@@ -29,23 +29,25 @@ import { HealthModule } from './health/health.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { AiLeads } from './ai_leads/entities/aiLeads.entity';
 import { AiLeadsModule } from './ai_leads/ai_leads.module';
+import { CompaniesModule } from './companies/companies.module';
+import { Company } from './companies/entities/company.entity';
 
-@Module({
+@Module( {
   imports: [
-    ConfigModule.forRoot({
+    ConfigModule.forRoot( {
       isGlobal: true, // Makes ConfigModule available globally
-    }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        type: configService.get<'mysql'>('DB_TYPE'),
-        host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_NAME'),
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: configService.get<string>('JWT_EXPIRY') },
+    } ),
+    TypeOrmModule.forRootAsync( {
+      imports: [ ConfigModule ],
+      useFactory: ( configService: ConfigService ) => ( {
+        type: configService.get<'mysql'>( 'DB_TYPE' ),
+        host: configService.get<string>( 'DB_HOST' ),
+        port: configService.get<number>( 'DB_PORT' ),
+        username: configService.get<string>( 'DB_USERNAME' ),
+        password: configService.get<string>( 'DB_PASSWORD' ),
+        database: configService.get<string>( 'DB_NAME' ),
+        secret: configService.get<string>( 'JWT_SECRET' ),
+        signOptions: { expiresIn: configService.get<string>( 'JWT_EXPIRY' ) },
         entities: [
           AiLeads,
           Application,
@@ -61,11 +63,11 @@ import { AiLeadsModule } from './ai_leads/ai_leads.module';
           TicketHistory,
           TicketVoiceNote,
           User,
-        ],
+          Company ],
         synchronize: false,
-      }),
-      inject: [ConfigService],
-    }),
+      } ),
+      inject: [ ConfigService ],
+    } ),
     AiLeadsModule,
     ApplicationsModule,
     DashboardModule,
@@ -77,8 +79,9 @@ import { AiLeadsModule } from './ai_leads/ai_leads.module';
     TicketHistoryModule,
     TicketVoiceNoteModule,
     UsersModule,
+    CompaniesModule,
   ],
-  providers: [AppService],
-})
+  providers: [ AppService ],
+} )
 
 export class AppModule { }

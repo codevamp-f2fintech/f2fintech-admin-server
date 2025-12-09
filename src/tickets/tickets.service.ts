@@ -43,6 +43,7 @@ export interface TicketResponse {
   customerDesignation: string;
   loanStatus: string;
   loanCategory: string;
+  companyId: number;
 }
 
 export interface PaginationResult {
@@ -72,7 +73,7 @@ export class TicketsService {
     private readonly customerApplicationRepository: Repository<Application>,
   ) { }
 
-  async create ( createTicketDto: CreateTicketDto ): Promise<any> {
+  async create ( createTicketDto: CreateTicketDto, companyId?: number ): Promise<any> {
     try
     {
       return this.ticketRepository.findOne( {
@@ -86,7 +87,11 @@ export class TicketsService {
           };
         } else
         {
-          const newTicket = this.ticketRepository.create( createTicketDto );
+          const ticketData = {
+            ...createTicketDto,
+            ...( companyId !== null && companyId !== undefined && { companyId } )
+          };
+          const newTicket = this.ticketRepository.create( ticketData );
           await this.ticketRepository.save( newTicket );
           return {
             statusCode: 201,
@@ -116,12 +121,13 @@ export class TicketsService {
     name?: string,
     startDate?: string,
     endDate?: string,
+    companyId?: number,
   ): Promise<PaginationResult> {
     page = Number( page ) || 1;
     limit = Number( limit ) || 10;
     const skip = ( page - 1 ) * limit;
 
-    console.log( 'page limit', page, limit, name )
+    console.log( 'page limit', page, limit, name, companyId )
 
     const query = this.ticketRepository.createQueryBuilder( 'ticket' )
       .leftJoinAndSelect( 'ticket.application', 'application' ) // Join application
@@ -132,6 +138,11 @@ export class TicketsService {
       .skip( skip )
       .take( limit )
       .orderBy( 'ticket.created_at', 'DESC' );
+
+    if ( companyId )
+    {
+      query.andWhere( 'ticket.companyId = :companyId', { companyId } );
+    }
 
     // Apply filters based on parameters
     if ( userId )
@@ -317,6 +328,7 @@ export class TicketsService {
         customerState: customer.info?.state ?? 'No location available',
         loanStatus: loanTracking[ 0 ]?.status ?? 'No status available',
         applicationProvider: application.provider ?? 'No provider available',
+        companyId: ticket.companyId,
       };
     } );
 
@@ -394,6 +406,7 @@ export class TicketsService {
       customerState: ticket.application?.customer?.info?.state ?? 'No Location available',
       loanStatus:
         ticket.application?.loanTracking?.[ 0 ]?.status ?? '',
+      companyId: ticket.companyId, // Include companyId
     };
   }
 
@@ -406,44 +419,40 @@ export class TicketsService {
   }
 
   async remove ( ticketId: number, reason: string, archivedByUserId: number ): Promise<void> {
-    const ticket = await this.ticketRepository.findOne( { where: { id: ticketId } } );
-    const ticketHistory = await this.ticketHistoryRepository.find( { where: { ticket_id: ticketId } } );
-    const ticketLog = await this.ticketLogRepository.find( { where: { ticket_id: ticketId } } );
-    const ticketActivity = await this.ticketActivityRepository.find( { where: { ticket_id: ticketId } } );
-    const loanTracking = await this.loanTrackingRepository.find( { where: { customer_application_id: ticket.customer_application_id } } );
-    const customerApplication = await this.customerApplicationRepository.findOne( { where: { id: ticket.customer_application_id } } );
+    const ticket = await this.ticketRepository.findOne( {
+      where: { id: ticketId },
+      relations: [ 'application', 'application.customer' ] // Add relations
+    } );
 
     if ( !ticket )
     {
       throw new Error( 'Ticket not found' );
     }
 
-    if ( ticketHistory.length )
-    {
-      ticketHistory.forEach( async ( history ) => {
-        await this.ticketHistoryRepository.remove( history );
-      } )
-    }
-    if ( ticketLog.length )
-    {
-      ticketLog.forEach( async ( log ) => {
-        await this.ticketLogRepository.remove( log );
-      } )
-    }
-    if ( ticketActivity.length )
-    {
-      ticketActivity.forEach( async ( activity ) => {
-        await this.ticketActivityRepository.remove( activity );
-      } )
-    }
-    if ( loanTracking.length )
-    {
-      loanTracking.forEach( async ( tracking ) => {
-        await this.loanTrackingRepository.remove( tracking );
-      } )
-    }
+    // Remove only the related entities but NOT the application/customer
+    // const ticketHistory = await this.ticketHistoryRepository.find( { where: { ticket_id: ticketId } } );
+    // const ticketLog = await this.ticketLogRepository.find( { where: { ticket_id: ticketId } } );
+    // const ticketActivity = await this.ticketActivityRepository.find( { where: { ticket_id: ticketId } } );
+    // const loanTracking = await this.loanTrackingRepository.find( { where: { customer_application_id: ticket.customer_application_id } } );
 
-    // Move ticket to ticket_archive
+    // if ( ticketHistory.length )
+    // {
+    //   await this.ticketHistoryRepository.remove( ticketHistory );
+    // }
+    // if ( ticketLog.length )
+    // {
+    //   await this.ticketLogRepository.remove( ticketLog );
+    // }
+    // if ( ticketActivity.length )
+    // {
+    //   await this.ticketActivityRepository.remove( ticketActivity );
+    // }
+    // if ( loanTracking.length )
+    // {
+    //   await this.loanTrackingRepository.remove( loanTracking );
+    // }
+
+    // Move ticket to ticket_archive WITHOUT modifying its structure
     const archivedTicket = this.ticketArchiveRepository.create( {
       ...ticket,
       original_ticket_id: ticket.id,
@@ -451,11 +460,14 @@ export class TicketsService {
       reason_to_delete: reason,
       archived_by: archivedByUserId,
     } );
+
     await this.ticketArchiveRepository.save( archivedTicket );
 
+    // Remove only the ticket, NOT the application
     await this.ticketRepository.remove( ticket );
 
-    await this.customerApplicationRepository.remove( customerApplication );
+    // DON'T remove the customer application
+    // await this.customerApplicationRepository.remove( customerApplication );
   }
 
   // Restore Original ticket from archive
@@ -486,6 +498,7 @@ export class TicketsService {
     startDate?: string,
     endDate?: string,
     search?: string,
+    companyId?: number,
   ): Promise<PaginationResult> {
     page = Number( page ) || 1;
     limit = Number( limit ) || 10;
@@ -501,6 +514,11 @@ export class TicketsService {
       .take( limit )
       .orderBy( 'archive.archived_at', 'DESC' )
       .where( '1 = 1' );
+
+    if ( companyId )
+    {
+      query.andWhere( 'archive.companyId = :companyId', { companyId } );
+    }
 
     // Filters
     if ( status && status !== 'all' && status.trim() !== '' )
@@ -572,6 +590,11 @@ export class TicketsService {
         ?.filter( ( doc ) => doc.type === 'profile' )
         .map( ( doc ) => doc.document_url ) || [];
 
+      console.log( application, "archived application" )
+      console.log( customer, "arcived customer" )
+      console.log( customerProfileImages, "archived customerProfileImages" )
+      console.log( companyId, "companyId" )
+
       return {
         archiveId: archive.id,
         archiveBy: archive.archived_by,
@@ -594,6 +617,7 @@ export class TicketsService {
         loanStatus: loanTracking?.[ 0 ]?.status ?? 'No status available',
         applicationProvider: application?.provider ?? 'No provider available',
         reason: archive?.reason_to_delete,
+        companyId: archive.companyId,
       };
     } );
 
