@@ -5,10 +5,12 @@ import {
   Index,
   BeforeInsert,
   OneToOne,
-  JoinColumn
+  JoinColumn,
+  ManyToOne
 } from 'typeorm';
 
 import { Application } from 'src/applications/entities/applications.entity';
+import { Company } from 'src/companies/entities/company.entity';
 
 export enum Status {
   UNDER_CREDIT_REVIEW = 'under credit review',
@@ -23,16 +25,19 @@ export enum Status {
   REJECTED = 'rejected',
   DROP = 'drop',
   HOLD = 'hold',
-  // TO_BE_LOGIN = 'to be login',
-  // TVR_DONE = 'tvr done',
-  // CAM_REPORT_DONE = 'cam report done',
-  // RELOOK = 'relook'
 }
 
 @Entity('tickets')
 export class Ticket {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column( { name: 'company_id' } )
+  companyId: number;
+
+  @ManyToOne( () => Company, ( company ) => company.tickets )
+  @JoinColumn( { name: 'company_id' } )
+  company: Company;
 
   // Define customer_application_id as a foreign key with an index for fast lookups
   @Column()

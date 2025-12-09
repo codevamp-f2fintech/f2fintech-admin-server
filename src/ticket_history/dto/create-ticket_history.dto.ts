@@ -7,4 +7,5 @@ export class CreateTicketHistoryDto {
 
     @IsString()
     action: string;
+
 }

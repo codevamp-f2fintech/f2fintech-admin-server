@@ -3,6 +3,7 @@ import { Entity, Column, PrimaryGeneratedColumn, OneToOne, ManyToOne, JoinColumn
 import { Ticket } from 'src/tickets/entities/ticket.entity';
 import { Customer } from './customer.entity';
 import { LoanTracking } from './loanTracking.entity';
+import { Company } from 'src/companies/entities/company.entity';
 
 export enum Loan_type {
   TERM_LOAN = 'term loan',
@@ -80,6 +81,13 @@ export class Application {
 
   @Column( { type: 'date' } )
   end_date: Date;
+
+  @Column( { name: 'company_id' } )
+  company_id: number;
+
+  @ManyToOne( () => Company, ( company ) => company.applications )
+  @JoinColumn( { name: 'company_id' } )
+  company: Company;
 
   @CreateDateColumn( { type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' } )
   last_updated: Date;

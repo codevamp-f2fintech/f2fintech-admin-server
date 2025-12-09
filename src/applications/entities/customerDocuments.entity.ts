@@ -9,27 +9,27 @@ import {
 
 import { Customer } from './customer.entity';
 
-@Entity('customer_document')
+@Entity( 'customer_document' )
 export class CustomerDocument {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'int' })
+    @Column( { type: 'int' } )
     customer_id: number;
 
-    @Column({ type: 'text' })
+    @Column( { type: 'text' } )
     document_url: string;
 
-    @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @CreateDateColumn( { type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' } )
     created_at: Date;
 
-    @Column({
+    @Column( {
         type: 'enum',
-        enum: ['aadhaar front', 'aadhaar back', 'pancard', 'bank statement', 'form 16', 'payslips', 'profile', 'photo', 'certificate', 'audio'],
-    })
+        enum: [ 'aadhaar front', 'aadhaar back', 'pancard', 'bank statement', 'form 16', 'payslips', 'profile', 'photo', 'certificate', 'audio' ],
+    } )
     type: 'aadhaar front' | 'aadhaar back' | 'pancard' | 'bank statement' | 'form 16' | 'payslips' | 'profile' | 'photo' | 'certificate' | 'audio';
 
-    @ManyToOne(() => Customer, (customer) => customer.customerDocuments, { eager: false })
-    @JoinColumn({ name: 'customer_id' })
+    @ManyToOne( () => Customer, ( customer ) => customer.customerDocuments, { eager: false } )
+    @JoinColumn( { name: 'customer_id' } )
     customer: Customer;
 }

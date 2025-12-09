@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Company } from 'src/companies/entities/company.entity';
+import { Entity, Column, PrimaryGeneratedColumn, Unique, ManyToOne, JoinColumn } from 'typeorm';
 
 export enum Gender {
   MALE = 'male',
@@ -16,7 +17,8 @@ export enum Role {
   SUBADMIN = 'sub admin',
   SALES = 'sales',
   OPERATIONS = 'operations',
-  CREDIT = 'credit'
+  CREDIT = 'credit',
+  SUPERADMIN = 'super admin',
 }
 
 @Entity( 'users' )
@@ -60,6 +62,13 @@ export class User {
     default: Role.SALES,
   } )
   role: Role;
+
+  @ManyToOne( () => Company, company => company.users )
+  @JoinColumn( { name: 'company_id' } )
+  company: Company;
+
+  @Column( { name: 'company_id' } )
+  companyId: number;
 
   @Column( { type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' } )
   created_at: Date;

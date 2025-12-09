@@ -7,30 +7,37 @@ import {
   Patch,
   Delete,
   UseGuards,
+  Headers,
 } from '@nestjs/common';
 
 import { ActivitiesService } from './ticket_activities.service';
 import { CreateTicketActivityDto } from './dto/create_ticket_activity.dto';
 import { RolesGuard } from 'src/common/guards/roles.guard';
-import { Roles } from 'src/common/decorators/roles.decorator';
-import { Role } from 'src/common/enum/role.enum';
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 
-@Controller('api/v1/')
-@UseGuards(RolesGuard)
+@Controller( 'api/v1/' )
+@UseGuards( RolesGuard )
 export class TicketActivitiesController {
-  constructor(private readonly activitiesService: ActivitiesService) { }
+  constructor ( private readonly activitiesService: ActivitiesService ) { }
 
-  @Post('create-ticket-activity')
-  async create(@Body() createTicketActivityDto: CreateTicketActivityDto) {
-    try {
-      const newActivity = await this.activitiesService.create(createTicketActivityDto);
+  @Post( 'create-ticket-activity' )
+  async create (
+    @Body() createTicketActivityDto: CreateTicketActivityDto,
+    @Headers( 'Companyid' ) companyIdString?: string
+  ) {
+    try
+    {
+      const companyId = companyIdString && !isNaN( Number( companyIdString ) )
+        ? Number( companyIdString )
+        : null;
+      const newActivity = await this.activitiesService.create( createTicketActivityDto, companyId );
       return ResponseFormatter.success(
         201,
         'Ticket activity created successfully',
         newActivity,
       );
-    } catch (error) {
+    } catch ( error )
+    {
       return ResponseFormatter.error(
         error.status || 500,
         error.message || 'Internal server error',
@@ -38,16 +45,24 @@ export class TicketActivitiesController {
     }
   }
 
-  @Get('get-ticket-activities/:ticketId')
-  async findAll(@Param('ticketId') ticketId: number) {
-    try {
-      const activities = await this.activitiesService.findAllByTicketId(ticketId);
+  @Get( 'get-ticket-activities/:ticketId' )
+  async findAll (
+    @Param( 'ticketId' ) ticketId: number,
+    @Headers( 'Companyid' ) companyIdString?: string
+  ) {
+    try
+    {
+      const companyId = companyIdString && !isNaN( Number( companyIdString ) )
+        ? Number( companyIdString )
+        : null;
+      const activities = await this.activitiesService.findAllByTicketId( ticketId, companyId );
       return ResponseFormatter.success(
         200,
         'Ticket activities retrieved successfully',
         activities,
       );
-    } catch (error) {
+    } catch ( error )
+    {
       return ResponseFormatter.error(
         error.status || 500,
         error.message || 'Internal server error',
@@ -55,24 +70,31 @@ export class TicketActivitiesController {
     }
   }
 
-  @Patch('update-ticket-activity/:ticket_id/:id')
-  async update(
-    @Param('ticket_id') ticket_id: number,  // Get ticket_id from route
-    @Param('id') id: number,  // Get id from route
+  @Patch( 'update-ticket-activity/:ticket_id/:id' )
+  async update (
+    @Param( 'ticket_id' ) ticket_id: number,  // Get ticket_id from route
+    @Param( 'id' ) id: number,  // Get id from route
     @Body() updateTicketActivityDto: CreateTicketActivityDto,
+    @Headers( 'Companyid' ) companyIdString?: string
   ) {
-    try {
+    try
+    {
+      const companyId = companyIdString && !isNaN( Number( companyIdString ) )
+        ? Number( companyIdString )
+        : null;
       const updatedActivity = await this.activitiesService.updateByTicketIdAndId(
         ticket_id,
         id,
         updateTicketActivityDto,
+        companyId
       );
       return ResponseFormatter.success(
         200,
         'Ticket activity updated successfully',
         updatedActivity,
       );
-    } catch (error) {
+    } catch ( error )
+    {
       return ResponseFormatter.error(
         error.status || 500,
         error.message || 'Internal server error',
@@ -80,12 +102,20 @@ export class TicketActivitiesController {
     }
   }
 
-  @Delete('delete-ticket-activity/:id')
-  async remove(@Param('id') id: number) {
-    try {
-      await this.activitiesService.remove(id);
-      return ResponseFormatter.success(200, 'Ticket activity deleted successfully');
-    } catch (error) {
+  @Delete( 'delete-ticket-activity/:id' )
+  async remove (
+    @Param( 'id' ) id: number,
+    @Headers( 'Companyid' ) companyIdString?: string
+  ) {
+    try
+    {
+      const companyId = companyIdString && !isNaN( Number( companyIdString ) )
+        ? Number( companyIdString )
+        : null;
+      await this.activitiesService.remove( id, companyId );
+      return ResponseFormatter.success( 200, 'Ticket activity deleted successfully' );
+    } catch ( error )
+    {
       return ResponseFormatter.error(
         error.status || 500,
         error.message || 'Internal server error',

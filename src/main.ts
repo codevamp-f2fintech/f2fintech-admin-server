@@ -11,7 +11,7 @@ async function bootstrap () {
   app.enableCors( {
     origin: [ 'http://localhost:3000', 'https://admin-f2fintech.netlify.app', "http://localhost:5173", "https://f2fintech.com" ], // Allow requests from this origin
     methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
-    credentials: true, // Set to true if you need to allow cookies or authentication headers
+    credentials: true,
   } );
   app.use( express.json() );
   await app.listen( 3001 );

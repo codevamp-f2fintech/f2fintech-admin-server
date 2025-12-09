@@ -8,6 +8,7 @@ import {
   Param,
   Put,
   ParseIntPipe,
+  Headers,
 } from '@nestjs/common';
 
 import { LoanProviderService } from './loanProvider.service';
@@ -16,20 +17,22 @@ import { CreateLoanProviderDto } from './dto/create-loanProvider.dto';
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 import { UpdateLoanProviderDto } from './dto/update-loanProvider.dto';
 
-@Controller('api/v1')
+@Controller( 'api/v1' )
 export class LoanProviderController {
-  constructor(private readonly LoanProviderService: LoanProviderService) { }
+  constructor ( private readonly LoanProviderService: LoanProviderService ) { }
 
-  @Post('create-loan-provider')
+  @Post( 'create-loan-provider' )
   async create ( @Body() createTicketDto: CreateLoanProviderDto ) {
-    try {
-      const newTicket = await this.LoanProviderService.create(createTicketDto);
+    try
+    {
+      const newTicket = await this.LoanProviderService.create( createTicketDto );
       return ResponseFormatter.success(
         201,
         'Loan Provider created successfully',
         newTicket,
       );
-    } catch (error) {
+    } catch ( error )
+    {
       return ResponseFormatter.error(
         error.status || 500,
         error.message || 'Internal server error',
@@ -62,18 +65,30 @@ export class LoanProviderController {
     }
   }
 
-  @Get('get-all-loan-providers')
-  async getAllLoanProviders(
-    @Query('page') page: number,
-    @Query('limit') limit: number,
-    @Query('country') country?: string,
+  @Get( 'get-all-loan-providers' )
+  async getAllLoanProviders (
+    @Query( 'page' ) page: number,
+    @Query( 'limit' ) limit: number,
+    @Query( 'country' ) country?: string,
+    @Headers( 'Companyid' ) companyIdString?: string,
   ): Promise<any> {
+    const companyId = companyIdString && !isNaN( Number( companyIdString ) )
+      ? Number( companyIdString )
+      : null;
+    if ( !companyId )
+    {
+      return ResponseFormatter.error(
+        400,
+        'Company ID is required in headers'
+      );
+    }
     const paginatedTickets = await this.LoanProviderService.getAllLoanProviders(
       page,
       limit,
       country,
+      companyId
     );
-    return ResponseFormatter.success(200, 'Tickets Retrieved Successfully', paginatedTickets);
+    return ResponseFormatter.success( 200, 'Tickets Retrieved Successfully', paginatedTickets );
   }
 
 

@@ -6,14 +6,14 @@ import { LoanProvider } from './entities/loanProvider.entity';
 import { LoanProviderController } from './loanProvider.controller';
 import { LoanProviderService } from './loanProvider.service';
 
-@Module({
+@Module( {
   imports: [
     HttpModule,
-    TypeOrmModule.forFeature( [ LoanProvider ])
+    TypeOrmModule.forFeature( [ LoanProvider ] )
   ],
   controllers: [ LoanProviderController ],
   providers: [ LoanProviderService ],
   exports: [ LoanProviderService ],
-})
+} )
 
 export class LoanProvidersModule { }

@@ -5,27 +5,35 @@ import {
   Param,
   Query,
   UseGuards,
+  Headers,
 } from '@nestjs/common';
 
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 import { DashboardService } from './dashboard.service';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 
-@Controller('api/v1/dashboard')
-@UseGuards(RolesGuard)
+@Controller( 'api/v1/dashboard' )
+@UseGuards( RolesGuard )
 export class DashboardController {
-  constructor(private readonly dashboardService: DashboardService) { }
+  constructor ( private readonly dashboardService: DashboardService ) { }
 
-  @Get('agents/count')
-  async findAgentCount() {
-    try {
-      const count = await this.dashboardService.findAgentCount();
+  @Get( 'agents/count' )
+  async findAgentCount (
+    @Headers( 'Companyid' ) companyId?: string,
+  ) {
+    try
+    {
+      const companyIdNumber = companyId && !isNaN( Number( companyId ) )
+        ? Number( companyId )
+        : null;
+      const count = await this.dashboardService.findAgentCount( companyIdNumber );
       return ResponseFormatter.success(
         200,
         'Agent count retrieved successfully',
         count,
       );
-    } catch (error) {
+    } catch ( error )
+    {
       return ResponseFormatter.error(
         error.status || 500,
         error.message || 'Internal server error',
@@ -40,10 +48,12 @@ export class DashboardController {
     @Query( 'date' ) date?: string,
     @Query( 'month' ) month?: string,
     @Query( 'year' ) year?: string,
+    @Headers( 'Companyid' ) companyId?: string,
   ) {
     try
     {
       // Convert userId to number if it exists and is a valid number
+      const companyIdNumber = companyId && !isNaN( Number( companyId ) ) ? Number( companyId ) : null;
       const userIdNumber = userId && !isNaN( Number( userId ) ) ? Number( userId ) : null;
 
       const result = await this.dashboardService.findTicketsCount(
@@ -52,6 +62,7 @@ export class DashboardController {
         date || null,
         month || null,
         year || null,
+        companyIdNumber,
       );
 
       return ResponseFormatter.success(
@@ -116,22 +127,26 @@ export class DashboardController {
   }
 
 
-  @Get('tickets/counts-by-month')
-  async getTotalTicketsByMonth(@Query('year') year: string) {
-    const yearInt = parseInt(year);
-    if (isNaN(yearInt)) {
-      throw new BadRequestException('Invalid year');
+  @Get( 'tickets/counts-by-month' )
+  async getTotalTicketsByMonth ( @Query( 'year' ) year: string, @Query( 'companyId' ) companyId?: string, ) {
+    const yearInt = parseInt( year );
+    if ( isNaN( yearInt ) )
+    {
+      throw new BadRequestException( 'Invalid year' );
     }
 
-    try {
+    try
+    {
+      const companyIdNumber = companyId && !isNaN( Number( companyId ) ) ? Number( companyId ) : null;
       const result =
-        await this.dashboardService.getTotalTicketsByMonth(yearInt);
+        await this.dashboardService.getTotalTicketsByMonth( yearInt, companyIdNumber, );
       return ResponseFormatter.success(
         200,
         'Total tickets by month retrieved successfully',
         result,
       );
-    } catch (error) {
+    } catch ( error )
+    {
       return ResponseFormatter.error(
         error.status || 500,
         error.message || 'Internal server error',
@@ -139,21 +154,25 @@ export class DashboardController {
     }
   }
 
-  @Get('tickets/done-counts-by-month')
-  async getDoneTicketsByMonth(@Query('year') year: string) {
-    const yearInt = parseInt(year);
-    if (isNaN(yearInt)) {
-      throw new BadRequestException('Invalid year');
+  @Get( 'tickets/done-counts-by-month' )
+  async getDoneTicketsByMonth ( @Query( 'year' ) year: string, @Query( 'companyId' ) companyId?: string, ) {
+    const yearInt = parseInt( year );
+    if ( isNaN( yearInt ) )
+    {
+      throw new BadRequestException( 'Invalid year' );
     }
 
-    try {
-      const result = await this.dashboardService.getDoneTicketsByMonth(yearInt);
+    try
+    {
+      const companyIdNumber = companyId && !isNaN( Number( companyId ) ) ? Number( companyId ) : null;
+      const result = await this.dashboardService.getDoneTicketsByMonth( yearInt, companyIdNumber );
       return ResponseFormatter.success(
         200,
         'Done tickets by month retrieved successfully',
         result,
       );
-    } catch (error) {
+    } catch ( error )
+    {
       return ResponseFormatter.error(
         error.status || 500,
         error.message || 'Internal server error',

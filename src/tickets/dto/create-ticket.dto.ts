@@ -1,4 +1,4 @@
-import { IsEnum, IsDate, IsNumber, IsString } from 'class-validator';
+import { IsEnum, IsDate, IsNumber, IsString, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 import { Status } from '../entities/ticket.entity';
@@ -25,19 +25,19 @@ export class CreateTicketDto {
   @IsString()
   voice_note_url: string;
 
-  @IsEnum(Status)
+  @IsEnum( Status )
   status: Status;
 
   @IsDate()
-  @Type(() => Date)
+  @Type( () => Date )
   due_date: Date;
 
   @IsDate()
-  @Type(() => Date)
+  @Type( () => Date )
   created_at: Date;
 
   @IsDate()
-  @Type(() => Date)
+  @Type( () => Date )
   updated_at: Date;
 
   @IsDate()
@@ -53,4 +53,9 @@ export class CreateTicketDto {
 
   @IsNumber()
   approved_amount: number;
+
+  @IsNumber()
+  @IsOptional()
+  @IsNumber()
+  companyId?: number;
 }

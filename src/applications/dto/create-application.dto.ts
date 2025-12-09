@@ -34,8 +34,8 @@ export class CreateApplicationDto {
 
   @IsOptional()
   @IsInt()
-  @Min(0)
-  @Max(1)
+  @Min( 0 )
+  @Max( 1 )
   is_picked?: number;
 
   @IsDateString()
@@ -49,4 +49,8 @@ export class CreateApplicationDto {
 
   @IsDateString()
   last_updated: string;
+
+  @IsOptional()
+  @IsInt()
+  company_id?: number;
 }

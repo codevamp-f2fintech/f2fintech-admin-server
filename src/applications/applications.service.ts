@@ -32,11 +32,13 @@ export class ApplicationsService {
     private readonly customerInfoRepository: Repository<CustomerInfo>,
   ) { }
 
+
   async getApplicationData (
     page: number,
     limit: number,
     appliedBy?: number,
-    searchTerm?: string
+    searchTerm?: string,
+    companyId?: string,
   ): Promise<PaginationResult> {
     page = Number( page ) || 1;
     limit = Number( limit ) || 10;
@@ -50,6 +52,11 @@ export class ApplicationsService {
       .leftJoinAndSelect( 'customer.customerDocuments', 'documents' )
       .leftJoinAndSelect( 'application.loanTracking', 'loanTracking' )
       .where( 'application.is_picked = :isPicked', { isPicked: 0 } );
+
+    if ( companyId )
+    {
+      queryBuilder.andWhere( 'application.company_id = :company_id', { company_id: Number( companyId ) } );
+    }
 
     // Add appliedBy condition if provided
     if ( appliedBy )
@@ -100,6 +107,7 @@ export class ApplicationsService {
           .map( doc => doc.document_url ) ?? [ 'No image available' ],
         customerLocation: customer.info?.city ?? 'No location available',
         customerState: customer.info?.state ?? 'No location available',
+        companyId: application.company_id ?? 'No company',
       };
     } );
 
@@ -119,8 +127,12 @@ export class ApplicationsService {
     return months[ monthName ] || 1;
   }
 
-  async getApplicationsCount ( month?: string, year?: number, date?: string ): Promise<number> {
+  async getApplicationsCount ( month?: string, year?: number, date?: string, company_id?: string ): Promise<number> {
     const whereCondition: any = {};
+    if ( company_id )
+    {
+      whereCondition.company_id = Number( company_id );
+    }
 
     if ( date )
     {
@@ -152,11 +164,15 @@ export class ApplicationsService {
       ? this.applicationRepository.count()
       : this.applicationRepository.count( { where: whereCondition } );
   }
-  
-  
 
-  async getNewApplicationsCount ( month?: string, year?: number, date?: string ): Promise<any> {
+
+
+  async getNewApplicationsCount ( month?: string, year?: number, date?: string, company_id?: string ): Promise<any> {
     const whereCondition: any = { is_picked: 0 };
+    if ( company_id )
+    {
+      whereCondition.company_id = Number( company_id );
+    }
 
     // If specific date is provided, filter by that exact date
     if ( date )
@@ -237,7 +253,7 @@ export class ApplicationsService {
     if ( updateApplicationDto.customerState )
     {
       application.customer.info.state = updateApplicationDto.customerState;
-      }
+    }
     // Update customer info (e.g, provider)
     // if ( updateApplicationDto.customerLocation )
     // {

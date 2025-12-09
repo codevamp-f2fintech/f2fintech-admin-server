@@ -17,13 +17,27 @@ export class DashboardService {
 
   private readonly logger = new Logger( DashboardService.name );
 
-  async findAgentCount (): Promise<number> {
-    return this.userRepository.count();
+  async findAgentCount ( companyId: number = null ): Promise<number> {
+    const where: any = {};
+
+    // Add company filter if companyId is provided
+    if ( companyId )
+    {
+      where.companyId = companyId;
+    }
+
+    return this.userRepository.count( { where } );
   }
 
-  async findTicketsCount ( id = null, status = null, date = null, month = null, year = null ): Promise<number | { count: number, amount: number }> {
+  async findTicketsCount ( id = null, status = null, date = null, month = null, year = null, companyId = null ): Promise<number | { count: number, amount: number }> {
     const where: any = {};
     const qb = this.ticketRepository.createQueryBuilder( 'ticket' );
+
+    // Add companyId filter if provided
+    if ( companyId )
+    {
+      qb.andWhere( 'ticket.company_id = :companyId', { companyId } );
+    }
 
     if ( id )
     {
@@ -39,9 +53,14 @@ export class DashboardService {
         }
         else
         {
-          // For other roles (operations, credit), filter by user_id
           qb.leftJoinAndSelect( 'users', 'user', 'user.id = ticket.user_id' )
             .where( 'user.role = :role', { role: user_info.role } );
+
+          // Add company filter for other roles if companyId is provided
+          if ( companyId )
+          {
+            qb.andWhere( 'ticket.company_id = :companyId', { companyId } );
+          }
         }
       }
     }
@@ -138,6 +157,7 @@ export class DashboardService {
           .where( 'ticket.status = :status', { status } )
           .andWhere( 'ticket.user_id = :id', { id } )
           .andWhere( 'ticket.forwarded_to IS NOT NULL' )
+          .andWhere( companyId ? 'ticket.company_id = :companyId' : '1=1', companyId ? { companyId } : {} )
           .getCount();
       } else
       {
@@ -156,10 +176,6 @@ export class DashboardService {
 
       const tickets = await qb.getMany();
 
-      const [ sql, parameters ] = qb.getQueryAndParameters();
-      console.log( "SQL:", sql );
-      console.log( "Parameters:", parameters );
-
       // The sum of amounts from related applications
       const totalAmount = tickets.reduce( ( sum, ticket ) => {
         let amount = 0;
@@ -177,7 +193,6 @@ export class DashboardService {
         return sum + amount;
       }, 0 );
 
-      console.log( "tickets", tickets, totalAmount )
       return { count: tickets.length, amount: totalAmount };
     }
 
@@ -199,6 +214,7 @@ export class DashboardService {
 
   async getTotalTicketsByMonth (
     year: number,
+    companyId: number = null
   ): Promise<{ month: string; count: number }[]> {
     const results = [];
 
@@ -206,11 +222,17 @@ export class DashboardService {
     {
       const { startOfMonth, endOfMonth } = this.getMonthDateRange( year, month );
 
-      const count = await this.ticketRepository.count( {
-        where: {
-          created_at: Between( startOfMonth, endOfMonth ),
-        },
-      } );
+      const where: any = {
+        created_at: Between( startOfMonth, endOfMonth ),
+      };
+
+      // Add company filter if companyId is provided
+      if ( companyId )
+      {
+        where.companyId = companyId;
+      }
+
+      const count = await this.ticketRepository.count( { where } );
       results.push( {
         month: startOfMonth.toLocaleString( 'default', { month: 'long' } ),
         count,
@@ -221,6 +243,7 @@ export class DashboardService {
 
   async getDoneTicketsByMonth (
     year: number,
+    companyId: number = null
   ): Promise<{ month: string; count: number }[]> {
     const results = [];
 
@@ -228,12 +251,18 @@ export class DashboardService {
     {
       const { startOfMonth, endOfMonth } = this.getMonthDateRange( year, month );
 
-      const count = await this.ticketRepository.count( {
-        where: {
-          status: Status.DISBURSED,
-          created_at: Between( startOfMonth, endOfMonth ),
-        },
-      } );
+      const where: any = {
+        status: Status.DISBURSED,
+        created_at: Between( startOfMonth, endOfMonth ),
+      };
+
+      // Add company filter if companyId is provided
+      if ( companyId )
+      {
+        where.companyId = companyId;
+      }
+
+      const count = await this.ticketRepository.count( { where } );
       results.push( {
         month: startOfMonth.toLocaleString( 'default', { month: 'long' } ),
         count,
