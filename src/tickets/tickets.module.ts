@@ -12,14 +12,14 @@ import { LoanTracking } from 'src/applications/entities/loanTracking.entity';
 import { Application } from 'src/applications/entities/applications.entity';
 import { TicketArchive } from './entities/ticketArchive.entity';
 
-@Module({
+@Module( {
   imports: [
     HttpModule,
-    TypeOrmModule.forFeature([Ticket, TicketArchive, TicketHistory, TicketLog, TicketActivity, LoanTracking, Application])
+    TypeOrmModule.forFeature( [ Ticket, TicketArchive, TicketHistory, TicketLog, TicketActivity, LoanTracking, Application ] )
   ],
-  controllers: [TicketsController],
-  providers: [TicketsService],
-  exports: [TicketsService],
-})
+  controllers: [ TicketsController ],
+  providers: [ TicketsService ],
+  exports: [ TicketsService ],
+} )
 
 export class TicketsModule { }

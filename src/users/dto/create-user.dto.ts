@@ -40,4 +40,8 @@ export class CreateUserDto {
 
   @IsEnum(Role)
   role: Role;
+
+  @IsNumber()
+  @IsOptional()
+  companyId?: number;
 }

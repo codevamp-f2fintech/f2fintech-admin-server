@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsOptional, IsInt } from 'class-validator';
 
 export class CreateTicketLogDto {
     @IsNotEmpty()
@@ -14,4 +14,8 @@ export class CreateTicketLogDto {
 
     @IsString()
     work_description: string;
+
+    @IsOptional()
+    @IsInt()
+    company_id?: number;
 }

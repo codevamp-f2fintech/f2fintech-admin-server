@@ -82,12 +82,30 @@ export class LoanProviderService {
     page: number,
     limit: number,
     country?: string,
+    companyId?: number,
   ): Promise<PaginationResult> {
     page = Number( page ) || 1;
     limit = Number( limit ) || 10;
 
+    const whereConditions: any = {};
+
+    // Always filter by companyId if provided
+    if ( companyId )
+    {
+      whereConditions.company_id = companyId;
+    } else
+    {
+      // If no companyId provided, you might want to return empty or throw error
+      throw new Error( 'Company ID is required' );
+    }
+
+    if ( country )
+    {
+      whereConditions.country = country;
+    }
+
     const [ results, count ] = await this.LoanProviderRepository.findAndCount( {
-      where: { country },
+      where: whereConditions,
       skip: ( page - 1 ) * limit,
       take: limit,
       order: { created_at: "DESC" },

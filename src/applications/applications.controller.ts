@@ -3,6 +3,7 @@ import { Controller, Get, Query, Param, Patch, Body, Delete } from '@nestjs/comm
 import { ApplicationsService } from './applications.service';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
+import { Headers } from '@nestjs/common';
 
 @Controller( 'api/v1' )
 export class ApplicationsController {
@@ -14,8 +15,9 @@ export class ApplicationsController {
     @Query( 'limit' ) limit: number,
     @Query( 'appliedBy' ) appliedBy?: number,
     @Query( 'search' ) searchTerm?: string,
+    @Headers( 'companyid' ) companyIdString?: string
   ): Promise<any> {
-    const customerApplications = await this.applicationsService.getApplicationData( page, limit, appliedBy, searchTerm );
+    const customerApplications = await this.applicationsService.getApplicationData( page, limit, appliedBy, searchTerm, companyIdString );
     return ResponseFormatter.success( 200, 'Applications Retrieved Successfully', customerApplications );
   }
 
@@ -23,12 +25,13 @@ export class ApplicationsController {
   async getApplicationsCount (
     @Query( 'month' ) month?: string,
     @Query( 'year' ) year?: string,
-    @Query( 'date' ) date?: string
+    @Query( 'date' ) date?: string,
+    @Headers( 'Companyid' ) companyIdString?: string
   ): Promise<any> {
     try
     {
       const yearNum = year ? parseInt( year, 10 ) : undefined;
-      const count = await this.applicationsService.getApplicationsCount( month, yearNum, date );
+      const count = await this.applicationsService.getApplicationsCount( month, yearNum, date, companyIdString );
 
       return {
         success: true,
@@ -50,12 +53,13 @@ export class ApplicationsController {
   async getNewApplicationsCount (
     @Query( 'month' ) month?: string,
     @Query( 'year' ) year?: string,
-    @Query( 'date' ) date?: string
+    @Query( 'date' ) date?: string,
+    @Headers( 'Companyid' ) companyIdString?: string
   ) {
     try
     {
       const yearNum = year ? parseInt( year, 10 ) : undefined;
-      const count = await this.applicationsService.getNewApplicationsCount( month, yearNum, date );
+      const count = await this.applicationsService.getNewApplicationsCount( month, yearNum, date, companyIdString );
 
       return {
         success: true,
@@ -116,10 +120,3 @@ export class ApplicationsController {
     }
   }
 }
-     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-                                                                                                                                                        
-            
-                                                     
-                        
-                                                                                                                                                            

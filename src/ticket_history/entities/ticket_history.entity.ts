@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('ticket_history')
+@Entity( 'ticket_history' )
 export class TicketHistory {
     @PrimaryGeneratedColumn()
     id: number;
@@ -11,6 +11,9 @@ export class TicketHistory {
     @Column()
     action: string;
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @Column( { type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' } )
     created_at: Date;
+
+    @Column( { name: 'company_id', nullable: true } )
+    company_id: number | null;
 }
