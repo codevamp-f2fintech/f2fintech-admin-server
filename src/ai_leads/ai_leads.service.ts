@@ -11,7 +11,15 @@ export class AiLeadsService {
     private readonly aiLeadsRepository: Repository<AiLeads>,
   ) { }
 
-  async findAll() {
+  async findAll ( companyId?: number ) {
+    const query = this.aiLeadsRepository
+      .createQueryBuilder( 'ai_leads' )
+      .orderBy( 'ai_leads.application_date', 'DESC' );
+
+    if ( companyId )
+    {
+      query.andWhere( 'ai_leads.company_id = :companyId', { companyId } );
+    }
     return await this.aiLeadsRepository.find({
       order: { application_date: 'DESC' }
     });

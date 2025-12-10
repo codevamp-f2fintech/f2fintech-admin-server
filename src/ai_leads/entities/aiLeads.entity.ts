@@ -18,4 +18,7 @@ export class AiLeads {
 
     @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     application_date: Date;
+
+    @Column( { name: 'company_id', nullable: true } )
+    company_id: number | null;
 }
