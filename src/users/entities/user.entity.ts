@@ -21,8 +21,8 @@ export enum Role {
   SUPERADMIN = 'super admin',
 }
 
-@Entity( 'users' )
-@Unique( [ 'email' ] )
+@Entity('users')
+@Unique(['email'])
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -33,50 +33,53 @@ export class User {
   @Column()
   password: string;
 
-  @Column( { unique: true } )
+  @Column({ unique: true })
   email: string;
 
-  @Column( { length: 15 } )
+  @Column({ length: 15 })
   number: string;
 
   @Column()
   designation: string;
 
-  @Column( {
+  @Column({
     type: 'enum',
     enum: Gender,
     default: Gender.OTHER,
-  } )
+  })
   gender: Gender;
 
-  @Column( {
+  @Column({
     type: 'enum',
     enum: Status,
     default: Status.ACTIVE,
-  } )
+  })
   status: Status;
 
-  @Column( {
+  @Column({
     type: 'enum',
     enum: Role,
     default: Role.SALES,
-  } )
+  })
   role: Role;
 
-  @ManyToOne( () => Company, company => company.users )
-  @JoinColumn( { name: 'company_id' } )
+  @ManyToOne(() => Company, company => company.users)
+  @JoinColumn({
+    name: 'company_id',
+    referencedColumnName: 'companyId',
+  })
   company: Company;
 
-  @Column( { name: 'company_id' } )
+  @Column({ name: 'company_id' })
   companyId: number;
 
-  @Column( { type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' } )
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
 
-  @Column( {
+  @Column({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP',
-  } )
+  })
   updated_at: Date;
 }

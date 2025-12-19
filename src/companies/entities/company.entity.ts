@@ -3,7 +3,7 @@ import { Ticket } from 'src/tickets/entities/ticket.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 
-@Entity( 'companies' )
+@Entity('companies')
 export class Company {
     @PrimaryGeneratedColumn()
     id: number;
@@ -14,42 +14,41 @@ export class Company {
     @Column()
     email: string;
 
-    @Column( { name: 'contact_number' } )
+    @Column({ name: 'contact_number' })
     contactNumber: string;
-    
-    
-    @Column( { nullable: true } )
+
+    @Column({ nullable: true })
     website: string;
-    
-    @Column( { type: 'text', nullable: true } )
+
+    @Column({ type: 'text', nullable: true })
     address: string;
-    
-    @Column( { type: 'text', nullable: true } )
+
+    @Column({ type: 'text', nullable: true })
     description: string;
-    
-    @Column( { default: true, name: 'is_active' } )
+
+    @Column({ default: true, name: 'is_active' })
     isActive: boolean;
-    
-    @Column( { type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' } )
+
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     created_at: Date;
-    
-    @Column( {
+
+    @Column({
         type: 'timestamp',
         default: () => 'CURRENT_TIMESTAMP',
         onUpdate: 'CURRENT_TIMESTAMP',
-    } )
-
-    @Column( { name: 'company_id', unique: true } )
-    companyId: string;
+    })
     updated_at: Date;
 
+    @Column({ name: 'company_id', unique: true })
+    companyId: number;
+
     // Add these relationships
-    @OneToMany( () => Application, ( application ) => application.company )
+    @OneToMany(() => Application, (application) => application.company)
     applications: Application[];
 
-    @OneToMany( () => Ticket, ( ticket ) => ticket.company )
+    @OneToMany(() => Ticket, (ticket) => ticket.company)
     tickets: Ticket[];
 
-    @OneToMany( () => User, ( user ) => user.company )
+    @OneToMany(() => User, (user) => user.company)
     users: User[];
 }
