@@ -1,9 +1,9 @@
 // src/companies/dto/create-company.dto.ts
-import { IsString, IsBoolean, IsOptional, Length, IsEmail, IsUrl, IsNumber } from 'class-validator';
+import { IsString, IsBoolean, IsOptional, Length, IsEmail, IsUrl, IsNumber, IsNotEmpty } from 'class-validator';
 
 export class CreateCompanyDto {
     @IsString()
-    @Length( 1, 255 )
+    @Length(1, 255)
     name: string;
 
     @IsEmail()
@@ -12,7 +12,7 @@ export class CreateCompanyDto {
 
     @IsString()
     @IsOptional()
-    @Length( 1, 20 )
+    @Length(1, 20)
     contactNumber?: string;
 
     @IsString()
@@ -32,7 +32,6 @@ export class CreateCompanyDto {
     isActive?: boolean;
 
     @IsNumber()
-    @IsOptional()
-    companyId?: number;
-    
+    @IsNotEmpty()
+    companyId: number;
 }

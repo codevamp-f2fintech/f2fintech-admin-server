@@ -20,72 +20,69 @@ export interface PaginationResult {
 @Injectable()
 export class ApplicationsService {
   prisma: any;
-  constructor (
+  constructor(
     private readonly httpService: HttpService,
-    @InjectRepository( LoanTracking )
+    @InjectRepository(LoanTracking)
     private readonly loanTrackingRepository: Repository<LoanTracking>,
-    @InjectRepository( Application )
+    @InjectRepository(Application)
     private readonly applicationRepository: Repository<Application>,
-    @InjectRepository( Customer )
+    @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
-    @InjectRepository( CustomerInfo )
+    @InjectRepository(CustomerInfo)
     private readonly customerInfoRepository: Repository<CustomerInfo>,
   ) { }
 
 
-  async getApplicationData (
+  async getApplicationData(
     page: number,
     limit: number,
     appliedBy?: number,
     searchTerm?: string,
     companyId?: string,
   ): Promise<PaginationResult> {
-    page = Number( page ) || 1;
-    limit = Number( limit ) || 10;
-    const skip = ( page - 1 ) * limit;
+    page = Number(page) || 1;
+    limit = Number(limit) || 10;
+    const skip = (page - 1) * limit;
 
     // Create query builder
     const queryBuilder = this.applicationRepository
-      .createQueryBuilder( 'application' )
-      .leftJoinAndSelect( 'application.customer', 'customer' )
-      .leftJoinAndSelect( 'customer.info', 'info' )
-      .leftJoinAndSelect( 'customer.customerDocuments', 'documents' )
-      .leftJoinAndSelect( 'application.loanTracking', 'loanTracking' )
-      .where( 'application.is_picked = :isPicked', { isPicked: 0 } );
+      .createQueryBuilder('application')
+      .leftJoinAndSelect('application.customer', 'customer')
+      .leftJoinAndSelect('customer.info', 'info')
+      .leftJoinAndSelect('customer.customerDocuments', 'documents')
+      .leftJoinAndSelect('application.loanTracking', 'loanTracking')
+      .where('application.is_picked = :isPicked', { isPicked: 0 });
 
-    if ( companyId )
-    {
-      queryBuilder.andWhere( 'application.company_id = :company_id', { company_id: Number( companyId ) } );
+    if (companyId) {
+      queryBuilder.andWhere('application.company_id = :company_id', { company_id: Number(companyId) });
     }
 
     // Add appliedBy condition if provided
-    if ( appliedBy )
-    {
-      queryBuilder.andWhere( 'application.applied_by = :appliedBy', { appliedBy } );
+    if (appliedBy) {
+      queryBuilder.andWhere('application.applied_by = :appliedBy', { appliedBy });
     }
 
     // Add search conditions if searchTerm is provided
-    if ( searchTerm && searchTerm.trim() !== '' )
-    {
-      const searchPattern = `%${ searchTerm.toLowerCase() }%`;
+    if (searchTerm && searchTerm.trim() !== '') {
+      const searchPattern = `%${searchTerm.toLowerCase()}%`;
       queryBuilder.andWhere(
-        new Brackets( qb => {
-          qb.where( 'LOWER(customer.name) LIKE :search', { search: searchPattern } )
-            .orWhere( 'customer.contact LIKE :search', { search: searchPattern } )
-            .orWhere( 'info.pan LIKE :search', { search: searchPattern } );
-        } )
+        new Brackets(qb => {
+          qb.where('LOWER(customer.name) LIKE :search', { search: searchPattern })
+            .orWhere('customer.contact LIKE :search', { search: searchPattern })
+            .orWhere('info.pan LIKE :search', { search: searchPattern });
+        })
       );
     }
 
     // Get results and count
-    const [ applications, totalCount ] = await queryBuilder
-      .orderBy( 'application.application_date', 'DESC' )
-      .skip( skip )
-      .take( limit )
+    const [applications, totalCount] = await queryBuilder
+      .orderBy('application.application_date', 'DESC')
+      .skip(skip)
+      .take(limit)
       .getManyAndCount();
 
     // Map results
-    const results = applications.map( ( application ) => {
+    const results = applications.map((application) => {
       const { customer, loanTracking, amount, loan_category, provider, tenure, application_date, id } = application;
 
       return {
@@ -100,158 +97,145 @@ export class ApplicationsService {
         applicationTenure: tenure,
         applicationDate: application_date,
         applicationId: id,
-        loanStatus: loanTracking[ 0 ]?.status ?? 'No status available',
+        applicationNumber: application.application_no,
+        loanType: application.loan_type,
+        loanStatus: loanTracking[0]?.status ?? 'No status available',
         customerDesignation: customer.info?.employment_type ?? 'Not available',
         customerProfileImage: customer.customerDocuments
-          ?.filter( doc => doc.type === 'profile' )
-          .map( doc => doc.document_url ) ?? [ 'No image available' ],
+          ?.filter(doc => doc.type === 'profile')
+          .map(doc => doc.document_url) ?? ['No image available'],
         customerLocation: customer.info?.city ?? 'No location available',
         customerState: customer.info?.state ?? 'No location available',
         companyId: application.company_id ?? 'No company',
       };
-    } );
+    });
 
     return {
       results,
       count: totalCount,
-      pages: Math.ceil( totalCount / limit ),
+      pages: Math.ceil(totalCount / limit),
     };
   }
 
-  private getMonthNumber ( monthName: string ): number {
+  private getMonthNumber(monthName: string): number {
     const months = {
       'January': 1, 'February': 2, 'March': 3, 'April': 4,
       'May': 5, 'June': 6, 'July': 7, 'August': 8,
       'September': 9, 'October': 10, 'November': 11, 'December': 12
     };
-    return months[ monthName ] || 1;
+    return months[monthName] || 1;
   }
 
-  async getApplicationsCount ( month?: string, year?: number, date?: string, company_id?: string ): Promise<number> {
+  async getApplicationsCount(month?: string, year?: number, date?: string, company_id?: string): Promise<number> {
     const whereCondition: any = {};
-    if ( company_id )
-    {
-      whereCondition.company_id = Number( company_id );
+    if (company_id) {
+      whereCondition.company_id = Number(company_id);
     }
 
-    if ( date )
-    {
+    if (date) {
       // Filter by exact date
-      const parsedDate = new Date( date );
-      const startOfDay = new Date( parsedDate );
-      startOfDay.setHours( 0, 0, 0, 0 );
-      const endOfDay = new Date( parsedDate );
-      endOfDay.setHours( 23, 59, 59, 999 );
-      whereCondition.application_date = Between( startOfDay, endOfDay );
+      const parsedDate = new Date(date);
+      const startOfDay = new Date(parsedDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(parsedDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      whereCondition.application_date = Between(startOfDay, endOfDay);
 
-    } else if ( month && year )
-    {
+    } else if (month && year) {
       // Filter by month
-      const monthNumber = this.getMonthNumber( month ); // Ensure this returns 1-based index (Jan = 1)
-      const startDate = new Date( year, monthNumber - 1, 1 );
-      const endDate = new Date( year, monthNumber, 0, 23, 59, 59, 999 );
-      whereCondition.application_date = Between( startDate, endDate );
+      const monthNumber = this.getMonthNumber(month); // Ensure this returns 1-based index (Jan = 1)
+      const startDate = new Date(year, monthNumber - 1, 1);
+      const endDate = new Date(year, monthNumber, 0, 23, 59, 59, 999);
+      whereCondition.application_date = Between(startDate, endDate);
 
-    } else if ( year )
-    {
+    } else if (year) {
       // Filter by year
-      const startDate = new Date( year, 0, 1, 0, 0, 0, 0 );
-      const endDate = new Date( year, 11, 31, 23, 59, 59, 999 );
-      whereCondition.application_date = Between( startDate, endDate );
+      const startDate = new Date(year, 0, 1, 0, 0, 0, 0);
+      const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
+      whereCondition.application_date = Between(startDate, endDate);
     }
 
-    return Object.keys( whereCondition ).length === 0
+    return Object.keys(whereCondition).length === 0
       ? this.applicationRepository.count()
-      : this.applicationRepository.count( { where: whereCondition } );
+      : this.applicationRepository.count({ where: whereCondition });
   }
 
 
 
-  async getNewApplicationsCount ( month?: string, year?: number, date?: string, company_id?: string ): Promise<any> {
+  async getNewApplicationsCount(month?: string, year?: number, date?: string, company_id?: string): Promise<any> {
     const whereCondition: any = { is_picked: 0 };
-    if ( company_id )
-    {
-      whereCondition.company_id = Number( company_id );
+    if (company_id) {
+      whereCondition.company_id = Number(company_id);
     }
 
     // If specific date is provided, filter by that exact date
-    if ( date )
-    {
-      const selectedDate = new Date( date );
-      const startOfDay = new Date( selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0, 0, 0 );
-      const endOfDay = new Date( selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59 );
+    if (date) {
+      const selectedDate = new Date(date);
+      const startOfDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 0, 0, 0);
+      const endOfDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate(), 23, 59, 59);
 
-      whereCondition.application_date = Between( startOfDay, endOfDay );
+      whereCondition.application_date = Between(startOfDay, endOfDay);
     }
     // If only month and year are provided (no specific date)
-    else if ( month && year )
-    {
-      const monthNumber = this.getMonthNumber( month );
-      const startDate = new Date( year, monthNumber - 1, 1 ); // Start of month
-      const endDate = new Date( year, monthNumber, 0, 23, 59, 59 ); // End of month
+    else if (month && year) {
+      const monthNumber = this.getMonthNumber(month);
+      const startDate = new Date(year, monthNumber - 1, 1); // Start of month
+      const endDate = new Date(year, monthNumber, 0, 23, 59, 59); // End of month
 
-      whereCondition.application_date = Between( startDate, endDate );
+      whereCondition.application_date = Between(startDate, endDate);
     }
     // If only year is provided
-    else if ( year )
-    {
-      const startDate = new Date( year, 0, 1 );
-      const endDate = new Date( year, 11, 31, 23, 59, 59 );
+    else if (year) {
+      const startDate = new Date(year, 0, 1);
+      const endDate = new Date(year, 11, 31, 23, 59, 59);
 
-      whereCondition.application_date = Between( startDate, endDate );
+      whereCondition.application_date = Between(startDate, endDate);
     }
 
-    return this.applicationRepository.count( {
+    return this.applicationRepository.count({
       where: whereCondition,
       order: { application_date: 'DESC' },
-    } );
+    });
   }
 
   // Update an existing loan application
-  async update (
+  async update(
     id: number,
     updateApplicationDto: UpdateApplicationDto,
   ): Promise<Application> {
-    const application = await this.applicationRepository.findOne( {
+    const application = await this.applicationRepository.findOne({
       where: { id },
       relations: [
         'customer',
         'customer.info',
       ],
-    } );
+    });
 
-    if ( !application )
-    {
-      throw new NotFoundException( 'Application not found' );
+    if (!application) {
+      throw new NotFoundException('Application not found');
     }
 
-    Object.assign( application, updateApplicationDto );
+    Object.assign(application, updateApplicationDto);
 
     // Update customer-related data
-    if ( updateApplicationDto.applicationAmount )
-    {
+    if (updateApplicationDto.applicationAmount) {
       application.amount = updateApplicationDto.applicationAmount;
     }
-    if ( updateApplicationDto.customerName )
-    {
+    if (updateApplicationDto.customerName) {
       application.customer.name = updateApplicationDto.customerName;
     }
-    if ( updateApplicationDto.customerEmail )
-    {
+    if (updateApplicationDto.customerEmail) {
       application.customer.email = updateApplicationDto.customerEmail;
     }
-    if ( updateApplicationDto.customerContact )
-    {
+    if (updateApplicationDto.customerContact) {
       application.customer.contact = updateApplicationDto.customerContact;
     }
 
     // Update customer info (e.g, city)
-    if ( updateApplicationDto.customerLocation )
-    {
+    if (updateApplicationDto.customerLocation) {
       application.customer.info.city = updateApplicationDto.customerLocation;
     }
-    if ( updateApplicationDto.customerState )
-    {
+    if (updateApplicationDto.customerState) {
       application.customer.info.state = updateApplicationDto.customerState;
     }
     // Update customer info (e.g, provider)
@@ -259,31 +243,29 @@ export class ApplicationsService {
     // {
     //   application.provider = updateApplicationDto.provider;
     // }
-    if ( updateApplicationDto.provider )
-    {
+    if (updateApplicationDto.provider) {
       application.provider = updateApplicationDto.provider;
     }
     // Save the updated customer entity (this is crucial)
-    await this.customerRepository.save( application.customer );
+    await this.customerRepository.save(application.customer);
 
     // Save the updated customer info entity (this is crucial)
-    await this.customerInfoRepository.save( application.customer.info );
+    await this.customerInfoRepository.save(application.customer.info);
 
-    return this.applicationRepository.save( application ); // Save updated entity to the database
+    return this.applicationRepository.save(application); // Save updated entity to the database
   }
 
   public async fetchAllCustomerDocuments(customerId: number): Promise<any> {
     try {
       const documentUrl = `https://web.f2fintech.in/api/v1/get-customer-documents/${customerId}`;
       const documentResponse = await firstValueFrom(
-        this.httpService.get( documentUrl ),
+        this.httpService.get(documentUrl),
       );
 
       return documentResponse.data.data;
-    } catch ( error )
-    {
+    } catch (error) {
       console.error(
-        `Error fetching customer document for ID ${ customerId }:`,
+        `Error fetching customer document for ID ${customerId}:`,
         error.message,
       );
 
@@ -295,47 +277,42 @@ export class ApplicationsService {
     try {
       const documentUrl = `https://web.f2fintech.in/api/v1/get-customer-document/${customerId}`;
       const documentResponse = await firstValueFrom(
-        this.httpService.get( documentUrl ),
+        this.httpService.get(documentUrl),
       );
       return documentResponse.data.data;
-    } catch ( error )
-    {
+    } catch (error) {
       console.error(
-        `Error fetching customer document for ID ${ customerId }:`,
+        `Error fetching customer document for ID ${customerId}:`,
         error.message,
       );
       return null;
     }
   }
 
-  async remove ( applicationId: number ): Promise<void> {
-    try
-    {
+  async remove(applicationId: number): Promise<void> {
+    try {
       // First check if the application exists
-      const application = await this.applicationRepository.findOne( {
+      const application = await this.applicationRepository.findOne({
         where: { id: applicationId }
-      } );
+      });
 
-      if ( !application )
-      {
-        throw new NotFoundException( `Application with ID ${ applicationId } not found` );
+      if (!application) {
+        throw new NotFoundException(`Application with ID ${applicationId} not found`);
       }
       // Find the loan tracking record
-      const loanTracking = await this.loanTrackingRepository.findOne( {
+      const loanTracking = await this.loanTrackingRepository.findOne({
         where: { customer_application_id: applicationId }
-      } );
+      });
 
       // Delete loan tracking first (if it exists) to avoid foreign key constraint issues
-      if ( loanTracking )
-      {
-        await this.loanTrackingRepository.remove( loanTracking );
+      if (loanTracking) {
+        await this.loanTrackingRepository.remove(loanTracking);
       }
       // Then delete the application
-      await this.applicationRepository.remove( application );
+      await this.applicationRepository.remove(application);
 
-    } catch ( error )
-    {
-      console.error( `Error deleting application ${ applicationId }:`, error );
+    } catch (error) {
+      console.error(`Error deleting application ${applicationId}:`, error);
       throw error; // Let the controller handle the error response
     }
   }

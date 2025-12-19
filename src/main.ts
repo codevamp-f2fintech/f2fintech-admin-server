@@ -12,11 +12,12 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000',                // Local development
+      'http://localhost:5173',
       'https://admin-f2fintech.netlify.app',  // Admin portal on Netlify
       'https://web.f2fintech.in/api/v1',
-      'https://admin.f2fintech.in', // API domain on EC2
-      'http://localhost:5173',
-      'https://f2fintech.com'
+      'https://admin.f2fintech.in',          // API domain on EC2
+      'https://f2fintech.com',
+      'https://lendgrid-server.onrender.com'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,  // Enable credentials (cookies/auth headers)
