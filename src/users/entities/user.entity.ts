@@ -63,15 +63,15 @@ export class User {
   })
   role: Role;
 
-  @ManyToOne(() => Company, company => company.users)
-  @JoinColumn({
-    name: 'company_id',
-    referencedColumnName: 'companyId',
-  })
-  company: Company;
+  // @ManyToOne(() => Company, company => company.users)
+  // @JoinColumn({
+  //   name: 'company_id',
+  //   referencedColumnName: 'companyId',
+  // })
+  // company: Company;
 
-  @Column({ name: 'company_id' })
-  companyId: number;
+  // @Column({ name: 'company_id' })
+  // companyId: number;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at: Date;
