@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
@@ -71,6 +73,7 @@ export class TicketsService {
     private readonly loanTrackingRepository: Repository<LoanTracking>,
     @InjectRepository(Application)
     private readonly customerApplicationRepository: Repository<Application>,
+    private readonly httpService: HttpService,
   ) { }
 
   async create(createTicketDto: CreateTicketDto, companyId?: number): Promise<any> {
@@ -393,12 +396,79 @@ export class TicketsService {
     };
   }
 
+  // Also add notification webhook call when ticket status changes
   async update(id: number, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
     console.log("updateTicketDto", updateTicketDto)
     const ticket = await this.findOne(id);
-    Object.assign(ticket, updateTicketDto, { updatedAt: new Date() });
+    const oldStatus = ticket.status;
 
-    return await this.ticketRepository.save(ticket);
+    Object.assign(ticket, updateTicketDto, { updatedAt: new Date() });
+    const updatedTicket = await this.ticketRepository.save(ticket);
+
+    // SEND NOTIFICATION IF STATUS CHANGED
+    if (oldStatus !== updateTicketDto.status && updateTicketDto.status) {
+      await this.sendTicketStatusNotification(updatedTicket, oldStatus, updateTicketDto.status);
+    }
+
+    return updatedTicket;
+  }
+
+  /**
+  * Send ticket status change notification to main GraphQL server
+  */
+  private async sendTicketStatusNotification(
+    ticket: Ticket,
+    oldStatus: string,
+    newStatus: string,
+  ): Promise<void> {
+    try {
+      const graphqlEndpoint = process.env.GRAPHQL_SERVER_URL || 'http://localhost:4000/graphql';
+
+      // Find ticket details with application and user info
+      const ticketDetails = await this.ticketRepository
+        .createQueryBuilder('ticket')
+        .leftJoinAndSelect('ticket.application', 'application')
+        .leftJoinAndSelect('application.customer', 'customer')
+        .where('ticket.id = :id', { id: ticket.id })
+        .getOne();
+
+      if (!ticketDetails) {
+        console.warn(`Ticket ${ticket.id} not found for notification`);
+        return;
+      }
+
+      const mutation = `
+        mutation CreateTicketNotification($input: CreateTicketNotificationInput!) {
+          createTicketNotification(input: $input) {
+            success
+            message
+          }
+        }
+      `;
+
+      const variables = {
+        input: {
+          ticketId: ticket.id,
+          userId: ticket.user_id,
+          companyId: ticket.companyId,
+          oldStatus,
+          newStatus,
+          customerName: ticketDetails.application?.customer?.name || 'Customer',
+        },
+      };
+
+      await firstValueFrom(
+        this.httpService.post(graphqlEndpoint, {
+          query: mutation,
+          variables,
+        }),
+      );
+
+      console.log(`Notification sent for ticket #${ticket.id} status change`);
+    } catch (error) {
+      console.error(`Failed to send ticket notification: ${error.message}`);
+      // Don't throw - notification failure shouldn't break ticket update
+    }
   }
 
   async remove(ticketId: number, reason: string, archivedByUserId: number): Promise<void> {
