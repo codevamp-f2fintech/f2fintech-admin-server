@@ -70,23 +70,23 @@ export class LoanProviderController {
     @Query( 'page' ) page: number,
     @Query( 'limit' ) limit: number,
     @Query( 'country' ) country?: string,
-    @Headers( 'Companyid' ) companyIdString?: string,
+    // @Headers( 'Companyid' ) companyIdString?: string,
   ): Promise<any> {
-    const companyId = companyIdString && !isNaN( Number( companyIdString ) )
-      ? Number( companyIdString )
-      : null;
-    if ( !companyId )
-    {
-      return ResponseFormatter.error(
-        400,
-        'Company ID is required in headers'
-      );
-    }
+    // const companyId = companyIdString && !isNaN( Number( companyIdString ) )
+    //   ? Number( companyIdString )
+    //   : null;
+    // if ( !companyId )
+    // {
+    //   return ResponseFormatter.error(
+    //     400,
+    //     'Company ID is required in headers'
+    //   );
+    // }
     const paginatedTickets = await this.LoanProviderService.getAllLoanProviders(
       page,
       limit,
       country,
-      companyId
+      // companyId
     );
     return ResponseFormatter.success( 200, 'Tickets Retrieved Successfully', paginatedTickets );
   }

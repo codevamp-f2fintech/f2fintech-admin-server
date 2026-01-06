@@ -60,7 +60,7 @@ export class LoanProvider {
   @Column( { type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' } )
   created_at: Date;
 
-  @Column( { type: 'int', nullable: true } )
-  company_id: number;
+  // @Column( { type: 'int', nullable: true } )
+  // company_id: number;
 
 }
