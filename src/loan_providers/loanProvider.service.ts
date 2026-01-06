@@ -82,7 +82,7 @@ export class LoanProviderService {
     page: number,
     limit: number,
     country?: string,
-    companyId?: number,
+    // companyId?: number,
   ): Promise<PaginationResult> {
     page = Number( page ) || 1;
     limit = Number( limit ) || 10;
@@ -90,14 +90,14 @@ export class LoanProviderService {
     const whereConditions: any = {};
 
     // Always filter by companyId if provided
-    if ( companyId )
-    {
-      whereConditions.company_id = companyId;
-    } else
-    {
-      // If no companyId provided, you might want to return empty or throw error
-      throw new Error( 'Company ID is required' );
-    }
+    // if ( companyId )
+    // {
+    //   whereConditions.company_id = companyId;
+    // } else
+    // {
+    //   // If no companyId provided, you might want to return empty or throw error
+    //   throw new Error( 'Company ID is required' );
+    // }
 
     if ( country )
     {
