@@ -18,8 +18,8 @@ async function bootstrap() {
       'https://admin.f2fintech.in',          // API domain on EC2
       'https://f2fintech.com',
       'https://lendgrid-server.onrender.com',
-      'https://lendgrid.in/',
-      'https://lendgrid.netlify.app/'
+      'https://lendgrid.in',
+      'https://lendgrid.netlify.app'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,  // Enable credentials (cookies/auth headers)
