@@ -49,6 +49,6 @@ export class Company {
     @OneToMany(() => Ticket, (ticket) => ticket.company)
     tickets: Ticket[];
 
-    @OneToMany(() => User, (user) => user.company)
-    users: User[];
+    // @OneToMany(() => User, (user) => user.company)
+    // users: User[];
 }

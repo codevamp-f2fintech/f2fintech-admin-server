@@ -62,7 +62,7 @@ export class CreateLoanProviderDto {
   @IsDate()
   created_at: Date;
 
-  @IsNumber()
-  @IsOptional()
-  company_id: number;
+  // @IsNumber()
+  // @IsOptional()
+  // company_id: number;
 }

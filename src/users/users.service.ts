@@ -58,8 +58,8 @@ export class UsersService {
   async login(loginUserDto: LoginUserDto): Promise<{
     access_token: string;
     userId: number;
-    companyId?: number;
-    companyName?: string;
+    // companyId?: number;
+    // companyName?: string;
     role: string;
   }> {
     const { email, password } = loginUserDto;
@@ -70,7 +70,7 @@ export class UsersService {
         email,
         status: Status.ACTIVE
       },
-      relations: ['company'] // Make sure this relation exists
+      // relations: ['company'] // Make sure this relation exists
     });
 
     if (!user) {
@@ -82,15 +82,15 @@ export class UsersService {
       throw new UnauthorizedException('Invalid Password');
     }
 
-    console.log('User Company:', user, user.company);
+    // console.log('User Company:', user, user.company);
 
     // Include company information in the JWT payload
     const payload = {
       username: user.username,
       id: user.id,
       role: user.role,
-      companyId: user.company?.companyId, // Add company ID to payload
-      companyName: user.company?.name // Add company name to payload
+      // companyId: user.company?.companyId, // Add company ID to payload
+      // companyName: user.company?.name // Add company name to payload
     };
 
     const access_token = this.jwtService.sign(payload);
@@ -100,8 +100,8 @@ export class UsersService {
       access_token: access_token,
       userId: user.id,
       role: user.role,
-      companyId: user.company?.companyId,
-      companyName: user.company?.name,
+      // companyId: user.company?.companyId,
+      // companyName: user.company?.name,
     };
   }
 
@@ -110,27 +110,27 @@ export class UsersService {
     page: number,
     limit: number,
     status: Status = Status.ACTIVE,
-    companyId?: string,
     userRole?: string,
+    // companyId?: string,
   ): Promise<PaginationResult<User>> {
     const queryBuilder = this.userRepository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.company', 'company')
       .where('user.status = :status', { status });
+      // .leftJoinAndSelect('user.company', 'company')
 
     // Apply companyId filter only for non-super-admin
-    if (userRole !== 'super admin') {
-      if (!companyId) {
-        throw new BadRequestException('Company ID is required');
-      }
+    // if (userRole !== 'super admin') {
+    //   if (!companyId) {
+    //     throw new BadRequestException('Company ID is required');
+    //   }
 
-      const companyIdNum = Number(companyId);
-      if (Number.isNaN(companyIdNum)) {
-        throw new BadRequestException('Invalid companyId');
-      }
+    //   const companyIdNum = Number(companyId);
+    //   if (Number.isNaN(companyIdNum)) {
+    //     throw new BadRequestException('Invalid companyId');
+    //   }
 
-      queryBuilder.andWhere('user.company_id = :companyId', { companyId: companyIdNum });
-    }
+    //   queryBuilder.andWhere('user.company_id = :companyId', { companyId: companyIdNum });
+    // }
 
     const [results, count] = await queryBuilder
       .skip((page - 1) * limit)
@@ -141,7 +141,7 @@ export class UsersService {
     // Transform results to include companyName at root level
     const transformedResults = results.map(user => ({
       ...user,
-      companyName: user.company?.name || null,
+      // companyName: user.company?.name || null,
     }));
 
     return {
@@ -154,10 +154,11 @@ export class UsersService {
   async findInactiveUsers(
     page: number,
     limit: number,
-    companyId?: string,
+    // companyId?: string,
     userRole?: string,
   ): Promise<PaginationResult<User>> {
-    return this.findAll(page, limit, Status.INACTIVE, companyId, userRole);
+    return this.findAll(page, limit, Status.INACTIVE, userRole);
+    // return this.findAll(page, limit, Status.INACTIVE, companyId, userRole);
   }
 
   async findOne(id: number): Promise<User> {
