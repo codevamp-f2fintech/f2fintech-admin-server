@@ -45,6 +45,7 @@ export interface TicketResponse {
   customerDesignation: string;
   loanStatus: string;
   loanCategory: string;
+  loanType: string;
   companyId: number;
 }
 
@@ -58,6 +59,11 @@ export interface PaginationResult {
 
 @Injectable()
 export class TicketsService {
+  private readonly COMMISSION_WEBHOOK_URL =
+    process.env.COMMISSION_WEBHOOK_URL || 'http://localhost:4000/graphql';
+  private readonly MAX_RETRY_ATTEMPTS = 3;
+  private readonly RETRY_DELAY_MS = 2000;
+
   constructor(
     @InjectRepository(Ticket)
     private readonly ticketRepository: Repository<Ticket>,
@@ -99,8 +105,7 @@ export class TicketsService {
             data: newTicket,
           };
         }
-      }
-      );
+      });
     } catch (error) {
       return {
         statusCode: 500,
@@ -126,8 +131,6 @@ export class TicketsService {
     limit = Number(limit) || 10;
     const skip = (page - 1) * limit;
 
-    console.log('page limit', page, limit, name, companyId)
-
     const query = this.ticketRepository.createQueryBuilder('ticket')
       .leftJoinAndSelect('ticket.application', 'application') // Join application
       .leftJoinAndSelect('application.customer', 'customer') // Join customer
@@ -152,19 +155,16 @@ export class TicketsService {
         if (status && status !== 'all' && status.trim() !== '') {
           query.andWhere('ticket.status = :status', { status });
         }
-
       } else if (status === 'forwardedtome') {
         // Tickets forwarded to me
         query
           .andWhere('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
           .andWhere('ticket.forwarded_to = :userId', { userId });
-
       } else if (status === 'forwardedbyme') {
         // Tickets forwarded by me
         query
           .andWhere('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
           .andWhere('ticket.forwarded_by = :userId', { userId });
-
       } else {
         // All other statuses, e.g. "under credit review", "to be login", etc.
         if (status === 'forwarded') {
@@ -200,7 +200,6 @@ export class TicketsService {
 
     if (name && name.trim() !== '') {
       const searchTerm = name.trim();
-      console.log('searchterm', searchTerm)
       query.andWhere(
         new Brackets((qb) => {
           qb.where('LOWER(customer.name) LIKE :name', { name: `%${searchTerm.toLowerCase()}%` })
@@ -213,16 +212,8 @@ export class TicketsService {
       );
     }
 
-    /* -------------------- DATE FILTERING -------------------- */
-    const startOfMonthExpr = `
-    DATE_SUB(CURDATE(), INTERVAL (DAYOFMONTH(CURDATE()) - 1) DAY)
-  `;
-    const endOfMonthExpr = `
-    DATE_ADD(
-      DATE_SUB(CURDATE(), INTERVAL (DAYOFMONTH(CURDATE()) - 1) DAY),
-      INTERVAL 1 MONTH
-    )
-  `;
+    const startOfMonthExpr = `DATE_SUB(CURDATE(), INTERVAL (DAYOFMONTH(CURDATE()) - 1) DAY)`;
+    const endOfMonthExpr = `DATE_ADD(DATE_SUB(CURDATE(), INTERVAL (DAYOFMONTH(CURDATE()) - 1) DAY), INTERVAL 1 MONTH)`;
 
     if (!startDate && !endDate) {
       // Default to current month
@@ -237,15 +228,10 @@ export class TicketsService {
       if (status !== 'disbursed' && startDate) {
         query.andWhere('ticket.created_at >= :startDate', { startDate });
       }
-
       if (status !== 'disbursed' && endDate) {
         const endDateObj = new Date(endDate);
         endDateObj.setHours(23, 59, 59, 999);
-        endDate = endDateObj
-          .toISOString()                    // -> "2025-07-08T23:29:59.999Z"
-          .replace("T", " ")                // -> "2025-07-08 23:29:59.999Z"
-          .substring(0, 19);                // -> "2025-07-08 23:29:59"
-
+        endDate = endDateObj.toISOString().replace("T", " ").substring(0, 19);
         query.andWhere('ticket.created_at <= :endDate', { endDate });
       }
     }
@@ -254,28 +240,22 @@ export class TicketsService {
       if (startDate) {
         query.andWhere('ticket.disbursed_at >= :startDate', { startDate });
       }
-
       if (endDate) {
         const endDateObj = new Date(endDate);
         endDateObj.setHours(23, 59, 59, 999);
-        endDate = endDateObj
-          .toISOString()                    // -> "2025-07-08T23:29:59.999Z"
-          .replace("T", " ")                // -> "2025-07-08 23:29:59.999Z"
-          .substring(0, 19);                // -> "2025-07-08 23:29:59"
-
+        endDate = endDateObj.toISOString().replace("T", " ").substring(0, 19);
         query.andWhere('ticket.disbursed_at <= :endDate', { endDate });
       }
     } else if (status === 'disbursed' && !startDate && !endDate) {
-
       query.andWhere('ticket.disbursed_at >= DATE_FORMAT(NOW(), :startOfMonth)', {
         startOfMonth: '%Y-%m-01 00:00:00',
       });
-
       query.andWhere('ticket.created_at <= DATE_FORMAT(LAST_DAY(NOW()), :endOfMonth)', {
         endOfMonth: '%Y-%m-%d 23:59:59',
       });
     }
-    const [ tickets, count ] = await query.getManyAndCount();
+    // console.log(query.getSql(), "queyyy>>", query.getParameters());
+    const [tickets, count] = await query.getManyAndCount();
     // Calculate total disbursed amount if status is 'disbursed'
     let totalDisbursedAmount = 0;
     if (status === 'disbursed') {
@@ -380,6 +360,8 @@ export class TicketsService {
       applicationTenure: ticket.application?.tenure ?? 'No Tenure',
       applicationDate: ticket.application?.application_date ?? 'No Date',
       loanCategory: ticket.application?.loan_category ?? 'No Category',
+      loanType: ticket.application?.loan_type ?? 'home loan',
+      loanStatus: ticket.application?.loanTracking?.[0]?.status ?? '',
       applicationId: ticket.application?.id ?? '',
       customerId: ticket.application?.customer?.id ?? '',
       customerName: ticket.application?.customer?.name ?? 'No Name',
@@ -389,17 +371,17 @@ export class TicketsService {
       customerDesignation: ticket.application?.customer?.info?.employment_type ?? 'Not available',
       customerLocation: ticket.application?.customer?.info?.city ?? 'No Location available',
       customerState: ticket.application?.customer?.info?.state ?? 'No Location available',
-      loanStatus:
-        ticket.application?.loanTracking?.[0]?.status ?? '',
-      companyId: ticket.companyId, // Include companyId
+      companyId: ticket.companyId,
     };
   }
 
-  // Also add notification webhook call when ticket status changes
+  /**
+   * Triggers commission webhook when status changes to 'disbursed'
+   */
   async update(id: number, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
-    console.log("updateTicketDto", updateTicketDto)
     const ticket = await this.findOne(id);
     const oldStatus = ticket.status;
+    console.log("updateTicketDto", updateTicketDto.status, '=>', ticket.status);
 
     Object.assign(ticket, updateTicketDto, { updatedAt: new Date() });
     const updatedTicket = await this.ticketRepository.save(ticket);
@@ -409,12 +391,128 @@ export class TicketsService {
       await this.sendTicketStatusNotification(updatedTicket, oldStatus, updateTicketDto.status);
     }
 
+    // Trigger commission processing if status changed to 'disbursed'
+    if (updateTicketDto.status === 'disbursed' && oldStatus !== 'disbursed') {
+      console.log(`[COMMISSION TRIGGER] Ticket ${id} status changed to disbursed`);
+      this.triggerCommissionProcessing(updatedTicket).catch(error => {
+        console.error(`[COMMISSION ERROR] Failed to trigger commission for ticket ${id}:`, error.message);
+      });
+    }
     return updatedTicket;
   }
 
   /**
-  * Send ticket status change notification to main GraphQL server
-  */
+   * Trigger commission processing via GraphQL webhook
+   * Uses retry mechanism with exponential backoff
+   */
+  private async triggerCommissionProcessing(ticket: Ticket): Promise<void> {
+    let attempt = 0;
+    let lastError: Error | null = null;
+
+    // Fetch full ticket details with application and customer info
+    const ticketDetails = await this.ticketRepository
+      .createQueryBuilder('ticket')
+      .leftJoinAndSelect('ticket.application', 'application')
+      .leftJoinAndSelect('application.customer', 'customer')
+      .where('ticket.id = :id', { id: ticket.id })
+      .getOne();
+
+    if (!ticketDetails || !ticketDetails.application) {
+      console.error(`[COMMISSION ERROR] Ticket ${ticket.id} missing application data`);
+      return;
+    }
+
+    const mutation = `
+      mutation ProcessSingleTicketCommission($ticketId: Int!) {
+        processSingleTicketCommission(ticketId: $ticketId) {
+          success
+          message
+          commission {
+            id
+            ticketId
+            commissionAmount
+            status
+          }
+        }
+      }
+    `;
+
+    const variables = {
+      ticketId: ticket.id,
+    };
+
+    // Retry loop with exponential backoff
+    while (attempt < this.MAX_RETRY_ATTEMPTS) {
+      try {
+        console.log(`[COMMISSION ATTEMPT ${attempt + 1}/${this.MAX_RETRY_ATTEMPTS}] Processing ticket ${ticket.id}`);
+
+        const response = await firstValueFrom(
+          this.httpService.post(
+            this.COMMISSION_WEBHOOK_URL,
+            {
+              query: mutation,
+              variables,
+            },
+            {
+              timeout: 30000, // 30 second timeout
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }
+          )
+        );
+
+        if (response.data.errors) {
+          throw new Error(`GraphQL Error: ${JSON.stringify(response.data.errors)}`);
+        }
+
+        const result = response.data.data?.processSingleTicketCommission;
+
+        if (result?.success) {
+          console.log(`[COMMISSION SUCCESS] Ticket ${ticket.id} processed successfully. Commission ID: ${result.commission?.id}`);
+          return; // Success - exit retry loop
+        } else {
+          throw new Error(result?.message || 'Unknown error from commission service');
+        }
+
+      } catch (error) {
+        lastError = error;
+        attempt++;
+
+        console.error(
+          `[COMMISSION ERROR] Attempt ${attempt}/${this.MAX_RETRY_ATTEMPTS} failed for ticket ${ticket.id}:`,
+          error.message
+        );
+
+        if (attempt < this.MAX_RETRY_ATTEMPTS) {
+          // Exponential backoff: 2s, 4s, 8s...
+          const delay = this.RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+          console.log(`[COMMISSION RETRY] Waiting ${delay}ms before retry...`);
+          await this.sleep(delay);
+        }
+      }
+    }
+
+    // All retries failed - log final error
+    console.error(
+      `[COMMISSION FAILED] All ${this.MAX_RETRY_ATTEMPTS} attempts failed for ticket ${ticket.id}. Last error:`,
+      lastError?.message
+    );
+
+    // Note: The cron job at 7 PM will catch this as a backup
+    console.log(`[COMMISSION BACKUP] Ticket ${ticket.id} will be processed by 7 PM cron job backup`);
+  }
+
+  /**
+   * Helper method for retry delays
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Send ticket status change notification to main GraphQL server
+   */
   private async sendTicketStatusNotification(
     ticket: Ticket,
     oldStatus: string,
@@ -466,14 +564,13 @@ export class TicketsService {
       console.log(`Notification sent for ticket #${ticket.id} status change`);
     } catch (error) {
       console.error(`Failed to send ticket notification: ${error.message}`);
-      // Don't throw - notification failure shouldn't break ticket update
     }
   }
 
   async remove(ticketId: number, reason: string, archivedByUserId: number): Promise<void> {
     const ticket = await this.ticketRepository.findOne({
       where: { id: ticketId },
-      relations: ['application', 'application.customer'] // Add relations
+      relations: ['application', 'application.customer']
     });
 
     if (!ticket) {
@@ -535,7 +632,6 @@ export class TicketsService {
       due_date: archivedTicket.due_date,
     });
     await this.ticketRepository.save(restoredTicket);
-
     await this.ticketArchiveRepository.delete(archiveId);
   }
 
@@ -569,7 +665,6 @@ export class TicketsService {
       query.andWhere('archive.companyId = :companyId', { companyId });
     }
 
-    // Filters
     if (status && status !== 'all' && status.trim() !== '') {
       query.andWhere('archive.status = :status', { status });
     }
@@ -587,7 +682,6 @@ export class TicketsService {
       );
     }
 
-    // Add search functionality
     if (search && search.trim() !== '') {
       query.andWhere(
         new Brackets((qb) => {
@@ -598,7 +692,6 @@ export class TicketsService {
             .orWhere('customer.email LIKE :searchEmail', { searchEmail: `%${search}%` })
             .orWhere('CAST(archive.id AS CHAR) LIKE :searchIdStr', { searchIdStr: `%${search}%` })
             .orWhere('CAST(archive.archived_by AS CHAR) LIKE :searchUserIdStr', { searchUserIdStr: `%${search}%` });
-
         }),
       );
     }
@@ -619,8 +712,6 @@ export class TicketsService {
       }
     }
 
-    console.log(query.getSql(), query.getParameters());
-
     const [archivedTickets, count] = await query.getManyAndCount();
 
     const results = archivedTickets.map((archive) => {
@@ -630,11 +721,6 @@ export class TicketsService {
       const customerProfileImages = customer?.customerDocuments
         ?.filter((doc) => doc.type === 'profile')
         .map((doc) => doc.document_url) || [];
-
-      console.log(application, "archived application")
-      console.log(customer, "arcived customer")
-      console.log(customerProfileImages, "archived customerProfileImages")
-      console.log(companyId, "companyId")
 
       return {
         archiveId: archive.id,
@@ -668,7 +754,6 @@ export class TicketsService {
       pages: Math.ceil(count / limit),
     };
   }
-
 
   async findArchivedTicketWithDetail(archiveId: number): Promise<any> {
     const archivedTicket = await this.ticketArchiveRepository
