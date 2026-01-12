@@ -22,6 +22,7 @@ export interface TicketResponse {
   disbursed_amount: number | string;
   approved_at: Date | string;
   approved_amount: number | string;
+  cashback_amount: number | string;
   voiceNoteUrl: string;
   forwardedTo: number | string;
   isForwarded: number | string;
@@ -281,6 +282,7 @@ export class TicketsService {
         disbursedAmount: ticket.disbursed_amount,
         approvedAt: ticket.approved_at,
         approvedAmount: ticket.approved_amount,
+        approvedCashbackAmount: ticket.cashback_amount,
         applicationAmount: application.amount,
         loanCategory: application.loan_category,
         loanType: application.loan_type,
@@ -351,6 +353,7 @@ export class TicketsService {
       disbursed_amount: ticket.disbursed_amount,
       approved_at: ticket.approved_at,
       approved_amount: ticket.approved_amount,
+      cashback_amount: ticket.cashback_amount,
       voiceNoteUrl: ticket.voice_note_url,
       forwardedTo: ticket.forwarded_to,
       isForwarded: ticket.is_forwarded,

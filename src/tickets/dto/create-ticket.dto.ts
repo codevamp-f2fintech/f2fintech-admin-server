@@ -55,6 +55,9 @@ export class CreateTicketDto {
   approved_amount: number;
 
   @IsNumber()
+  cashback_amount: number;
+
+  @IsNumber()
   @IsOptional()
   @IsNumber()
   companyId?: number;

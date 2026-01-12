@@ -102,6 +102,9 @@ export class Ticket {
   @Column( { type: 'decimal', nullable: true } )
   approved_amount: number;
 
+  @Column( { type: 'decimal', nullable: true } )
+  cashback_amount: number;
+
   @BeforeInsert()
   setDefaultDueDate() {
     if (!this.due_date) {
