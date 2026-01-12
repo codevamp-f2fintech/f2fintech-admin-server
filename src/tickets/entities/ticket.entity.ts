@@ -27,6 +27,16 @@ export enum Status {
   HOLD = 'hold',
 }
 
+export enum lead_type {
+  NOTION = 'notion',
+  DIALLER = 'dialler',
+  FIELD_VISIT = 'field visit',
+  SOURCER = 'sourcer',
+  CHANNEL_PARTNER = 'channel partner',
+  REF_FROM_CUSTOMER = 'ref from customer',
+  LEFT_EMPLOYEE_FOLLOW_UP = 'left employee follow up'
+}
+
 @Entity('tickets')
 export class Ticket {
   @PrimaryGeneratedColumn()
@@ -64,6 +74,12 @@ export class Ticket {
     default: 0,
   })
   is_forwarded: number;
+
+   @Column( {
+      type: 'enum',
+      enum: lead_type,
+    } )
+    lead_type: lead_type;
 
   @Column()
   original_estimate: string;

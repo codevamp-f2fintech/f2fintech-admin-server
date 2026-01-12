@@ -99,6 +99,7 @@ export class ApplicationsService {
         applicationId: id,
         applicationNumber: application.application_no,
         loanType: application.loan_type,
+        leadType: application.lead_type,
         loanStatus: loanTracking[0]?.status ?? 'No status available',
         customerDesignation: customer.info?.employment_type ?? 'Not available',
         customerProfileImage: customer.customerDocuments

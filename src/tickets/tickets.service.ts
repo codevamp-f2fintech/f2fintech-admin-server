@@ -286,6 +286,7 @@ export class TicketsService {
         applicationAmount: application.amount,
         loanCategory: application.loan_category,
         loanType: application.loan_type,
+        leadType: application.lead_type,
         applicationTenure: application.tenure,
         applicationDate: application.application_date,
         applicationId: application.id,

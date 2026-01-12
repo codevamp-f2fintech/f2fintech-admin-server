@@ -16,6 +16,15 @@ export enum Loan_type {
   MACHINERY_LOAN = 'machinery loan',
   AUTO_LOAN = 'auto loan'
 }
+export enum lead_type {
+  NOTION = 'notion',
+  DIALLER = 'dialler',
+  FIELD_VISIT = 'field visit',
+  SOURCER = 'sourcer',
+  CHANNEL_PARTNER = 'channel partner',
+  REF_FROM_CUSTOMER = 'ref from customer',
+  LEFT_EMPLOYEE_FOLLOW_UP = 'left employee follow up'
+}
 
 export enum Loan_category {
   SECURED = 'secured',
@@ -47,6 +56,12 @@ export class Application {
     enum: Loan_type,
   } )
   loan_type: Loan_type;
+
+  @Column( {
+    type: 'enum',
+    enum: lead_type,
+  } )
+  lead_type: lead_type;
 
   @Column( {
     type: 'enum',
