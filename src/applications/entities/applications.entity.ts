@@ -17,6 +17,7 @@ export enum Loan_type {
   AUTO_LOAN = 'auto loan'
 }
 export enum lead_type {
+  NULL = 'null',
   NOTION = 'notion',
   DIALLER = 'dialler',
   FIELD_VISIT = 'field visit',
