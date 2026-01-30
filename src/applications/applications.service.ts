@@ -108,6 +108,9 @@ export class ApplicationsService {
         customerLocation: customer.info?.city ?? 'No location available',
         customerState: customer.info?.state ?? 'No location available',
         companyId: application.company_id ?? 'No company',
+        hasRunningLoans: application.has_running_loans,
+        whichLoan: application.which_loan,
+        runningLoanAmount: application.running_loan_amount,
       };
     });
 
