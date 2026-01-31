@@ -32,89 +32,102 @@ export enum Loan_category {
   UNSECURED = 'unsecured'
 }
 
-@Entity( 'customer_application' )
+@Entity('customer_application')
 export class Application {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column( { type: 'int' } )
+  @Column({ type: 'int' })
   customer_id: number;
 
-  @Column( { type: 'int' } )
+  @Column({ type: 'int' })
   applied_by: number;
 
-  @Column( { type: 'int' } )
+  @Column({ type: 'int' })
   application_no: number;
 
-  @Column( { length: 500 } )
+  @Column({ length: 500 })
   provider: string;
 
-  @Column( { type: 'decimal' } )
+  @Column({ type: 'decimal' })
   amount: number;
 
-  @Column( {
+  @Column({
     type: 'enum',
     enum: Loan_type,
-  } )
+  })
   loan_type: Loan_type;
 
-  @Column( {
+  @Column({
     type: 'enum',
     enum: lead_type,
-  } )
+  })
   lead_type: lead_type;
 
-  @Column( {
+  @Column({
     type: 'enum',
     enum: Loan_category,
-  } )
+  })
   loan_category: Loan_category;
 
-  @Column( { type: 'int' } )
-  tenure: number;
-
-  @Column( { type: 'decimal' } )
-  interest_rate: number;
-
-  @Column( { type: 'decimal' } )
-  emi_amount: number;
-
-  @Column( { type: 'int' } )
-  emi_count: number;
-
-  @Column( {
+  @Column({
     type: 'tinyint',
     width: 1,
     default: 0,
-  } )
+  })
+  has_running_loans: number;
+
+  @Column({ length: 255, nullable: true })
+  which_loan: string;
+
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  running_loan_amount: number;
+
+  @Column({ type: 'int' })
+  tenure: number;
+
+  @Column({ type: 'decimal' })
+  interest_rate: number;
+
+  @Column({ type: 'decimal' })
+  emi_amount: number;
+
+  @Column({ type: 'int' })
+  emi_count: number;
+
+  @Column({
+    type: 'tinyint',
+    width: 1,
+    default: 0,
+  })
   is_picked: number;
 
-  @Column( { type: 'date' } )
+  @Column({ type: 'date' })
   application_date: Date;
 
-  @Column( { type: 'date' } )
+  @Column({ type: 'date' })
   start_date: Date;
 
-  @Column( { type: 'date' } )
+  @Column({ type: 'date' })
   end_date: Date;
 
-  @Column( { name: 'company_id' } )
+  @Column({ name: 'company_id' })
   company_id: number;
 
-  @ManyToOne( () => Company, ( company ) => company.applications )
-  @JoinColumn( { name: 'company_id' } )
+  @ManyToOne(() => Company, (company) => company.applications)
+  @JoinColumn({ name: 'company_id' })
   company: Company;
 
-  @CreateDateColumn( { type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' } )
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   last_updated: Date;
 
-  @OneToOne( () => Ticket, ( ticket ) => ticket.application )
+  @OneToOne(() => Ticket, (ticket) => ticket.application)
   ticket: Ticket;
 
-  @ManyToOne( () => Customer, ( customer ) => customer.applications )
-  @JoinColumn( { name: 'customer_id' } )
+  @ManyToOne(() => Customer, (customer) => customer.applications)
+  @JoinColumn({ name: 'customer_id' })
   customer: Customer;
 
-  @OneToMany( () => LoanTracking, ( tracking ) => tracking.application )
+  @OneToMany(() => LoanTracking, (tracking) => tracking.application)
   loanTracking: LoanTracking[];
 }

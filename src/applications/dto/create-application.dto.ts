@@ -34,9 +34,23 @@ export class CreateApplicationDto {
 
   @IsOptional()
   @IsInt()
-  @Min( 0 )
-  @Max( 1 )
+  @Min(0)
+  @Max(1)
   is_picked?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(1)
+  has_running_loans?: number;
+
+  @IsOptional()
+  @IsString()
+  which_loan?: string;
+
+  @IsOptional()
+  @IsDecimal()
+  running_loan_amount?: number;
 
   @IsDateString()
   application_date: string;
