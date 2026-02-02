@@ -26,7 +26,12 @@ export class Company {
     @Column({ type: 'text', nullable: true })
     description: string;
 
-    @Column({ default: true, name: 'is_active' })
+    @Column({
+        type: 'tinyint',
+        width: 1,
+        default: () => '1',
+        name: 'is_active',
+    })
     isActive: boolean;
 
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })

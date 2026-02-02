@@ -253,7 +253,7 @@ export class DashboardService {
 
       const where: any = {
         status: Status.DISBURSED,
-        created_at: Between( startOfMonth, endOfMonth ),
+        disbursed_at: Between( startOfMonth, endOfMonth ),
       };
 
       // Add company filter if companyId is provided
