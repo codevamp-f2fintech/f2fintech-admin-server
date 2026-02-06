@@ -47,6 +47,7 @@ export interface TicketResponse {
   loanStatus: string;
   loanCategory: string;
   loanType: string;
+  case_type: string;
   companyId: number;
 }
 
@@ -94,16 +95,34 @@ export class TicketsService {
             message: 'This Application Is Already Picked By Another User.',
           };
         } else {
-          const ticketData = {
-            ...createTicketDto,
-            ...(companyId !== null && companyId !== undefined && { companyId })
-          };
-          const newTicket = this.ticketRepository.create(ticketData);
-          await this.ticketRepository.save(newTicket);
+          // Fetch the application and sync case_type using QueryBuilder to be safe
+          const appResult = await this.customerApplicationRepository.createQueryBuilder('app')
+            .select(['app.id', 'app.case_type'])
+            .where('app.id = :id', { id: createTicketDto.customer_application_id })
+            .getOne();
+
+          // Create the ticket instance
+          const newTicket = new Ticket();
+          Object.assign(newTicket, createTicketDto);
+
+          if (companyId !== null && companyId !== undefined) {
+            newTicket.companyId = companyId;
+          }
+
+          if (appResult) {
+            console.log('SYNC DEBUG: Found app ID:', appResult.id, 'Raw Case Type:', appResult.case_type);
+            newTicket.case_type = appResult.case_type;
+          } else {
+            console.log('SYNC DEBUG: Application NOT found for ID:', createTicketDto.customer_application_id);
+          }
+
+          const savedTicket = await this.ticketRepository.save(newTicket);
+          console.log('SYNC DEBUG: Saved ticket with case_type:', savedTicket.case_type);
+
           return {
             statusCode: 201,
             message: 'Ticket Created Successfully',
-            data: newTicket,
+            data: savedTicket,
           };
         }
       });
@@ -299,6 +318,7 @@ export class TicketsService {
         customerState: customer.info?.state ?? 'No location available',
         loanStatus: loanTracking[0]?.status ?? 'No status available',
         applicationProvider: application.provider ?? 'No provider available',
+        case_type: ticket.case_type ?? '',
         companyId: ticket.companyId,
       };
     });
@@ -375,6 +395,7 @@ export class TicketsService {
       customerDesignation: ticket.application?.customer?.info?.employment_type ?? 'Not available',
       customerLocation: ticket.application?.customer?.info?.city ?? 'No Location available',
       customerState: ticket.application?.customer?.info?.state ?? 'No Location available',
+      case_type: ticket.case_type ?? '',
       companyId: ticket.companyId,
     };
   }

@@ -121,6 +121,9 @@ export class Application {
   @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   last_updated: Date;
 
+  @Column({ name: 'case_type', type: 'enum', enum: ['top_up', 'fresh'], nullable: true })
+  case_type: string;
+
   @OneToOne(() => Ticket, (ticket) => ticket.application)
   ticket: Ticket;
 
