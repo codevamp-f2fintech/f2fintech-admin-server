@@ -32,11 +32,11 @@ export class Ticket {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column( { name: 'company_id' } )
+  @Column({ name: 'company_id' })
   companyId: number;
 
-  @ManyToOne( () => Company, ( company ) => company.tickets )
-  @JoinColumn( { name: 'company_id' } )
+  @ManyToOne(() => Company, (company) => company.tickets)
+  @JoinColumn({ name: 'company_id' })
   company: Company;
 
   // Define customer_application_id as a foreign key with an index for fast lookups
@@ -90,20 +90,23 @@ export class Ticket {
   })
   updated_at: Date;
 
-  @Column( { type: 'date', nullable: true } )
+  @Column({ type: 'date', nullable: true })
   disbursed_at: Date;
 
-  @Column( { type: 'decimal', nullable: true } )
+  @Column({ type: 'decimal', nullable: true })
   disbursed_amount: number;
 
-  @Column( { type: 'date', nullable: true } )
+  @Column({ type: 'date', nullable: true })
   approved_at: Date;
 
-  @Column( { type: 'decimal', nullable: true } )
+  @Column({ type: 'decimal', nullable: true })
   approved_amount: number;
 
-  @Column( { type: 'decimal', nullable: true } )
+  @Column({ type: 'decimal', nullable: true })
   cashback_amount: number;
+
+  @Column({ name: 'case_type', type: 'enum', enum: ['top_up', 'fresh'], nullable: true })
+  case_type: string;
 
   @BeforeInsert()
   setDefaultDueDate() {

@@ -25,30 +25,30 @@ export class CreateTicketDto {
   @IsString()
   voice_note_url: string;
 
-  @IsEnum( Status )
+  @IsEnum(Status)
   status: Status;
 
   @IsDate()
-  @Type( () => Date )
+  @Type(() => Date)
   due_date: Date;
 
   @IsDate()
-  @Type( () => Date )
+  @Type(() => Date)
   created_at: Date;
 
   @IsDate()
-  @Type( () => Date )
+  @Type(() => Date)
   updated_at: Date;
 
   @IsDate()
-  @Type( () => Date )
+  @Type(() => Date)
   disbursed_at: Date;
 
   @IsNumber()
   disbursed_amount: number;
 
   @IsDate()
-  @Type( () => Date )
+  @Type(() => Date)
   approved_at: Date;
 
   @IsNumber()
@@ -59,6 +59,9 @@ export class CreateTicketDto {
 
   @IsNumber()
   @IsOptional()
-  @IsNumber()
   companyId?: number;
+
+  @IsString()
+  @IsOptional()
+  case_type: string;
 }
