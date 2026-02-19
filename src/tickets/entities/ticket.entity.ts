@@ -105,6 +105,9 @@ export class Ticket {
   @Column({ type: 'decimal', nullable: true })
   cashback_amount: number;
 
+  @Column({ type: 'decimal', nullable: true })
+  fixed_commission_percentage: number;
+
   @Column({ name: 'case_type', type: 'enum', enum: ['top_up', 'fresh'], nullable: true })
   case_type: string;
 
