@@ -59,6 +59,10 @@ export class CreateTicketDto {
 
   @IsNumber()
   @IsOptional()
+  fixed_commission_percentage: number;
+
+  @IsNumber()
+  @IsOptional()
   companyId?: number;
 
   @IsString()
