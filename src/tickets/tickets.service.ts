@@ -48,6 +48,7 @@ export interface TicketResponse {
   loanCategory: string;
   loanType: string;
   case_type: string;
+  fixed_commission_percentage: number | string;
   companyId: number;
 }
 
@@ -319,6 +320,7 @@ export class TicketsService {
         loanStatus: loanTracking[0]?.status ?? 'No status available',
         applicationProvider: application.provider ?? 'No provider available',
         case_type: ticket.case_type ?? '',
+        fixed_commission_percentage: ticket.fixed_commission_percentage ?? null,
         companyId: ticket.companyId,
       };
     });
@@ -396,6 +398,7 @@ export class TicketsService {
       customerLocation: ticket.application?.customer?.info?.city ?? 'No Location available',
       customerState: ticket.application?.customer?.info?.state ?? 'No Location available',
       case_type: ticket.case_type ?? '',
+      fixed_commission_percentage: ticket.fixed_commission_percentage ?? null,
       companyId: ticket.companyId,
     };
   }
