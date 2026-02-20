@@ -404,7 +404,8 @@ export class TicketsService {
   }
 
   /**
-   * Triggers commission webhook when status changes to 'disbursed'
+   * Update ticket fields. Commission webhook is NOT auto-triggered here.
+   * Use triggerDisbursementCommission() after saving all disbursement details.
    */
   async update(id: number, updateTicketDto: UpdateTicketDto): Promise<Ticket> {
     const ticket = await this.findOne(id);
@@ -419,14 +420,33 @@ export class TicketsService {
       await this.sendTicketStatusNotification(updatedTicket, oldStatus, updateTicketDto.status);
     }
 
-    // Trigger commission processing if status changed to 'disbursed'
-    if (updateTicketDto.status === 'disbursed' && oldStatus !== 'disbursed') {
-      console.log(`[COMMISSION TRIGGER] Ticket ${id} status changed to disbursed`);
-      this.triggerCommissionProcessing(updatedTicket).catch(error => {
-        console.error(`[COMMISSION ERROR] Failed to trigger commission for ticket ${id}:`, error.message);
-      });
-    }
     return updatedTicket;
+  }
+
+  /**
+   * Explicitly trigger commission processing for a disbursed ticket.
+   * Called AFTER all disbursement details are saved (from "Save Details" button).
+   */
+  async triggerDisbursementCommission(ticketId: number): Promise<{ success: boolean; message: string }> {
+    const ticket = await this.findOne(ticketId);
+
+    if (ticket.status !== 'disbursed') {
+      return { success: false, message: `Ticket ${ticketId} is not in disbursed status (current: ${ticket.status})` };
+    }
+
+    if (!ticket.disbursed_amount || ticket.disbursed_amount <= 0) {
+      return { success: false, message: `Ticket ${ticketId} has no valid disbursed amount` };
+    }
+
+    console.log(`[COMMISSION TRIGGER] Explicit trigger for ticket ${ticketId} with case_type: ${ticket.case_type}, cashback: ${ticket.cashback_amount}, fixed_commission: ${ticket.fixed_commission_percentage}`);
+
+    try {
+      await this.triggerCommissionProcessing(ticket);
+      return { success: true, message: `Commission processing triggered for ticket ${ticketId}` };
+    } catch (error) {
+      console.error(`[COMMISSION ERROR] Failed to trigger commission for ticket ${ticketId}:`, error.message);
+      return { success: false, message: `Failed to trigger commission: ${error.message}` };
+    }
   }
 
   /**
