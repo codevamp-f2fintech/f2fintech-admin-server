@@ -478,7 +478,6 @@ export class TicketsService {
           commission {
             id
             ticketId
-            commissionAmount
             status
           }
         }
