@@ -111,6 +111,7 @@ export class ApplicationsService {
         hasRunningLoans: application.has_running_loans,
         whichLoan: application.which_loan,
         runningLoanAmount: application.running_loan_amount,
+        source: application.source,
       };
     });
 
