@@ -50,6 +50,7 @@ export interface TicketResponse {
   case_type: string;
   fixed_commission_percentage: number | string;
   companyId: number;
+  applicationSource: string;
 }
 
 export interface PaginationResult {
@@ -310,6 +311,7 @@ export class TicketsService {
         applicationTenure: application.tenure,
         applicationDate: application.application_date,
         applicationId: application.id,
+        applicationSource: application.source,
         customerId: customer?.id ?? 'No ID',
         customerName: customer?.name ?? 'No Name',
         customerEmail: customer?.email ?? 'No Email',
@@ -389,6 +391,7 @@ export class TicketsService {
       loanType: ticket.application?.loan_type ?? 'home loan',
       loanStatus: ticket.application?.loanTracking?.[0]?.status ?? '',
       applicationId: ticket.application?.id ?? '',
+      applicationSource: ticket.application?.source ?? 'No Source',
       customerId: ticket.application?.customer?.id ?? '',
       customerName: ticket.application?.customer?.name ?? 'No Name',
       customerEmail: ticket.application?.customer?.email ?? 'No Email',
@@ -781,6 +784,7 @@ export class TicketsService {
         applicationTenure: application?.tenure || 'No Tenure',
         applicationDate: application?.application_date || 'No Date',
         applicationId: application?.id || '',
+        applicationSource: application?.source || 'No Source',
         customerId: customer?.id ?? 'No ID',
         customerName: customer?.name ?? 'No Name',
         customerEmail: customer?.email ?? 'No Email',

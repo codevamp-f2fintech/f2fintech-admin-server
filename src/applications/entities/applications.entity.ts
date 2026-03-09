@@ -127,6 +127,9 @@ export class Application {
   @OneToOne(() => Ticket, (ticket) => ticket.application)
   ticket: Ticket;
 
+  @Column({ name: 'source', nullable: true })
+  source: string;
+
   @ManyToOne(() => Customer, (customer) => customer.applications)
   @JoinColumn({ name: 'customer_id' })
   customer: Customer;
