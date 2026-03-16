@@ -71,17 +71,10 @@ export class Application {
   loan_category: Loan_category;
 
   @Column({
-    type: 'tinyint',
-    width: 1,
-    default: 0,
+    type: 'longtext',
+    nullable: true,
   })
-  has_running_loans: number;
-
-  @Column({ length: 255, nullable: true })
-  which_loan: string;
-
-  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
-  running_loan_amount: number;
+  existing_loans: string;
 
   @Column({ type: 'int' })
   tenure: number;
