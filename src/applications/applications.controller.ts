@@ -73,6 +73,29 @@ export class ApplicationsController {
     }
   }
 
+  @Get('application/new-applications')
+  async getNewApplicationsList(
+    @Query('limit') limit?: number,
+    @Headers('Companyid') companyIdString?: string
+  ) {
+    try {
+      const limitNum = limit ? Number(limit) : 10;
+      const applications = await this.applicationsService.getNewApplicationsList(limitNum, companyIdString);
+      return {
+        success: true,
+        data: applications,
+        message: 'New applications retrieved successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: [],
+        message: 'Failed to retrieve new applications',
+        error: error.message
+      };
+    }
+  }
+
 
   @Patch('update-loan-application/:id')
   async update(

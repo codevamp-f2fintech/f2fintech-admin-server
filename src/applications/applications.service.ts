@@ -69,7 +69,8 @@ export class ApplicationsService {
         new Brackets(qb => {
           qb.where('LOWER(customer.name) LIKE :search', { search: searchPattern })
             .orWhere('customer.contact LIKE :search', { search: searchPattern })
-            .orWhere('info.pan LIKE :search', { search: searchPattern });
+            .orWhere('info.pan LIKE :search', { search: searchPattern })
+            .orWhere('CAST(application.application_no AS CHAR) LIKE :search', { search: searchPattern });
         })
       );
     }
@@ -199,6 +200,30 @@ export class ApplicationsService {
       where: whereCondition,
       order: { application_date: 'DESC' },
     });
+  }
+
+  async getNewApplicationsList(limit: number = 10, company_id?: string): Promise<any[]> {
+    const whereCondition: any = { is_picked: 0 };
+    if (company_id) {
+      whereCondition.company_id = Number(company_id);
+    }
+
+    const applications = await this.applicationRepository.find({
+      where: whereCondition,
+      order: { application_date: 'DESC' },
+      take: limit,
+      relations: ['customer'],
+    });
+
+    return applications.map((app) => ({
+      applicationId: app.id,
+      applicationNo: app.application_no,
+      customerName: app.customer?.name ?? 'Unknown',
+      applicationDate: app.application_date,
+      amount: app.amount,
+      loanType: app.loan_type,
+      provider: app.provider,
+    }));
   }
 
   // Update an existing loan application
