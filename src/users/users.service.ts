@@ -89,6 +89,8 @@ export class UsersService {
       username: user.username,
       id: user.id,
       role: user.role,
+      email: user.email,
+      source: 'oms',
       // companyId: user.company?.companyId, // Add company ID to payload
       // companyName: user.company?.name // Add company name to payload
     };
@@ -116,7 +118,7 @@ export class UsersService {
     const queryBuilder = this.userRepository
       .createQueryBuilder('user')
       .where('user.status = :status', { status });
-      // .leftJoinAndSelect('user.company', 'company')
+    // .leftJoinAndSelect('user.company', 'company')
 
     // Apply companyId filter only for non-super-admin
     // if (userRole !== 'super admin') {
