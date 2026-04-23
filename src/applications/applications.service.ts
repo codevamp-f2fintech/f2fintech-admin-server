@@ -49,8 +49,16 @@ export class ApplicationsService {
       .createQueryBuilder('application')
       .leftJoinAndSelect('application.customer', 'customer')
       .leftJoinAndSelect('customer.info', 'info')
-      .leftJoinAndSelect('customer.customerDocuments', 'documents')
-      .leftJoinAndSelect('application.loanTracking', 'loanTracking')
+      .leftJoinAndSelect(
+        'customer.customerDocuments',
+        'documents',
+        'documents.customer_id = customer.id'                     // explicit condition
+      )
+      .leftJoinAndSelect(
+        'application.loanTracking',
+        'loanTracking',
+        'loanTracking.customer_application_id = application.id'   // explicit condition
+      )
       .where('application.is_picked = :isPicked', { isPicked: 0 });
 
     if (companyId) {
@@ -74,6 +82,8 @@ export class ApplicationsService {
         })
       );
     }
+    // console.log('SQL:', queryBuilder.getSql());
+    // console.log('PARAMS:', queryBuilder.getParameters());
 
     // Get results and count
     const [applications, totalCount] = await queryBuilder
@@ -103,7 +113,7 @@ export class ApplicationsService {
         leadType: application.lead_type,
         loanStatus: loanTracking[0]?.status ?? 'No status available',
         customerDesignation: customer.info?.employment_type ?? 'Not available',
-        customerProfileImage: customer.customerDocuments
+        customerProfileImage: (customer.customerDocuments ?? [])
           ?.filter(doc => doc.type === 'profile')
           .map(doc => doc.document_url) ?? ['No image available'],
         customerLocation: customer.info?.city ?? 'No location available',
