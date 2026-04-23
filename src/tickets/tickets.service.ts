@@ -157,8 +157,16 @@ export class TicketsService {
       .leftJoinAndSelect('ticket.application', 'application') // Join application
       .leftJoinAndSelect('application.customer', 'customer') // Join customer
       .leftJoinAndSelect('customer.info', 'info') // Join customer info
-      .leftJoinAndSelect('customer.customerDocuments', 'documents') // Join customer documents
-      .leftJoinAndSelect('application.loanTracking', 'loanTracking') // Join loan tracking
+      .leftJoinAndSelect(
+        'customer.customerDocuments',
+        'documents',
+        'documents.customer_id = customer.id'                     // explicit condition
+      )
+      .leftJoinAndSelect(
+        'application.loanTracking',
+        'loanTracking',
+        'loanTracking.customer_application_id = application.id'   // explicit condition
+      )
       .skip(skip)
       .take(limit)
       .orderBy('ticket.created_at', 'DESC');
@@ -290,10 +298,9 @@ export class TicketsService {
       const { application } = ticket;
       const { customer, loanTracking } = application;
 
-      const customerProfileImages = customer.customerDocuments
-        ?.filter((doc) => doc.type === 'profile')
-        .map((doc) => doc.document_url) || [];
-
+      const customerProfileImages = (customer.customerDocuments ?? [])
+        .filter((doc) => doc.type === 'profile')
+        .map((doc) => doc.document_url);
       return {
         ticketId: ticket.id,
         ticketStatus: ticket.status,
@@ -353,8 +360,16 @@ export class TicketsService {
       .leftJoinAndSelect('ticket.application', 'application')
       .leftJoinAndSelect('application.customer', 'customer')
       .leftJoinAndSelect('customer.info', 'info')
-      .leftJoinAndSelect('customer.customerDocuments', 'documents')
-      .leftJoinAndSelect('application.loanTracking', 'loanTracking')
+      .leftJoinAndSelect(
+        'customer.customerDocuments',
+        'documents',
+        'documents.customer_id = customer.id'                     // explicit condition
+      )
+      .leftJoinAndSelect(
+        'application.loanTracking',
+        'loanTracking',
+        'loanTracking.customer_application_id = application.id'   // explicit condition
+      )
       .where('ticket.id = :ticketId', { ticketId })
       .getOne();
 
