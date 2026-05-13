@@ -438,6 +438,14 @@ export class TicketsService {
       await this.sendTicketStatusNotification(updatedTicket, oldStatus, updateTicketDto.status);
     }
 
+    if (
+      updateTicketDto.status === 'disbursed' &&
+      updatedTicket.disbursed_amount &&
+      updatedTicket.disbursed_amount > 0
+    ) {
+      await this.triggerDisbursementCommission(updatedTicket.id);
+    }
+
     return updatedTicket;
   }
 
@@ -536,6 +544,12 @@ export class TicketsService {
         if (result?.success) {
           console.log(`[COMMISSION SUCCESS] Ticket ${ticket.id} processed successfully. Commission ID: ${result.commission?.id}`);
           return; // Success - exit retry loop
+        } else if (
+          typeof result?.message === 'string' &&
+          result.message.toLowerCase().includes('already exists')
+        ) {
+          console.log(`[COMMISSION EXISTS] Ticket ${ticket.id}: ${result.message}`);
+          return;
         } else {
           throw new Error(result?.message || 'Unknown error from commission service');
         }
@@ -599,6 +613,13 @@ export class TicketsService {
         return;
       }
 
+      // ✅ THE FIX: We extract the ID of the Sales Rep who actually created the application
+      // instead of using ticket.user_id (which belonged to the Operations Admin making the edit)
+      const salesUserId =
+        ticketDetails.application?.applied_by ??
+        (ticketDetails.application as any)?.appliedBy ??
+        ticket.user_id;
+
       const mutation = `
         mutation CreateTicketNotification($input: CreateTicketNotificationInput!) {
           createTicketNotification(input: $input) {
@@ -611,7 +632,7 @@ export class TicketsService {
       const variables = {
         input: {
           ticketId: ticket.id,
-          userId: ticket.user_id,
+          userId: Number(salesUserId), // ✅ This safely sends the OMS Sales ID!
           companyId: ticket.companyId,
           oldStatus,
           newStatus,
@@ -626,7 +647,9 @@ export class TicketsService {
         }),
       );
 
-      console.log(`Notification sent for ticket #${ticket.id} status change`);
+      console.log(
+        `Notification sent for ticket #${ticket.id} status change. Assigned to userId: ${salesUserId}`,
+      );
     } catch (error) {
       console.error(`Failed to send ticket notification: ${error.message}`);
     }
