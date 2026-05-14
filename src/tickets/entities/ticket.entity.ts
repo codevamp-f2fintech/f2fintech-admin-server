@@ -17,6 +17,7 @@ export enum Status {
   OPERATIONS = 'operations',
   PENDENCY_IN_FILE = 'pendency in file',
   FILE_SEND_TO_BANKER = 'file send to banker',
+  FILE_SENT_TO_BANKER_AWAITING = 'file sent to banker - awaiting response',
   TO_BE_APPROVED = 'to be approved',
   TO_BE_DISBURSED = 'to be disbursed',
   APPROVED = 'approved',

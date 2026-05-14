@@ -51,6 +51,7 @@ export interface TicketResponse {
   fixed_commission_percentage: number | string;
   companyId: number;
   applicationSource: string;
+  due_date: Date | string | null;
 }
 
 export interface PaginationResult {
@@ -205,7 +206,7 @@ export class TicketsService {
             .andWhere(
               new Brackets((qb) => {
                 qb.where('ticket.forwarded_to = :userId', { userId })
-                  .orWhere('ticket.user_id = :userId', { userId });
+                  .orWhere('ticket.forwarded_by = :userId', { userId });
               }),
             );
         } else {
@@ -225,7 +226,7 @@ export class TicketsService {
 
     // Apply provider filter (works for both userId and admin)
     if (provider && provider !== 'all' && provider.trim() !== '') {
-      query.andWhere('LOWER(application.provider) = LOWER(:provider)', { provider });
+      query.andWhere('LOWER(application.provider) LIKE LOWER(:provider)', { provider: `%${provider}%` });
     }
 
     if (name && name.trim() !== '') {
@@ -256,31 +257,29 @@ export class TicketsService {
     } else {
       // Apply provided startDate and endDate if available
       if (status !== 'disbursed' && startDate) {
+        startDate = `${startDate.substring(0, 10)} 00:00:00`;
         query.andWhere('ticket.created_at >= :startDate', { startDate });
       }
       if (status !== 'disbursed' && endDate) {
-        const endDateObj = new Date(endDate);
-        endDateObj.setHours(23, 59, 59, 999);
-        endDate = endDateObj.toISOString().replace("T", " ").substring(0, 19);
+        endDate = `${endDate.substring(0, 10)} 23:59:59`;
         query.andWhere('ticket.created_at <= :endDate', { endDate });
       }
     }
 
     if (status === 'disbursed' && startDate && endDate) {
       if (startDate) {
+        startDate = `${startDate.substring(0, 10)} 00:00:00`;
         query.andWhere('ticket.disbursed_at >= :startDate', { startDate });
       }
       if (endDate) {
-        const endDateObj = new Date(endDate);
-        endDateObj.setHours(23, 59, 59, 999);
-        endDate = endDateObj.toISOString().replace("T", " ").substring(0, 19);
+        endDate = `${endDate.substring(0, 10)} 23:59:59`;
         query.andWhere('ticket.disbursed_at <= :endDate', { endDate });
       }
     } else if (status === 'disbursed' && !startDate && !endDate) {
       query.andWhere('ticket.disbursed_at >= DATE_FORMAT(NOW(), :startOfMonth)', {
         startOfMonth: '%Y-%m-01 00:00:00',
       });
-      query.andWhere('ticket.created_at <= DATE_FORMAT(LAST_DAY(NOW()), :endOfMonth)', {
+      query.andWhere('ticket.disbursed_at <= DATE_FORMAT(LAST_DAY(NOW()), :endOfMonth)', {
         endOfMonth: '%Y-%m-%d 23:59:59',
       });
     }
@@ -418,6 +417,7 @@ export class TicketsService {
       case_type: ticket.case_type ?? '',
       fixed_commission_percentage: ticket.fixed_commission_percentage ?? null,
       companyId: ticket.companyId,
+      due_date: ticket.due_date ?? null,
     };
   }
 
@@ -436,6 +436,14 @@ export class TicketsService {
     // SEND NOTIFICATION IF STATUS CHANGED
     if (oldStatus !== updateTicketDto.status && updateTicketDto.status) {
       await this.sendTicketStatusNotification(updatedTicket, oldStatus, updateTicketDto.status);
+    }
+
+    if (
+      updateTicketDto.status === 'disbursed' &&
+      updatedTicket.disbursed_amount &&
+      updatedTicket.disbursed_amount > 0
+    ) {
+      await this.triggerDisbursementCommission(updatedTicket.id);
     }
 
     return updatedTicket;
@@ -536,6 +544,12 @@ export class TicketsService {
         if (result?.success) {
           console.log(`[COMMISSION SUCCESS] Ticket ${ticket.id} processed successfully. Commission ID: ${result.commission?.id}`);
           return; // Success - exit retry loop
+        } else if (
+          typeof result?.message === 'string' &&
+          result.message.toLowerCase().includes('already exists')
+        ) {
+          console.log(`[COMMISSION EXISTS] Ticket ${ticket.id}: ${result.message}`);
+          return;
         } else {
           throw new Error(result?.message || 'Unknown error from commission service');
         }
@@ -599,6 +613,13 @@ export class TicketsService {
         return;
       }
 
+      // ✅ THE FIX: We extract the ID of the Sales Rep who actually created the application
+      // instead of using ticket.user_id (which belonged to the Operations Admin making the edit)
+      const salesUserId =
+        ticketDetails.application?.applied_by ??
+        (ticketDetails.application as any)?.appliedBy ??
+        ticket.user_id;
+
       const mutation = `
         mutation CreateTicketNotification($input: CreateTicketNotificationInput!) {
           createTicketNotification(input: $input) {
@@ -611,7 +632,7 @@ export class TicketsService {
       const variables = {
         input: {
           ticketId: ticket.id,
-          userId: ticket.user_id,
+          userId: Number(salesUserId), // ✅ This safely sends the OMS Sales ID!
           companyId: ticket.companyId,
           oldStatus,
           newStatus,
@@ -626,7 +647,9 @@ export class TicketsService {
         }),
       );
 
-      console.log(`Notification sent for ticket #${ticket.id} status change`);
+      console.log(
+        `Notification sent for ticket #${ticket.id} status change. Assigned to userId: ${salesUserId}`,
+      );
     } catch (error) {
       console.error(`Failed to send ticket notification: ${error.message}`);
     }
@@ -735,7 +758,7 @@ export class TicketsService {
     }
 
     if (provider && provider !== 'all' && provider.trim() !== '') {
-      query.andWhere('LOWER(application.provider) = LOWER(:provider)', { provider });
+      query.andWhere('LOWER(application.provider) LIKE LOWER(:provider)', { provider: `%${provider}%` });
     }
 
     if (name && name.trim() !== '') {
