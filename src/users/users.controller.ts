@@ -100,4 +100,23 @@ export class UsersController {
     const updatedUser = await this.usersService.update( updateUserDto );
     return ResponseFormatter.success( 200, 'User Updated Successfully', updatedUser );
   }
+
+  @Post( 'forgot-password' )
+  async forgotPassword( @Body( 'email' ) email: string ) {
+    if ( !email ) {
+      throw new BadRequestException( 'Email is required' );
+    }
+    const response = await this.usersService.forgotPassword( email );
+    return ResponseFormatter.success( 200, response.message, null );
+  }
+
+  @Post( 'reset-password' )
+  async resetPassword( @Body() body: any ) {
+    const { token, newPassword } = body;
+    if ( !token || !newPassword ) {
+      throw new BadRequestException( 'Token and newPassword are required' );
+    }
+    const response = await this.usersService.resetPassword( token, newPassword );
+    return ResponseFormatter.success( 200, response.message, null );
+  }
 }
