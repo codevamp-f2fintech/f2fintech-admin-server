@@ -79,6 +79,39 @@ export class DashboardController {
     }
   }
 
+  @Get('tickets/aggregate-counts')
+  async getAggregateTicketsCount(
+    @Query('userId') userId?: string,
+    @Query('date') date?: string,
+    @Query('month') month?: string,
+    @Query('year') year?: string,
+    @Headers('Companyid') companyId?: string,
+  ) {
+    try {
+      const companyIdNumber = companyId && !isNaN(Number(companyId)) ? Number(companyId) : null;
+      const userIdNumber = userId && !isNaN(Number(userId)) ? Number(userId) : null;
+
+      const result = await this.dashboardService.getAggregateTicketCounts(
+        userIdNumber,
+        date || null,
+        month || null,
+        year || null,
+        companyIdNumber,
+      );
+
+      return ResponseFormatter.success(
+        200,
+        'Aggregate ticket counts retrieved successfully',
+        result,
+      );
+    } catch (error) {
+      return ResponseFormatter.error(
+        error.status || 500,
+        error.message || 'Internal server error',
+      );
+    }
+  }
+
   // Keep the old route structure for backward compatibility if needed
   @Get( 'tickets/count/:userId/:status?' )
   async findTicketsCountLegacy (
