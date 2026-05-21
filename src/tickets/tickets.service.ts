@@ -38,7 +38,7 @@ export interface TicketResponse {
   customerContact: string;
   customerDocuments: {
     id: number;
-    type: "aadhaar front" | "aadhaar back" | "pancard" | "bank statement" | "form 16" | "payslips" | "profile" | "photo" | "certificate" | "audio";
+    type: string;
     document_url: string;
   }[];
   customerLocation: string;
@@ -298,7 +298,7 @@ export class TicketsService {
       const { customer, loanTracking } = application;
 
       const customerProfileImages = (customer.customerDocuments ?? [])
-        .filter((doc) => doc.type === 'profile')
+        .filter((doc) => doc.type === 'profile photo')
         .map((doc) => doc.document_url);
       return {
         ticketId: ticket.id,
@@ -807,7 +807,7 @@ export class TicketsService {
       const { customer, loanTracking } = application || {};
 
       const customerProfileImages = customer?.customerDocuments
-        ?.filter((doc) => doc.type === 'profile')
+        ?.filter((doc) => doc.type === 'profile photo')
         .map((doc) => doc.document_url) || [];
 
       return {
@@ -834,6 +834,9 @@ export class TicketsService {
         applicationProvider: application?.provider ?? 'No provider available',
         reason: archive?.reason_to_delete,
         companyId: archive.companyId,
+        cashback_amount: archive.cashback_amount ?? null,
+        fixed_commission_percentage: archive.fixed_commission_percentage ?? null,
+        case_type: archive.case_type ?? '',
       };
     });
 
@@ -893,6 +896,9 @@ export class TicketsService {
       customerState: archivedTicket.application?.customer?.info?.state ?? 'No Location available',
       loanStatus: archivedTicket.application?.loanTracking?.[0]?.status ?? '',
       reason: archivedTicket?.reason_to_delete,
+      cashback_amount: archivedTicket.cashback_amount ?? null,
+      fixed_commission_percentage: archivedTicket.fixed_commission_percentage ?? null,
+      case_type: archivedTicket.case_type ?? '',
     };
   }
 }

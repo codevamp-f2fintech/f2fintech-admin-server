@@ -1,4 +1,5 @@
 import * as bcrypt from 'bcryptjs';
+import * as nodemailer from 'nodemailer';
 import {
   Injectable,
   NotFoundException,
@@ -187,5 +188,78 @@ export class UsersService {
 
     await this.userRepository.update(id, updateData);
     return this.findOne(id);
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const user = await this.userRepository.findOne({ where: { email, status: Status.ACTIVE } });
+    if (!user) {
+      throw new NotFoundException('User with this email does not exist');
+    }
+
+    // Use the user's current hashed password as part of the secret.
+    // This ensures the token becomes invalid immediately after the password is changed!
+    const secret = (process.env.RESET_PASSWORD_SECRET || 'fallback_reset_secret') + user.password;
+    const expiresIn = process.env.RESET_PASSWORD_EXPIRY || '15m';
+    
+    const payload = { id: user.id, email: user.email };
+    const resetToken = this.jwtService.sign(payload, { expiresIn, secret });
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const resetLink = `${frontendUrl}/reset-password?role=employee&token=${resetToken}`;
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
+      },
+    });
+
+    const mailOptions = {
+      from: `"Support Team" <${process.env.SMTP_FROM_EMAIL}>`,
+      to: user.email,
+      subject: 'Password Reset Request',
+      text: `You requested a password reset. Please use the following link to reset your password: ${resetLink}`,
+      html: `<p>You requested a password reset.</p><p>Please click the link below to reset your password:</p><a href="${resetLink}">Reset Password</a><p>If you did not request this, please ignore this email.</p><p>This link will expire in 15 minutes.</p>`,
+    };
+
+    await transporter.sendMail(mailOptions);
+    return { message: 'Password reset link sent to email successfully' };
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    let payload: any;
+    try {
+      // Decode the token without verifying signature first to extract the user ID
+      payload = this.jwtService.decode(token);
+      if (!payload || !payload.id) {
+        throw new UnauthorizedException('Invalid token format');
+      }
+    } catch (e) {
+      throw new UnauthorizedException('Invalid token format');
+    }
+
+    const user = await this.findOne(payload.id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Reconstruct the unique secret to verify validity
+    const secret = (process.env.RESET_PASSWORD_SECRET || 'fallback_reset_secret') + user.password;
+
+    try {
+      // Verify the token signature and expiration
+      this.jwtService.verify(token, { secret });
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired password reset token');
+    }
+
+    // Hash new password and update
+    const hashedPassword = await this.generateHashedPassword(newPassword);
+    await this.userRepository.update(user.id, { password: hashedPassword });
+
+    return { message: 'Password updated successfully' };
   }
 }
