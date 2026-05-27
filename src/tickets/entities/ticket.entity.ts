@@ -3,7 +3,6 @@ import {
   Column,
   PrimaryGeneratedColumn,
   Index,
-  BeforeInsert,
   OneToOne,
   JoinColumn,
   ManyToOne
@@ -78,7 +77,7 @@ export class Ticket {
   @Column()
   voice_note_url: string;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: 'date', nullable: true, default: null })
   due_date: Date;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
@@ -112,12 +111,4 @@ export class Ticket {
   @Column({ name: 'case_type', type: 'enum', enum: ['top_up', 'fresh'], nullable: true })
   case_type: string;
 
-  @BeforeInsert()
-  setDefaultDueDate() {
-    if (!this.due_date) {
-      const today = new Date();
-      today.setDate(today.getDate() + 1);
-      this.due_date = today;
-    }
-  }
 }
