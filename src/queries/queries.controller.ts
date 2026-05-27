@@ -1,15 +1,20 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { QueriesService } from './queries.service';
 import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 
-@Controller('api/v1/queries')
+@Controller('api/v1')
 export class QueriesController {
-  constructor(private readonly queriesService: QueriesService) {}
+  constructor(private readonly queriesService: QueriesService) { }
 
-  @Get()
-  async findAll() {
+  @Get('get-all-queries')
+  async findAll(
+    @Query('page') page: string,
+    @Query('limit') limit: string,
+  ) {
     try {
-      const queries = await this.queriesService.findAll();
+      const pageNum = parseInt(page) || 1;
+      const limitNum = parseInt(limit) || 10;
+      const queries = await this.queriesService.findAll(pageNum, limitNum);
       return ResponseFormatter.success(200, 'Queries retrieved successfully', queries);
     } catch (error) {
       return ResponseFormatter.error(

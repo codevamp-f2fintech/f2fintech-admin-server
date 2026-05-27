@@ -9,10 +9,10 @@ export class LeadInfo {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({ type: 'text', nullable: true })
+    @Column({ type: 'varchar', length: 50, nullable: true })
     name: string;
 
-    @Column({ type: 'varchar', length: 15, nullable: true })
+    @Column({ type: 'varchar', length: 50, nullable: true })
     phone: string;
 
     @Column({ type: 'varchar', length: 50, nullable: true })
