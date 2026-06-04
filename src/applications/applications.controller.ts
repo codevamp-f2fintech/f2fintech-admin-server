@@ -15,9 +15,11 @@ export class ApplicationsController {
     @Query('limit') limit: number,
     @Query('appliedBy') appliedBy?: number,
     @Query('search') searchTerm?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
     @Headers('companyid') companyIdString?: string
   ): Promise<any> {
-    const customerApplications = await this.applicationsService.getApplicationData(page, limit, appliedBy, searchTerm, companyIdString);
+    const customerApplications = await this.applicationsService.getApplicationData(page, limit, appliedBy, searchTerm, companyIdString, startDate, endDate);
     return ResponseFormatter.success(200, 'Applications Retrieved Successfully', customerApplications);
   }
 

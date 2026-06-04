@@ -39,6 +39,8 @@ export class ApplicationsService {
     appliedBy?: number,
     searchTerm?: string,
     companyId?: string,
+    startDate?: string,
+    endDate?: string,
   ): Promise<PaginationResult> {
     page = Number(page) || 1;
     limit = Number(limit) || 10;
@@ -82,8 +84,31 @@ export class ApplicationsService {
         })
       );
     }
-    // console.log('SQL:', queryBuilder.getSql());
-    // console.log('PARAMS:', queryBuilder.getParameters());
+
+    // Add date range filter if startDate or endDate provided
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      queryBuilder.andWhere('application.application_date BETWEEN :start AND :end', { start, end });
+    } else if (startDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      queryBuilder.andWhere('application.application_date >= :start', { start });
+    } else if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      queryBuilder.andWhere('application.application_date <= :end', { end });
+    } else {
+      // Default to current month if no dates are provided, matching tickets behavior
+      queryBuilder.andWhere('application.application_date >= DATE_FORMAT(NOW(), :startOfMonth)', {
+        startOfMonth: '%Y-%m-01 00:00:00',
+      });
+      queryBuilder.andWhere('application.application_date <= DATE_FORMAT(LAST_DAY(NOW()), :endOfMonth)', {
+        endOfMonth: '%Y-%m-%d 23:59:59',
+      });
+    }
 
     // Get results and count
     const [applications, totalCount] = await queryBuilder
@@ -175,7 +200,6 @@ export class ApplicationsService {
   }
 
 
-
   async getNewApplicationsCount(month?: string, year?: number, date?: string, company_id?: string): Promise<any> {
     const whereCondition: any = { is_picked: 0 };
     if (company_id) {
@@ -203,6 +227,13 @@ export class ApplicationsService {
       const startDate = new Date(year, 0, 1);
       const endDate = new Date(year, 11, 31, 23, 59, 59);
 
+      whereCondition.application_date = Between(startDate, endDate);
+    }
+    // Default to current month if no dates are provided
+    else {
+      const now = new Date();
+      const startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+      const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
       whereCondition.application_date = Between(startDate, endDate);
     }
 
