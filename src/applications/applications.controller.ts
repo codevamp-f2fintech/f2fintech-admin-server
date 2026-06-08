@@ -14,12 +14,13 @@ export class ApplicationsController {
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Query('appliedBy') appliedBy?: number,
+    @Query('aggregatorMemberId') aggregatorMemberId?: string,
     @Query('search') searchTerm?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Headers('companyid') companyIdString?: string
   ): Promise<any> {
-    const customerApplications = await this.applicationsService.getApplicationData(page, limit, appliedBy, searchTerm, companyIdString, startDate, endDate);
+    const customerApplications = await this.applicationsService.getApplicationData(page, limit, appliedBy, aggregatorMemberId, searchTerm, companyIdString, startDate, endDate);
     return ResponseFormatter.success(200, 'Applications Retrieved Successfully', customerApplications);
   }
 

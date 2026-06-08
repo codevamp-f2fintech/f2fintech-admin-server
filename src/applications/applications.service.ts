@@ -37,6 +37,7 @@ export class ApplicationsService {
     page: number,
     limit: number,
     appliedBy?: number,
+    aggregatorMemberId?: string,
     searchTerm?: string,
     companyId?: string,
     startDate?: string,
@@ -70,6 +71,11 @@ export class ApplicationsService {
     // Add appliedBy condition if provided
     if (appliedBy) {
       queryBuilder.andWhere('application.applied_by = :appliedBy', { appliedBy });
+    }
+
+    // Add aggregatorMemberId condition if provided
+    if (aggregatorMemberId) {
+      queryBuilder.andWhere('application.aggregator_member_id = :aggregatorMemberId', { aggregatorMemberId });
     }
 
     // Add search conditions if searchTerm is provided

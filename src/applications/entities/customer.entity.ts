@@ -55,4 +55,7 @@ export class Customer {
 
     @OneToMany( () => Application, ( app ) => app.customer )
     applications: Application[];
+
+    @Column( { name: 'aggregator_member_id', type: 'varchar', length: 255, nullable: true } )
+    aggregator_member_id: string;
 }
