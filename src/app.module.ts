@@ -35,6 +35,8 @@ import { LeadsModule } from './leads/leads.module';
 import { LeadInfo } from './leads/entities/leadInfo.entity';
 import { QueriesModule } from './queries/queries.module';
 import { SendQuery } from './queries/entities/sendQuery.entity';
+import { Notification } from './notifications/entities/notification.entity';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -50,6 +52,7 @@ import { SendQuery } from './queries/entities/sendQuery.entity';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
+        timezone: '+05:30', // Ensure TypeORM handles dates in IST instead of UTC
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: configService.get<string>('JWT_EXPIRY') },
         entities: [
@@ -69,7 +72,8 @@ import { SendQuery } from './queries/entities/sendQuery.entity';
           User,
           Company,
           LeadInfo,
-          SendQuery],
+          SendQuery,
+          Notification],
         synchronize: false,
       }),
       inject: [ConfigService],
@@ -88,6 +92,7 @@ import { SendQuery } from './queries/entities/sendQuery.entity';
     CompaniesModule,
     LeadsModule,
     QueriesModule,
+    NotificationsModule,
   ],
   providers: [AppService],
 })

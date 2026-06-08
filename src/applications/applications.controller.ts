@@ -14,12 +14,13 @@ export class ApplicationsController {
     @Query('page') page: number,
     @Query('limit') limit: number,
     @Query('appliedBy') appliedBy?: number,
+    @Query('aggregatorMemberId') aggregatorMemberId?: string,
     @Query('search') searchTerm?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Headers('companyid') companyIdString?: string
   ): Promise<any> {
-    const customerApplications = await this.applicationsService.getApplicationData(page, limit, appliedBy, searchTerm, companyIdString, startDate, endDate);
+    const customerApplications = await this.applicationsService.getApplicationData(page, limit, appliedBy, aggregatorMemberId, searchTerm, companyIdString, startDate, endDate);
     return ResponseFormatter.success(200, 'Applications Retrieved Successfully', customerApplications);
   }
 
@@ -98,6 +99,33 @@ export class ApplicationsController {
     }
   }
 
+  @Get('application/new-application/:id')
+  async getNewApplicationNotificationFormat(
+    @Param('id') id: number,
+  ) {
+    try {
+      const application = await this.applicationsService.getNewApplicationNotificationFormat(Number(id));
+      if (!application) {
+        return {
+          success: false,
+          data: null,
+          message: 'Application not found',
+        };
+      }
+      return {
+        success: true,
+        data: application,
+        message: 'Application retrieved successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: 'Failed to retrieve application',
+        error: error.message
+      };
+    }
+  }
 
   @Patch('update-loan-application/:id')
   async update(

@@ -3,6 +3,7 @@ import {
   Column,
   PrimaryGeneratedColumn,
   Index,
+  BeforeInsert,
 } from 'typeorm';
 
 @Entity( 'loan_provider' )
@@ -63,4 +64,8 @@ export class LoanProvider {
   // @Column( { type: 'int', nullable: true } )
   // company_id: number;
 
+  @BeforeInsert()
+  setCreatedAt() {
+    this.created_at = new Date();
+  }
 }

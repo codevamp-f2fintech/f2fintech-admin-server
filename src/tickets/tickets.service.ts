@@ -13,6 +13,7 @@ import { TicketActivity } from 'src/ticket_activities/entities/ticket_activities
 import { LoanTracking } from 'src/applications/entities/loanTracking.entity';
 import { Application } from 'src/applications/entities/applications.entity';
 import { TicketArchive } from './entities/ticketArchive.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 export interface TicketResponse {
   ticketId: number | string;
@@ -85,6 +86,7 @@ export class TicketsService {
     @InjectRepository(Application)
     private readonly customerApplicationRepository: Repository<Application>,
     private readonly httpService: HttpService,
+    private readonly notificationsService: NotificationsService,
   ) { }
 
   async create(createTicketDto: CreateTicketDto, companyId?: number): Promise<any> {
@@ -435,7 +437,7 @@ export class TicketsService {
 
     // SEND NOTIFICATION IF STATUS CHANGED
     if (oldStatus !== updateTicketDto.status && updateTicketDto.status) {
-      await this.sendTicketStatusNotification(updatedTicket, oldStatus, updateTicketDto.status);
+      await this.sendTicketStatusNotification(updatedTicket, oldStatus, updateTicketDto.status, updateTicketDto.actorName);
     }
 
     if (
@@ -596,6 +598,7 @@ export class TicketsService {
     ticket: Ticket,
     oldStatus: string,
     newStatus: string,
+    actorName?: string,
   ): Promise<void> {
     try {
       const graphqlEndpoint = process.env.GRAPHQL_SERVER_URL || 'http://localhost:4000/graphql';
@@ -645,7 +648,31 @@ export class TicketsService {
           query: mutation,
           variables,
         }),
-      );
+      ).catch(e => console.error("Failed to send graphql notification:", e.message));
+
+      // Save notification to shared MySQL database for REST admin
+      const byUserText = actorName ? ` by ${actorName}` : '';
+      const savedNotification = await this.notificationsService.createTicketNotification({
+        company_id: ticket.companyId,
+        user_id: Number(salesUserId),
+        customer_id: ticketDetails.application?.customer?.id || null,
+        ticket_id: ticket.id,
+        old_status: oldStatus,
+        new_status: newStatus,
+        title: 'Ticket Status Updated',
+        message: `Ticket #${ticket.id} for ${ticketDetails.application?.customer?.name || 'Customer'} has been updated to ${newStatus}${byUserText}`,
+        type: 'ticket',
+        status: 'pending',
+      });
+
+      // Trigger socket webhook on Express server
+      const expressWebhookUrl = process.env.EXPRESS_SERVER_URL || 'http://localhost:8080/api/v1/emit-ticket-notification';
+      await firstValueFrom(
+        this.httpService.post(expressWebhookUrl, {
+          notificationId: savedNotification.id,
+          ticketId: ticket.id
+        })
+      ).catch(e => console.error("Failed to trigger express socket webhook:", e.message));
 
       console.log(
         `Notification sent for ticket #${ticket.id} status change. Assigned to userId: ${salesUserId}`,

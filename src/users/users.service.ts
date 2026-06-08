@@ -141,14 +141,8 @@ export class UsersService {
       .orderBy('user.updated_at', 'DESC')
       .getManyAndCount();
 
-    // Transform results to include companyName at root level
-    const transformedResults = results.map(user => ({
-      ...user,
-      // companyName: user.company?.name || null,
-    }));
-
     return {
-      results: transformedResults,
+      results,
       count,
       pages: Math.ceil(count / limit),
     };

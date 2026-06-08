@@ -37,6 +37,7 @@ export class ApplicationsService {
     page: number,
     limit: number,
     appliedBy?: number,
+    aggregatorMemberId?: string,
     searchTerm?: string,
     companyId?: string,
     startDate?: string,
@@ -70,6 +71,11 @@ export class ApplicationsService {
     // Add appliedBy condition if provided
     if (appliedBy) {
       queryBuilder.andWhere('application.applied_by = :appliedBy', { appliedBy });
+    }
+
+    // Add aggregatorMemberId condition if provided
+    if (aggregatorMemberId) {
+      queryBuilder.andWhere('application.aggregator_member_id = :aggregatorMemberId', { aggregatorMemberId });
     }
 
     // Add search conditions if searchTerm is provided
@@ -265,6 +271,25 @@ export class ApplicationsService {
       loanType: app.loan_type,
       provider: app.provider,
     }));
+  }
+
+  async getNewApplicationNotificationFormat(id: number): Promise<any> {
+    const app = await this.applicationRepository.findOne({
+      where: { id },
+      relations: ['customer'],
+    });
+
+    if (!app) return null;
+
+    return {
+      applicationId: app.id,
+      applicationNo: app.application_no,
+      customerName: app.customer?.name ?? 'Unknown',
+      applicationDate: app.application_date,
+      amount: app.amount,
+      loanType: app.loan_type,
+      provider: app.provider,
+    };
   }
 
   // Update an existing loan application

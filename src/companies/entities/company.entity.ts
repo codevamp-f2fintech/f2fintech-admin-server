@@ -1,7 +1,7 @@
 import { Application } from 'src/applications/entities/applications.entity';
 import { Ticket } from 'src/tickets/entities/ticket.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BeforeInsert, BeforeUpdate } from 'typeorm';
 
 @Entity('companies')
 export class Company {
@@ -56,4 +56,15 @@ export class Company {
 
     // @OneToMany(() => User, (user) => user.company)
     // users: User[];
+
+    @BeforeInsert()
+    setCreatedAt() {
+        this.created_at = new Date();
+        this.updated_at = new Date();
+    }
+
+    @BeforeUpdate()
+    setUpdatedAt() {
+        this.updated_at = new Date();
+    }
 }
