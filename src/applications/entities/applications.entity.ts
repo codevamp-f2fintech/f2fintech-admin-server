@@ -129,4 +129,7 @@ export class Application {
 
   @OneToMany(() => LoanTracking, (tracking) => tracking.application)
   loanTracking: LoanTracking[];
+
+  @Column({ name: 'aggregator_member_id', type: 'varchar', length: 255, nullable: true })
+  aggregator_member_id: string;
 }
