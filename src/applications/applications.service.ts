@@ -273,6 +273,25 @@ export class ApplicationsService {
     }));
   }
 
+  async getNewApplicationNotificationFormat(id: number): Promise<any> {
+    const app = await this.applicationRepository.findOne({
+      where: { id },
+      relations: ['customer'],
+    });
+
+    if (!app) return null;
+
+    return {
+      applicationId: app.id,
+      applicationNo: app.application_no,
+      customerName: app.customer?.name ?? 'Unknown',
+      applicationDate: app.application_date,
+      amount: app.amount,
+      loanType: app.loan_type,
+      provider: app.provider,
+    };
+  }
+
   // Update an existing loan application
   async update(
     id: number,

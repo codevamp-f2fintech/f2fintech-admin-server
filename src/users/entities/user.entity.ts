@@ -1,5 +1,5 @@
 import { Company } from 'src/companies/entities/company.entity';
-import { Entity, Column, PrimaryGeneratedColumn, Unique, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Unique, ManyToOne, JoinColumn, BeforeInsert, BeforeUpdate } from 'typeorm';
 
 export enum Gender {
   MALE = 'male',
@@ -82,4 +82,15 @@ export class User {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updated_at: Date;
+
+  @BeforeInsert()
+  setCreatedAt() {
+    this.created_at = new Date();
+    this.updated_at = new Date();
+  }
+
+  @BeforeUpdate()
+  setUpdatedAt() {
+    this.updated_at = new Date();
+  }
 }

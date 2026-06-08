@@ -5,7 +5,9 @@ import {
   Index,
   OneToOne,
   JoinColumn,
-  ManyToOne
+  ManyToOne,
+  BeforeInsert,
+  BeforeUpdate
 } from 'typeorm';
 
 import { Application } from 'src/applications/entities/applications.entity';
@@ -111,4 +113,14 @@ export class Ticket {
   @Column({ name: 'case_type', type: 'enum', enum: ['top_up', 'fresh'], nullable: true })
   case_type: string;
 
+  @BeforeInsert()
+  setCreatedAt() {
+    this.created_at = new Date();
+    this.updated_at = new Date();
+  }
+
+  @BeforeUpdate()
+  setUpdatedAt() {
+    this.updated_at = new Date();
+  }
 }

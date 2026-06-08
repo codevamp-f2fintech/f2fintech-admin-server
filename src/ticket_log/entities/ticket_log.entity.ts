@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
-@Entity( 'ticket_log' )
+@Entity('ticket_log')
 export class TicketLog {
     @PrimaryGeneratedColumn()
     id: number;
@@ -19,9 +19,9 @@ export class TicketLog {
     @Column()
     work_description: string;
 
-    @Column( { type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' } )
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     created_at: Date;
 
-    @Column( { name: 'company_id', nullable: true } )
+    @Column({ name: 'company_id', nullable: true })
     company_id: number | null;
 }

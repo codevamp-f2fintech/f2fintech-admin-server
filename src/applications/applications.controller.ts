@@ -99,6 +99,33 @@ export class ApplicationsController {
     }
   }
 
+  @Get('application/new-application/:id')
+  async getNewApplicationNotificationFormat(
+    @Param('id') id: number,
+  ) {
+    try {
+      const application = await this.applicationsService.getNewApplicationNotificationFormat(Number(id));
+      if (!application) {
+        return {
+          success: false,
+          data: null,
+          message: 'Application not found',
+        };
+      }
+      return {
+        success: true,
+        data: application,
+        message: 'Application retrieved successfully'
+      };
+    } catch (error) {
+      return {
+        success: false,
+        data: null,
+        message: 'Failed to retrieve application',
+        error: error.message
+      };
+    }
+  }
 
   @Patch('update-loan-application/:id')
   async update(

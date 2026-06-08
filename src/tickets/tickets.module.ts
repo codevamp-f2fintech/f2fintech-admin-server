@@ -11,11 +11,13 @@ import { TicketActivity } from 'src/ticket_activities/entities/ticket_activities
 import { LoanTracking } from 'src/applications/entities/loanTracking.entity';
 import { Application } from 'src/applications/entities/applications.entity';
 import { TicketArchive } from './entities/ticketArchive.entity';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module( {
   imports: [
     HttpModule,
-    TypeOrmModule.forFeature( [ Ticket, TicketArchive, TicketHistory, TicketLog, TicketActivity, LoanTracking, Application ] )
+    TypeOrmModule.forFeature( [ Ticket, TicketArchive, TicketHistory, TicketLog, TicketActivity, LoanTracking, Application ] ),
+    NotificationsModule
   ],
   controllers: [ TicketsController ],
   providers: [ TicketsService ],
