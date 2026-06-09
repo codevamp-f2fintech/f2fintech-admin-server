@@ -1,22 +1,17 @@
 import {
   IsString,
   IsEmail,
-  IsNumber,
   IsEnum,
   IsOptional,
   Length,
+  Matches,
 } from 'class-validator';
-import { PrimaryGeneratedColumn } from 'typeorm';
 
-import { Gender, Role } from '../entities/user.entity';
-import { Status } from '../entities/user.entity';
+import { Gender, Role, Status } from '../entities/user.entity';
 
 export class CreateUserDto {
-  @PrimaryGeneratedColumn()
-  id: number;
-
   @IsString()
-  @Length(50)
+  @Length(1, 50)
   username: string;
 
   @IsString()
@@ -25,14 +20,17 @@ export class CreateUserDto {
   @IsEmail()
   email: string;
 
-  @IsNumber()
-  contact: number;
+  @IsString()
+  @Matches(/^[6-9]\d{9}$/, { message: 'Contact must be a valid 10-digit mobile number' })
+  number: string;
 
   @IsString()
+  @Length(2, 100)
   designation: string;
 
   @IsEnum(Gender)
-  gender: Gender;
+  @IsOptional()
+  gender?: Gender;
 
   @IsEnum(Status)
   @IsOptional()
@@ -40,8 +38,4 @@ export class CreateUserDto {
 
   @IsEnum(Role)
   role: Role;
-
-  // @IsNumber()
-  // @IsOptional()
-  // companyId?: number;
 }

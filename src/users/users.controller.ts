@@ -43,26 +43,15 @@ export class UsersController {
     @Query( 'page' ) page: number,
     @Query( 'limit' ) limit: number,
     @Query( 'status' ) status: Status = Status.ACTIVE,
+    @Query( 'search' ) search?: string,
     @Headers( 'userrole' ) userRole?: string,
-    // @Headers( 'companyid' ) companyIdString?: string,
   ): Promise<any> {
-    // console.log( 'Headers - companyId:', companyIdString, 'userRole:', userRole );
-
-    // If NOT super admin → companyId is required
-    // if ( userRole !== 'super admin' )
-    // {
-    //   if ( !companyIdString )
-    //   {
-    //     throw new BadRequestException( 'Company ID is required' );
-    //   }
-    // }
-
     const users = await this.usersService.findAll(
       page,
       limit,
       status,
-      userRole
-      // companyIdString,
+      userRole,
+      search,
     );
 
     return ResponseFormatter.success(
@@ -77,14 +66,8 @@ export class UsersController {
   async findInactiveUsers (
     @Query( 'page' ) page: number,
     @Query( 'limit' ) limit: number,
-    // @Headers( 'companyid' ) companyId: string,
     @Headers( 'userrole' ) userRole?: string,
   ): Promise<any> {
-    // console.log( 'Headers - companyId:', companyId, 'userRole:', userRole );
-    // if ( !companyId && userRole !== 'super admin' )
-    // {
-    //   throw new BadRequestException( 'Company ID is required' );
-    // }
     const users = await this.usersService.findAll( page, limit, Status.INACTIVE, userRole );
     return ResponseFormatter.success( 200, 'Inactive Users Retrieved Successfully', users );
   }
