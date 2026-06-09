@@ -108,32 +108,24 @@ export class UsersService {
     };
   }
 
-  // users.service.ts
   async findAll(
     page: number,
     limit: number,
     status: Status = Status.ACTIVE,
     userRole?: string,
-    // companyId?: string,
+    search?: string,
   ): Promise<PaginationResult<User>> {
     const queryBuilder = this.userRepository
       .createQueryBuilder('user')
       .where('user.status = :status', { status });
-    // .leftJoinAndSelect('user.company', 'company')
 
-    // Apply companyId filter only for non-super-admin
-    // if (userRole !== 'super admin') {
-    //   if (!companyId) {
-    //     throw new BadRequestException('Company ID is required');
-    //   }
-
-    //   const companyIdNum = Number(companyId);
-    //   if (Number.isNaN(companyIdNum)) {
-    //     throw new BadRequestException('Invalid companyId');
-    //   }
-
-    //   queryBuilder.andWhere('user.company_id = :companyId', { companyId: companyIdNum });
-    // }
+    // Apply search filter when provided
+    if (search && search.trim()) {
+      queryBuilder.andWhere(
+        '(user.username LIKE :search OR user.email LIKE :search)',
+        { search: `%${search.trim()}%` },
+      );
+    }
 
     const [results, count] = await queryBuilder
       .skip((page - 1) * limit)
@@ -151,11 +143,9 @@ export class UsersService {
   async findInactiveUsers(
     page: number,
     limit: number,
-    // companyId?: string,
     userRole?: string,
   ): Promise<PaginationResult<User>> {
     return this.findAll(page, limit, Status.INACTIVE, userRole);
-    // return this.findAll(page, limit, Status.INACTIVE, companyId, userRole);
   }
 
   async findOne(id: number): Promise<User> {
