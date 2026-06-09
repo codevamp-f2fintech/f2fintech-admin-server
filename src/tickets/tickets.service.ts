@@ -144,6 +144,7 @@ export class TicketsService {
     page: number,
     limit: number,
     userId?: number,
+    aggregatorMemberId?: string,
     appliedBy?: string,
     status?: string,
     provider?: string,
@@ -188,38 +189,49 @@ export class TicketsService {
         if (status && status !== 'all' && status.trim() !== '') {
           query.andWhere('ticket.status = :status', { status });
         }
-      } else if (status === 'forwardedtome') {
-        // Tickets forwarded to me
-        query
-          .andWhere('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
-          .andWhere('ticket.forwarded_to = :userId', { userId });
-      } else if (status === 'forwardedbyme') {
-        // Tickets forwarded by me
-        query
-          .andWhere('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
-          .andWhere('ticket.forwarded_by = :userId', { userId });
       } else {
-        // All other statuses, e.g. "under credit review", "to be login", etc.
-        if (status === 'forwarded') {
-          // OPTIONAL: if you still want a plain "forwarded" status 
-          // that means "either forwarded to me OR forwarded by me":
+        if (status === 'forwardedtome') {
+          // Tickets forwarded to me
           query
             .andWhere('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
-            .andWhere(
-              new Brackets((qb) => {
-                qb.where('ticket.forwarded_to = :userId', { userId })
-                  .orWhere('ticket.forwarded_by = :userId', { userId });
-              }),
-            );
+            .andWhere('ticket.forwarded_to = :userId', { userId });
+        } else if (status === 'forwardedbyme') {
+          // Tickets forwarded by me
+          query
+            .andWhere('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
+            .andWhere('ticket.forwarded_by = :userId', { userId });
         } else {
-          // Normal userId + status check
-          query.andWhere('ticket.user_id = :userId', { userId });
+          // All other statuses, e.g. "under credit review", "to be login", etc.
+          if (status === 'forwarded') {
+            // OPTIONAL: if you still want a plain "forwarded" status 
+            // that means "either forwarded to me OR forwarded by me":
+            query
+              .andWhere('ticket.is_forwarded = :isForwarded', { isForwarded: 1 })
+              .andWhere(
+                new Brackets((qb) => {
+                  qb.where('ticket.forwarded_to = :userId', { userId })
+                    .orWhere('ticket.forwarded_by = :userId', { userId });
+                }),
+              );
+          } else {
+            // Normal userId + status check
+            query.andWhere('ticket.user_id = :userId', { userId });
 
-          // Apply status filter if provided and not 'all'
-          if (status && status !== 'all' && status.trim() !== '') {
-            query.andWhere('ticket.status = :status', { status });
+            // Apply status filter if provided and not 'all'
+            if (status && status !== 'all' && status.trim() !== '') {
+              query.andWhere('ticket.status = :status', { status });
+            }
           }
         }
+      }
+    } else if (aggregatorMemberId) {
+      if (appliedBy === 'sales') {
+        // Special case: check application.aggregator_member_id instead of ticket.user_id
+        query.andWhere('application.aggregator_member_id = :aggregatorMemberId', { aggregatorMemberId });
+      }
+      // Apply status filter if provided and not 'all'
+      if (status && status !== 'all' && status.trim() !== '') {
+        query.andWhere('ticket.status = :status', { status });
       }
     } else if (status && status !== 'all' && status.trim() !== '') {
       // If no userId but we do have a status
@@ -640,6 +652,7 @@ export class TicketsService {
           oldStatus,
           newStatus,
           customerName: ticketDetails.application?.customer?.name || 'Customer',
+          aggregatorMemberId: ticketDetails.application?.aggregator_member_id || null,
         },
       };
 
@@ -675,7 +688,7 @@ export class TicketsService {
       ).catch(e => console.error("Failed to trigger express socket webhook:", e.message));
 
       console.log(
-        `Notification sent for ticket #${ticket.id} status change. Assigned to userId: ${salesUserId}`,
+        `Notification sent for ticket #${ticket.id} status change. Assigned to userId: ${salesUserId}, aggregatorMemberId: ${ticketDetails.application?.aggregator_member_id || 'none'}`,
       );
     } catch (error) {
       console.error(`Failed to send ticket notification: ${error.message}`);
