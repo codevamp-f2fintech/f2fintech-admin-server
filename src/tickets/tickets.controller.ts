@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 
 import { TicketsService } from './tickets.service';
+import { TeamsService } from 'src/teams/teams.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 
@@ -20,7 +21,10 @@ import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 @Controller('api/v1')
 @UseGuards(RolesGuard)
 export class TicketsController {
-  constructor(private readonly ticketsService: TicketsService) { }
+  constructor(
+    private readonly ticketsService: TicketsService,
+    private readonly teamsService: TeamsService,
+  ) { }
 
   @Post('create-ticket')
   async create(
@@ -57,9 +61,17 @@ export class TicketsController {
     @Query('name') name: string = '',
     @Query('startDate') startDate: string = '',
     @Query('endDate') endDate: string = '',
+    @Query('teamScope') teamScope: string = 'false',
+    @Query('designation') designation: string = '',
     @Headers('Companyid') companyIdString?: string
   ): Promise<any> {
     const companyId = companyIdString && !isNaN(Number(companyIdString)) ? Number(companyIdString) : null;
+    
+    let teamUserIds: number[] | undefined = undefined;
+    if (teamScope === 'true' && userId && designation) {
+      teamUserIds = await this.teamsService.getMemberIdsForTicketFilter(userId, designation);
+    }
+
     const paginatedTickets = await this.ticketsService.findAllTickets(
       page,
       limit,
@@ -72,6 +84,7 @@ export class TicketsController {
       startDate,
       endDate,
       companyId,
+      teamUserIds,
     );
     return ResponseFormatter.success(200, 'Tickets Retrieved Successfully', paginatedTickets);
   }

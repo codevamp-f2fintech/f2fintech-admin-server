@@ -37,6 +37,8 @@ import { QueriesModule } from './queries/queries.module';
 import { SendQuery } from './queries/entities/sendQuery.entity';
 import { Notification } from './notifications/entities/notification.entity';
 import { NotificationsModule } from './notifications/notifications.module';
+import { TeamsModule } from './teams/teams.module';
+import { Team } from './teams/entities/team.entity';
 
 @Module({
   imports: [
@@ -63,6 +65,7 @@ import { NotificationsModule } from './notifications/notifications.module';
           CustomerInfo,
           LoanProvider,
           LoanTracking,
+          Team,
           Ticket,
           TicketArchive,
           TicketActivity,
@@ -93,6 +96,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     LeadsModule,
     QueriesModule,
     NotificationsModule,
+    TeamsModule,
   ],
   providers: [AppService],
 })

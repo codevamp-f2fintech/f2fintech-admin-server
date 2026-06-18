@@ -12,12 +12,14 @@ import { LoanTracking } from 'src/applications/entities/loanTracking.entity';
 import { Application } from 'src/applications/entities/applications.entity';
 import { TicketArchive } from './entities/ticketArchive.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { TeamsModule } from 'src/teams/teams.module';
 
 @Module( {
   imports: [
     HttpModule,
     TypeOrmModule.forFeature( [ Ticket, TicketArchive, TicketHistory, TicketLog, TicketActivity, LoanTracking, Application ] ),
-    NotificationsModule
+    NotificationsModule,
+    TeamsModule
   ],
   controllers: [ TicketsController ],
   providers: [ TicketsService ],

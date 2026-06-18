@@ -152,6 +152,7 @@ export class TicketsService {
     startDate?: string,
     endDate?: string,
     companyId?: number,
+    teamUserIds?: number[],
   ): Promise<PaginationResult> {
     page = Number(page) || 1;
     limit = Number(limit) || 10;
@@ -215,7 +216,12 @@ export class TicketsService {
               );
           } else {
             // Normal userId + status check
-            query.andWhere('ticket.user_id = :userId', { userId });
+            if (teamUserIds && teamUserIds.length > 0) {
+              // Filtering by team instead of a single user
+              query.andWhere('ticket.user_id IN (:...teamUserIds)', { teamUserIds });
+            } else {
+              query.andWhere('ticket.user_id = :userId', { userId });
+            }
 
             // Apply status filter if provided and not 'all'
             if (status && status !== 'all' && status.trim() !== '') {
