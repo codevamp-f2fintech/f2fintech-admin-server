@@ -29,11 +29,13 @@ export class ApplicationsController {
     @Query('month') month?: string,
     @Query('year') year?: string,
     @Query('date') date?: string,
+    @Query('appliedBy') appliedBy?: string,
     @Headers('Companyid') companyIdString?: string
   ): Promise<any> {
     try {
       const yearNum = year ? parseInt(year, 10) : undefined;
-      const count = await this.applicationsService.getApplicationsCount(month, yearNum, date, companyIdString);
+      const appliedByNum = appliedBy && !isNaN(Number(appliedBy)) ? Number(appliedBy) : undefined;
+      const count = await this.applicationsService.getApplicationsCount(month, yearNum, date, companyIdString, appliedByNum);
 
       return {
         success: true,
@@ -55,11 +57,13 @@ export class ApplicationsController {
     @Query('month') month?: string,
     @Query('year') year?: string,
     @Query('date') date?: string,
+    @Query('appliedBy') appliedBy?: string,
     @Headers('Companyid') companyIdString?: string
   ) {
     try {
       const yearNum = year ? parseInt(year, 10) : undefined;
-      const count = await this.applicationsService.getNewApplicationsCount(month, yearNum, date, companyIdString);
+      const appliedByNum = appliedBy && !isNaN(Number(appliedBy)) ? Number(appliedBy) : undefined;
+      const count = await this.applicationsService.getNewApplicationsCount(month, yearNum, date, companyIdString, appliedByNum);
 
       return {
         success: true,

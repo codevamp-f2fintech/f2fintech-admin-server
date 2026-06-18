@@ -171,10 +171,15 @@ export class ApplicationsService {
     return months[monthName] || 1;
   }
 
-  async getApplicationsCount(month?: string, year?: number, date?: string, company_id?: string): Promise<number> {
+  async getApplicationsCount(month?: string, year?: number, date?: string, company_id?: string, appliedBy?: number): Promise<number> {
     const whereCondition: any = {};
     if (company_id) {
       whereCondition.company_id = Number(company_id);
+    }
+
+    // Filter by the user who applied (sales dashboard scoping)
+    if (appliedBy) {
+      whereCondition.applied_by = appliedBy;
     }
 
     if (date) {
@@ -201,15 +206,20 @@ export class ApplicationsService {
     }
 
     return Object.keys(whereCondition).length === 0
-      ? this.applicationRepository.count()
+      ? this.applicationRepository.count({ where: appliedBy ? { applied_by: appliedBy } : {} })
       : this.applicationRepository.count({ where: whereCondition });
   }
 
 
-  async getNewApplicationsCount(month?: string, year?: number, date?: string, company_id?: string): Promise<any> {
+  async getNewApplicationsCount(month?: string, year?: number, date?: string, company_id?: string, appliedBy?: number): Promise<any> {
     const whereCondition: any = { is_picked: 0 };
     if (company_id) {
       whereCondition.company_id = Number(company_id);
+    }
+
+    // Scope to the specific sales user who filed the application
+    if (appliedBy) {
+      whereCondition.applied_by = appliedBy;
     }
 
     // If specific date is provided, filter by that exact date
