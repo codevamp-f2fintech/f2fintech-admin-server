@@ -83,14 +83,13 @@ export class UsersService {
       throw new UnauthorizedException('Invalid Password');
     }
 
-    // console.log('User Company:', user, user.company);
-
     // Include company information in the JWT payload
     const payload = {
       username: user.username,
       id: user.id,
       role: user.role,
       email: user.email,
+      designation: user.designation,
       source: 'oms',
       // companyId: user.company?.companyId, // Add company ID to payload
       // companyName: user.company?.name // Add company name to payload
@@ -184,7 +183,7 @@ export class UsersService {
     // This ensures the token becomes invalid immediately after the password is changed!
     const secret = (process.env.RESET_PASSWORD_SECRET || 'fallback_reset_secret') + user.password;
     const expiresIn = process.env.RESET_PASSWORD_EXPIRY || '15m';
-    
+
     const payload = { id: user.id, email: user.email };
     const resetToken = this.jwtService.sign(payload, { expiresIn, secret });
 

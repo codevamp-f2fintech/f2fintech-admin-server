@@ -143,7 +143,7 @@ export class TicketsService {
   async findAllTickets(
     page: number,
     limit: number,
-    userId?: number,
+    userId?: string | number,
     aggregatorMemberId?: string,
     appliedBy?: string,
     status?: string,
@@ -184,7 +184,12 @@ export class TicketsService {
     if (userId) {
       if (appliedBy === 'sales') {
         // Special case: check application.applied_by instead of ticket.user_id
-        query.andWhere('application.applied_by = :userId', { userId });
+        if (String(userId).includes(',')) {
+          const userIdsArray = String(userId).split(',').map(id => Number(id));
+          query.andWhere('application.applied_by IN (:...userIdsArray)', { userIdsArray });
+        } else {
+          query.andWhere('application.applied_by = :userId', { userId });
+        }
 
         // Apply status filter if provided and not 'all'
         if (status && status !== 'all' && status.trim() !== '') {
@@ -220,7 +225,12 @@ export class TicketsService {
               // Filtering by team instead of a single user
               query.andWhere('ticket.user_id IN (:...teamUserIds)', { teamUserIds });
             } else {
-              query.andWhere('ticket.user_id = :userId', { userId });
+              if (String(userId).includes(',')) {
+                const userIdsArray = String(userId).split(',').map(id => Number(id));
+                query.andWhere('ticket.user_id IN (:...userIdsArray)', { userIdsArray });
+              } else {
+                query.andWhere('ticket.user_id = :userId', { userId });
+              }
             }
 
             // Apply status filter if provided and not 'all'

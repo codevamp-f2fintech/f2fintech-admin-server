@@ -13,7 +13,7 @@ export class ApplicationsController {
   async getLoanApplications(
     @Query('page') page: number,
     @Query('limit') limit: number,
-    @Query('appliedBy') appliedBy?: number,
+    @Query('appliedBy') appliedBy?: string,
     @Query('aggregatorMemberId') aggregatorMemberId?: string,
     @Query('search') searchTerm?: string,
     @Query('startDate') startDate?: string,
@@ -34,8 +34,7 @@ export class ApplicationsController {
   ): Promise<any> {
     try {
       const yearNum = year ? parseInt(year, 10) : undefined;
-      const appliedByNum = appliedBy && !isNaN(Number(appliedBy)) ? Number(appliedBy) : undefined;
-      const count = await this.applicationsService.getApplicationsCount(month, yearNum, date, companyIdString, appliedByNum);
+      const count = await this.applicationsService.getApplicationsCount(month, yearNum, date, companyIdString, appliedBy);
 
       return {
         success: true,
@@ -62,8 +61,7 @@ export class ApplicationsController {
   ) {
     try {
       const yearNum = year ? parseInt(year, 10) : undefined;
-      const appliedByNum = appliedBy && !isNaN(Number(appliedBy)) ? Number(appliedBy) : undefined;
-      const count = await this.applicationsService.getNewApplicationsCount(month, yearNum, date, companyIdString, appliedByNum);
+      const count = await this.applicationsService.getNewApplicationsCount(month, yearNum, date, companyIdString, appliedBy);
 
       return {
         success: true,

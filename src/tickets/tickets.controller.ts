@@ -53,7 +53,7 @@ export class TicketsController {
   async findAllTickets(
     @Query('page') page: number,
     @Query('limit') limit: number,
-    @Param('userId') userId?: number,
+    @Param('userId') userId?: string | number,
     @Query('aggregatorMemberId') aggregatorMemberId?: string,
     @Query('appliedBy') appliedBy?: string,
     @Query('status') status: string = '',
@@ -69,7 +69,7 @@ export class TicketsController {
     
     let teamUserIds: number[] | undefined = undefined;
     if (teamScope === 'true' && userId && designation) {
-      teamUserIds = await this.teamsService.getMemberIdsForTicketFilter(userId, designation);
+      teamUserIds = await this.teamsService.getMemberIdsForTicketFilter(Number(userId), designation);
     }
 
     const paginatedTickets = await this.ticketsService.findAllTickets(

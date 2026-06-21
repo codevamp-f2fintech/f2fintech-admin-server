@@ -17,18 +17,12 @@ export class DashboardService {
 
   private readonly logger = new Logger(DashboardService.name);
 
-  async findAgentCount(companyId: number = null): Promise<number> {
-    const where: any = {};
+  async findAgentCount(): Promise<number> {
 
-    // Add company filter if companyId is provided
-    if (companyId) {
-      where.companyId = companyId;
-    }
-
-    return this.userRepository.count({ where });
+    return this.userRepository.count();
   }
 
-  async findTicketsCount(id = null, status = null, date = null, month = null, year = null, companyId = null): Promise<number | { count: number, amount: number }> {
+  async findTicketsCount(id: number | number[] | null = null, status = null, date = null, month = null, year = null, companyId = null): Promise<number | { count: number, amount: number }> {
     const where: any = {};
     const qb = this.ticketRepository.createQueryBuilder('ticket');
 
@@ -38,13 +32,18 @@ export class DashboardService {
     }
 
     if (id) {
-      const user_info = await this.userRepository.findOne({ where: { id } });
+      const idToFetch = Array.isArray(id) ? id[0] : id;
+      const user_info = await this.userRepository.findOne({ where: { id: idToFetch } });
 
       if (user_info.role && user_info.role !== 'admin' && user_info.role !== 'sub admin') {
         if (user_info.role === 'sales') {
           // For sales users, join with application and filter by applied_by
-          qb.leftJoinAndSelect('ticket.application', 'application')
-            .where('application.applied_by = :userId', { userId: id });
+          qb.leftJoinAndSelect('ticket.application', 'application');
+          if (Array.isArray(id)) {
+            qb.where('application.applied_by IN (:...userIds)', { userIds: id });
+          } else {
+            qb.where('application.applied_by = :userId', { userId: id });
+          }
         }
         else {
           qb.leftJoinAndSelect('users', 'user', 'user.id = ticket.user_id')
@@ -129,13 +128,19 @@ export class DashboardService {
     if (status) {
       if (status === 'forwarded' && id) {
         // Use query builder for OR condition
-        return this.ticketRepository
+        const fqb = this.ticketRepository
           .createQueryBuilder('ticket')
           .where('ticket.status = :status', { status })
-          .andWhere('ticket.user_id = :id', { id })
           .andWhere('ticket.forwarded_to IS NOT NULL')
-          .andWhere(companyId ? 'ticket.company_id = :companyId' : '1=1', companyId ? { companyId } : {})
-          .getCount();
+          .andWhere(companyId ? 'ticket.company_id = :companyId' : '1=1', companyId ? { companyId } : {});
+
+        if (Array.isArray(id)) {
+          fqb.andWhere('ticket.user_id IN (:...ids)', { ids: id });
+        } else {
+          fqb.andWhere('ticket.user_id = :id', { id });
+        }
+
+        return fqb.getCount();
       } else {
         qb.andWhere('ticket.status = :status', { status: status });
       }
@@ -177,7 +182,7 @@ export class DashboardService {
   }
 
   async getAggregateTicketCounts(
-    id: number | null = null,
+    id: number | number[] | null = null,
     date: string | null = null,
     month: string | null = null,
     year: string | null = null,
@@ -193,12 +198,17 @@ export class DashboardService {
     }
 
     if (id) {
-      const user_info = await this.userRepository.findOne({ where: { id } });
+      const idToFetch = Array.isArray(id) ? id[0] : id;
+      const user_info = await this.userRepository.findOne({ where: { id: idToFetch } });
 
       if (user_info.role && user_info.role !== 'admin' && user_info.role !== 'sub admin') {
         if (user_info.role === 'sales') {
-          qb.leftJoin('ticket.application', 'application')
-            .andWhere('application.applied_by = :userId', { userId: id });
+          qb.leftJoin('ticket.application', 'application');
+          if (Array.isArray(id)) {
+            qb.andWhere('application.applied_by IN (:...userIds)', { userIds: id });
+          } else {
+            qb.andWhere('application.applied_by = :userId', { userId: id });
+          }
         } else {
           qb.leftJoin('users', 'user', 'user.id = ticket.user_id')
             .andWhere('user.role = :role', { role: user_info.role });
@@ -256,7 +266,7 @@ export class DashboardService {
       counts[row.status] = cnt;
       total += cnt;
     });
-    
+
     counts['total'] = total;
 
     return counts;

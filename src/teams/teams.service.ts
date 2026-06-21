@@ -13,7 +13,7 @@ export class TeamsService {
     private readonly teamRepository: Repository<Team>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
+  ) { }
 
   async assignMember(dto: AssignMemberDto) {
     const { memberId, supervisorId, level, role } = dto;
@@ -51,7 +51,7 @@ export class TeamsService {
 
   async removeMember(dto: RemoveMemberDto) {
     const { memberId, level, role } = dto;
-    
+
     const assignment = await this.teamRepository.findOne({
       where: { member_id: memberId, level, role },
     });
@@ -104,17 +104,11 @@ export class TeamsService {
   async getMemberIdsForTicketFilter(userId: number, designation: string, role: string = 'sales'): Promise<number[]> {
     const levelMap: Record<string, 'l1' | 'l2'> = {
       'sales manager': 'l2',
-      'relationship manager': 'l2',
-      'growth manager': 'l2',
-      'branch manager': 'l2',
       'team leader': 'l1',
-      'sr team leader': 'l1',
-      'ast team leader': 'l1',
-      'atl': 'l1',
     };
 
     const userLevel = levelMap[designation.toLowerCase()];
-    
+
     if (!userLevel) {
       // User is L0 (member), they can only see their own tickets
       return [userId];
@@ -132,13 +126,13 @@ export class TeamsService {
       directMembers.forEach(m => visibleUserIds.add(m.member_id));
     } else if (userLevel === 'l2') {
       // Managers see their direct members (l2) + members of their TLs
-      
+
       // 1. Get direct reports (could be members or TLs)
       const directReports = await this.teamRepository.find({
         where: { supervisor_id: userId, level: 'l2', role },
         select: ['member_id'],
       });
-      
+
       const directReportIds = directReports.map(m => m.member_id);
       directReportIds.forEach(id => visibleUserIds.add(id));
 
@@ -153,5 +147,18 @@ export class TeamsService {
     }
 
     return Array.from(visibleUserIds);
+  }
+
+  async getSubordinates(userId: number, designation: string, role: string = 'sales'): Promise<Partial<User>[]> {
+    const memberIds = await this.getMemberIdsForTicketFilter(userId, designation, role);
+    
+    if (memberIds.length === 0) {
+      return [];
+    }
+
+    return this.userRepository.find({
+      where: { id: In(memberIds) },
+      select: ['id', 'username', 'designation', 'email', 'role'],
+    });
   }
 }
