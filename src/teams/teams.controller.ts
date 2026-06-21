@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Delete, Param, UseGuards, Query, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Param, UseGuards, Query } from '@nestjs/common';
 import { TeamsService } from './teams.service';
 import { AssignMemberDto } from './dto/assign-member.dto';
 import { RemoveMemberDto } from './dto/remove-member.dto';
@@ -55,5 +55,15 @@ export class TeamsController {
   ) {
     const memberIds = await this.teamsService.getMemberIdsForTicketFilter(+userId, designation, role);
     return ResponseFormatter.success(200, 'Team member IDs retrieved successfully', memberIds);
+  }
+
+  @Get('my-subordinates/:userId')
+  async getMySubordinates(
+    @Param('userId') userId: string,
+    @Query('designation') designation: string,
+    @Query('role') role: string = 'sales',
+  ) {
+    const subordinates = await this.teamsService.getSubordinates(+userId, designation, role);
+    return ResponseFormatter.success(200, 'Subordinates retrieved successfully', subordinates);
   }
 }

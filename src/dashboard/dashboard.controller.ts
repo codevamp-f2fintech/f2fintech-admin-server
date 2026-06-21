@@ -12,28 +12,23 @@ import { ResponseFormatter } from 'src/common/utility/responseFormatter';
 import { DashboardService } from './dashboard.service';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 
-@Controller( 'api/v1/dashboard' )
-@UseGuards( RolesGuard )
+@Controller('api/v1/dashboard')
+@UseGuards(RolesGuard)
 export class DashboardController {
-  constructor ( private readonly dashboardService: DashboardService ) { }
+  constructor(private readonly dashboardService: DashboardService) { }
 
-  @Get( 'agents/count' )
-  async findAgentCount (
-    @Headers( 'Companyid' ) companyId?: string,
+  @Get('agents/count')
+  async findAgentCount(
+    @Headers('Companyid') companyId?: string,
   ) {
-    try
-    {
-      const companyIdNumber = companyId && !isNaN( Number( companyId ) )
-        ? Number( companyId )
-        : null;
-      const count = await this.dashboardService.findAgentCount( companyIdNumber );
+    try {
+      const count = await this.dashboardService.findAgentCount();
       return ResponseFormatter.success(
         200,
         'Agent count retrieved successfully',
         count,
       );
-    } catch ( error )
-    {
+    } catch (error) {
       return ResponseFormatter.error(
         error.status || 500,
         error.message || 'Internal server error',
@@ -41,23 +36,30 @@ export class DashboardController {
     }
   }
 
-  @Get( 'tickets/count' )
-  async findTicketsCount (
-    @Query( 'userId' ) userId?: string,
-    @Query( 'status' ) status?: string,
-    @Query( 'date' ) date?: string,
-    @Query( 'month' ) month?: string,
-    @Query( 'year' ) year?: string,
-    @Headers( 'Companyid' ) companyId?: string,
+  @Get('tickets/count')
+  async findTicketsCount(
+    @Query('userId') userId?: string,
+    @Query('status') status?: string,
+    @Query('date') date?: string,
+    @Query('month') month?: string,
+    @Query('year') year?: string,
+    @Headers('Companyid') companyId?: string,
   ) {
-    try
-    {
+    try {
       // Convert userId to number if it exists and is a valid number
-      const companyIdNumber = companyId && !isNaN( Number( companyId ) ) ? Number( companyId ) : null;
-      const userIdNumber = userId && !isNaN( Number( userId ) ) ? Number( userId ) : null;
+      const companyIdNumber = companyId && !isNaN(Number(companyId)) ? Number(companyId) : null;
+
+      let userIdParam: number | number[] | null = null;
+      if (userId) {
+        if (userId.includes(',')) {
+          userIdParam = userId.split(',').map(id => Number(id)).filter(id => !isNaN(id));
+        } else if (!isNaN(Number(userId))) {
+          userIdParam = Number(userId);
+        }
+      }
 
       const result = await this.dashboardService.findTicketsCount(
-        userIdNumber,
+        userIdParam,
         status || null,
         date || null,
         month || null,
@@ -70,8 +72,7 @@ export class DashboardController {
         'Tickets result and amount retrieved successfully',
         result,
       );
-    } catch ( error )
-    {
+    } catch (error) {
       return ResponseFormatter.error(
         error.status || 500,
         error.message || 'Internal server error',
@@ -89,10 +90,18 @@ export class DashboardController {
   ) {
     try {
       const companyIdNumber = companyId && !isNaN(Number(companyId)) ? Number(companyId) : null;
-      const userIdNumber = userId && !isNaN(Number(userId)) ? Number(userId) : null;
+
+      let userIdParam: number | number[] | null = null;
+      if (userId) {
+        if (userId.includes(',')) {
+          userIdParam = userId.split(',').map(id => Number(id)).filter(id => !isNaN(id));
+        } else if (!isNaN(Number(userId))) {
+          userIdParam = Number(userId);
+        }
+      }
 
       const result = await this.dashboardService.getAggregateTicketCounts(
-        userIdNumber,
+        userIdParam,
         date || null,
         month || null,
         year || null,
@@ -113,25 +122,22 @@ export class DashboardController {
   }
 
   // Keep the old route structure for backward compatibility if needed
-  @Get( 'tickets/count/:userId/:status?' )
-  async findTicketsCountLegacy (
-    @Param( 'userId' ) userId: string,
-    @Param( 'status' ) status?: string,
-    @Query( 'date' ) date?: string,
-    @Query( 'month' ) month?: string,
-    @Query( 'year' ) year?: string,
+  @Get('tickets/count/:userId/:status?')
+  async findTicketsCountLegacy(
+    @Param('userId') userId: string,
+    @Param('status') status?: string,
+    @Query('date') date?: string,
+    @Query('month') month?: string,
+    @Query('year') year?: string,
   ) {
-    try
-    {
+    try {
       // Convert userId to number if it's a valid number, otherwise treat as status
       let userIdNumber: number | null = null;
       let finalStatus = status;
 
-      if ( !isNaN( Number( userId ) ) )
-      {
-        userIdNumber = Number( userId );
-      } else
-      {
+      if (!isNaN(Number(userId))) {
+        userIdNumber = Number(userId);
+      } else {
         // userId is actually a status
         finalStatus = userId;
         userIdNumber = null;
@@ -150,8 +156,7 @@ export class DashboardController {
         'Tickets result and amount retrieved successfully',
         result,
       );
-    } catch ( error )
-    {
+    } catch (error) {
       return ResponseFormatter.error(
         error.status || 500,
         error.message || 'Internal server error',
@@ -160,26 +165,23 @@ export class DashboardController {
   }
 
 
-  @Get( 'tickets/counts-by-month' )
-  async getTotalTicketsByMonth ( @Query( 'year' ) year: string, @Query( 'companyId' ) companyId?: string, ) {
-    const yearInt = parseInt( year );
-    if ( isNaN( yearInt ) )
-    {
-      throw new BadRequestException( 'Invalid year' );
+  @Get('tickets/counts-by-month')
+  async getTotalTicketsByMonth(@Query('year') year: string, @Query('companyId') companyId?: string,) {
+    const yearInt = parseInt(year);
+    if (isNaN(yearInt)) {
+      throw new BadRequestException('Invalid year');
     }
 
-    try
-    {
-      const companyIdNumber = companyId && !isNaN( Number( companyId ) ) ? Number( companyId ) : null;
+    try {
+      const companyIdNumber = companyId && !isNaN(Number(companyId)) ? Number(companyId) : null;
       const result =
-        await this.dashboardService.getTotalTicketsByMonth( yearInt, companyIdNumber, );
+        await this.dashboardService.getTotalTicketsByMonth(yearInt, companyIdNumber,);
       return ResponseFormatter.success(
         200,
         'Total tickets by month retrieved successfully',
         result,
       );
-    } catch ( error )
-    {
+    } catch (error) {
       return ResponseFormatter.error(
         error.status || 500,
         error.message || 'Internal server error',
@@ -187,25 +189,22 @@ export class DashboardController {
     }
   }
 
-  @Get( 'tickets/done-counts-by-month' )
-  async getDoneTicketsByMonth ( @Query( 'year' ) year: string, @Query( 'companyId' ) companyId?: string, ) {
-    const yearInt = parseInt( year );
-    if ( isNaN( yearInt ) )
-    {
-      throw new BadRequestException( 'Invalid year' );
+  @Get('tickets/done-counts-by-month')
+  async getDoneTicketsByMonth(@Query('year') year: string, @Query('companyId') companyId?: string,) {
+    const yearInt = parseInt(year);
+    if (isNaN(yearInt)) {
+      throw new BadRequestException('Invalid year');
     }
 
-    try
-    {
-      const companyIdNumber = companyId && !isNaN( Number( companyId ) ) ? Number( companyId ) : null;
-      const result = await this.dashboardService.getDoneTicketsByMonth( yearInt, companyIdNumber );
+    try {
+      const companyIdNumber = companyId && !isNaN(Number(companyId)) ? Number(companyId) : null;
+      const result = await this.dashboardService.getDoneTicketsByMonth(yearInt, companyIdNumber);
       return ResponseFormatter.success(
         200,
         'Done tickets by month retrieved successfully',
         result,
       );
-    } catch ( error )
-    {
+    } catch (error) {
       return ResponseFormatter.error(
         error.status || 500,
         error.message || 'Internal server error',

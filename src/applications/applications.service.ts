@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Brackets, Repository } from 'typeorm';
+import { Between, Brackets, Repository, In } from 'typeorm';
 
 import { Application } from './entities/applications.entity';
 import { LoanTracking } from 'src/applications/entities/loanTracking.entity';
@@ -36,7 +36,7 @@ export class ApplicationsService {
   async getApplicationData(
     page: number,
     limit: number,
-    appliedBy?: number,
+    appliedBy?: string,
     aggregatorMemberId?: string,
     searchTerm?: string,
     companyId?: string,
@@ -70,7 +70,11 @@ export class ApplicationsService {
 
     // Add appliedBy condition if provided
     if (appliedBy) {
-      queryBuilder.andWhere('application.applied_by = :appliedBy', { appliedBy });
+      if (typeof appliedBy === 'string' && appliedBy.includes(',')) {
+        queryBuilder.andWhere('application.applied_by IN (:...appliedBy)', { appliedBy: appliedBy.split(',').map(Number) });
+      } else {
+        queryBuilder.andWhere('application.applied_by = :appliedBy', { appliedBy: Number(appliedBy) });
+      }
     }
 
     // Add aggregatorMemberId condition if provided
@@ -171,7 +175,7 @@ export class ApplicationsService {
     return months[monthName] || 1;
   }
 
-  async getApplicationsCount(month?: string, year?: number, date?: string, company_id?: string, appliedBy?: number): Promise<number> {
+  async getApplicationsCount(month?: string, year?: number, date?: string, company_id?: string, appliedBy?: string): Promise<number> {
     const whereCondition: any = {};
     if (company_id) {
       whereCondition.company_id = Number(company_id);
@@ -179,7 +183,11 @@ export class ApplicationsService {
 
     // Filter by the user who applied (sales dashboard scoping)
     if (appliedBy) {
-      whereCondition.applied_by = appliedBy;
+      if (typeof appliedBy === 'string' && appliedBy.includes(',')) {
+        whereCondition.applied_by = In(appliedBy.split(',').map(Number));
+      } else {
+        whereCondition.applied_by = Number(appliedBy);
+      }
     }
 
     if (date) {
@@ -206,12 +214,12 @@ export class ApplicationsService {
     }
 
     return Object.keys(whereCondition).length === 0
-      ? this.applicationRepository.count({ where: appliedBy ? { applied_by: appliedBy } : {} })
+      ? this.applicationRepository.count({ where: appliedBy ? { applied_by: whereCondition.applied_by } : {} })
       : this.applicationRepository.count({ where: whereCondition });
   }
 
 
-  async getNewApplicationsCount(month?: string, year?: number, date?: string, company_id?: string, appliedBy?: number): Promise<any> {
+  async getNewApplicationsCount(month?: string, year?: number, date?: string, company_id?: string, appliedBy?: string): Promise<any> {
     const whereCondition: any = { is_picked: 0 };
     if (company_id) {
       whereCondition.company_id = Number(company_id);
@@ -219,7 +227,11 @@ export class ApplicationsService {
 
     // Scope to the specific sales user who filed the application
     if (appliedBy) {
-      whereCondition.applied_by = appliedBy;
+      if (typeof appliedBy === 'string' && appliedBy.includes(',')) {
+        whereCondition.applied_by = In(appliedBy.split(',').map(Number));
+      } else {
+        whereCondition.applied_by = Number(appliedBy);
+      }
     }
 
     // If specific date is provided, filter by that exact date
