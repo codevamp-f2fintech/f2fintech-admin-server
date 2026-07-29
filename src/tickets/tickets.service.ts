@@ -53,6 +53,10 @@ export interface TicketResponse {
   companyId: number;
   applicationSource: string;
   due_date: Date | string | null;
+  co_applicant_name?: string;
+  co_applicant_contact?: string;
+  co_applicant_email?: string;
+  co_applicant_mother_name?: string;
 }
 
 export interface PaginationResult {
@@ -448,6 +452,10 @@ export class TicketsService {
       fixed_commission_percentage: ticket.fixed_commission_percentage ?? null,
       companyId: ticket.companyId,
       due_date: ticket.due_date ?? null,
+      co_applicant_name: ticket.application?.customer?.info?.co_applicant_name ?? '',
+      co_applicant_contact: ticket.application?.customer?.info?.co_applicant_contact ?? '',
+      co_applicant_email: ticket.application?.customer?.info?.co_applicant_email ?? '',
+      co_applicant_mother_name: ticket.application?.customer?.info?.co_applicant_mother_name ?? '',
     };
   }
 
