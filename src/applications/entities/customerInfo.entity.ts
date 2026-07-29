@@ -48,12 +48,24 @@ export class CustomerInfo {
 
     @Column({
         type: 'enum',
-        enum: ['salaried', 'business', 'professional']
+        enum: ['salaried', 'business', 'professional', 'self_employed']
     })
-    employment_type: 'salaried' | 'business' | 'professional';
+    employment_type: 'salaried' | 'business' | 'professional' | 'self_employed';
 
     @Column({ type: 'varchar', length: 100, nullable: true })
     occupation: string;
+
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    co_applicant_name: string;
+
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    co_applicant_contact: string;
+
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    co_applicant_email: string;
+
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    co_applicant_mother_name: string;
 
     @Column({ type: 'int', nullable: true })
     salary: number;
