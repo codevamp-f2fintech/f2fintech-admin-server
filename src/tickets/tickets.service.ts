@@ -95,46 +95,51 @@ export class TicketsService {
 
   async create(createTicketDto: CreateTicketDto, companyId?: number): Promise<any> {
     try {
-      return this.ticketRepository.findOne({
+      // Fetch the application first to check its exists and whether it's already picked
+      const appResult = await this.customerApplicationRepository.createQueryBuilder('app')
+        .select(['app.id', 'app.case_type', 'app.is_picked'])
+        .where('app.id = :id', { id: createTicketDto.customer_application_id })
+        .getOne();
+
+      const existingTicket = await this.ticketRepository.findOne({
         where: { customer_application_id: createTicketDto.customer_application_id },
-      }).then(async (existingTicket) => {
-        if (existingTicket) {
-          return {
-            statusCode: 409,
-            message: 'This Application Is Already Picked By Another User.',
-          };
-        } else {
-          // Fetch the application and sync case_type using QueryBuilder to be safe
-          const appResult = await this.customerApplicationRepository.createQueryBuilder('app')
-            .select(['app.id', 'app.case_type'])
-            .where('app.id = :id', { id: createTicketDto.customer_application_id })
-            .getOne();
-
-          // Create the ticket instance
-          const newTicket = new Ticket();
-          Object.assign(newTicket, createTicketDto);
-
-          if (companyId !== null && companyId !== undefined) {
-            newTicket.companyId = companyId;
-          }
-
-          if (appResult) {
-            console.log('SYNC DEBUG: Found app ID:', appResult.id, 'Raw Case Type:', appResult.case_type);
-            newTicket.case_type = appResult.case_type;
-          } else {
-            console.log('SYNC DEBUG: Application NOT found for ID:', createTicketDto.customer_application_id);
-          }
-
-          const savedTicket = await this.ticketRepository.save(newTicket);
-          console.log('SYNC DEBUG: Saved ticket with case_type:', savedTicket.case_type);
-
-          return {
-            statusCode: 201,
-            message: 'Ticket Created Successfully',
-            data: savedTicket,
-          };
-        }
       });
+
+      if (existingTicket || (appResult && Number(appResult.is_picked) === 1)) {
+        return {
+          statusCode: 409,
+          message: 'This Application Is Already Picked By Another User.',
+        };
+      }
+
+      // Create the ticket instance
+      const newTicket = new Ticket();
+      Object.assign(newTicket, createTicketDto);
+
+      if (companyId !== null && companyId !== undefined) {
+        newTicket.companyId = companyId;
+      }
+
+      if (appResult) {
+        console.log('SYNC DEBUG: Found app ID:', appResult.id, 'Raw Case Type:', appResult.case_type);
+        newTicket.case_type = appResult.case_type;
+      } else {
+        console.log('SYNC DEBUG: Application NOT found for ID:', createTicketDto.customer_application_id);
+      }
+
+      const savedTicket = await this.ticketRepository.save(newTicket);
+      console.log('SYNC DEBUG: Saved ticket with case_type:', savedTicket.case_type);
+
+      // Atomically mark application as picked in DB immediately
+      await this.customerApplicationRepository.update(createTicketDto.customer_application_id, {
+        is_picked: 1,
+      });
+
+      return {
+        statusCode: 201,
+        message: 'Ticket Created Successfully',
+        data: savedTicket,
+      };
     } catch (error) {
       return {
         statusCode: 500,

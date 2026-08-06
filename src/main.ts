@@ -22,6 +22,7 @@ async function bootstrap() {
       'https://lendgrid.netlify.app'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-access-token', 'userrole', 'CompanyId', 'companyid'],
     credentials: true,  // Enable credentials (cookies/auth headers)
   });
   app.use(express.json());
