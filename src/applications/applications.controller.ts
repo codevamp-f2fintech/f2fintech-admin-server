@@ -18,9 +18,11 @@ export class ApplicationsController {
     @Query('search') searchTerm?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
+    @Query('companyId') companyIdQuery?: string,
     @Headers('companyid') companyIdString?: string
   ): Promise<any> {
-    const customerApplications = await this.applicationsService.getApplicationData(page, limit, appliedBy, aggregatorMemberId, searchTerm, companyIdString, startDate, endDate);
+    const finalCompanyId = companyIdQuery || companyIdString;
+    const customerApplications = await this.applicationsService.getApplicationData(page, limit, appliedBy, aggregatorMemberId, searchTerm, finalCompanyId, startDate, endDate);
     return ResponseFormatter.success(200, 'Applications Retrieved Successfully', customerApplications);
   }
 
