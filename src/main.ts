@@ -11,10 +11,13 @@ async function bootstrap () {
   app.enableCors( {
     origin: [ 'http://localhost:3000', 'http://localhost:3001', 'https://admin-f2fintech.netlify.app', "http://localhost:5173", "https://f2fintech.com" ], // Allow requests from this origin
     methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+    allowedHeaders: [ 'Content-Type', 'Authorization', 'x-access-token', 'userrole', 'CompanyId', 'companyid' ],
     credentials: true,
   } );
   app.use( express.json() );
-  await app.listen( 3010 );
+  const port = process.env.PORT || 3001;
+  await app.listen( port );
+  console.log(`Server running on port ${port}`);
 }
 
 bootstrap();
