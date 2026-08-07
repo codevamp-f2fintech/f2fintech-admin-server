@@ -314,6 +314,31 @@ export class ApplicationsService {
     };
   }
 
+  async getApplicationById(id: number): Promise<Application> {
+    const application = await this.applicationRepository.findOne({
+      where: { id },
+      relations: ['customer', 'customer.info', 'customer.customerDocuments', 'loanTracking'],
+    });
+
+    if (!application) {
+      throw new NotFoundException(`Application with ID ${id} not found`);
+    }
+    return application;
+  }
+
+  async getCustomerFullDetails(customerId: number): Promise<any> {
+    const customer = await this.customerRepository.findOne({
+      where: { id: customerId },
+      relations: ['info', 'customerDocuments', 'applications'],
+    });
+
+    if (!customer) {
+      throw new NotFoundException(`Customer with ID ${customerId} not found`);
+    }
+
+    return customer;
+  }
+
   // Update an existing loan application
   async update(
     id: number,
