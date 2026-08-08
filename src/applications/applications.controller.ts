@@ -26,6 +26,16 @@ export class ApplicationsController {
     return ResponseFormatter.success(200, 'Applications Retrieved Successfully', customerApplications);
   }
 
+  @Get('get-customer-full-details/:customerId')
+  async getCustomerFullDetails(@Param('customerId') customerId: string) {
+    try {
+      const customer = await this.applicationsService.getCustomerFullDetails(+customerId);
+      return ResponseFormatter.success(200, 'Customer details retrieved successfully', customer);
+    } catch (error) {
+      return ResponseFormatter.error(error.status || 404, error.message || 'Customer not found');
+    }
+  }
+
   @Get('application/count')
   async getApplicationsCount(
     @Query('month') month?: string,
