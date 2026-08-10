@@ -193,7 +193,7 @@ export class UsersService {
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT) || 587,
-      secure: false, // true for 465, false for other ports
+      secure: Number(process.env.SMTP_PORT) === 465, // true for 465, false for other ports
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASSWORD,
@@ -208,7 +208,12 @@ export class UsersService {
       html: `<p>You requested a password reset.</p><p>Please click the link below to reset your password:</p><a href="${resetLink}">Reset Password</a><p>If you did not request this, please ignore this email.</p><p>This link will expire in 15 minutes.</p>`,
     };
 
-    await transporter.sendMail(mailOptions);
+    try {
+      await transporter.sendMail(mailOptions);
+    } catch (error) {
+      console.error("Failed to send reset password email:", error);
+      throw new BadRequestException('Failed to send reset email. Please contact support or check email configuration.');
+    }
     return { message: 'Password reset link sent to email successfully' };
   }
 
