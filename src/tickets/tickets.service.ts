@@ -57,6 +57,7 @@ export interface TicketResponse {
   co_applicant_contact?: string;
   co_applicant_email?: string;
   co_applicant_mother_name?: string;
+  customerPAN?: string;
 }
 
 export interface PaginationResult {
@@ -453,6 +454,7 @@ export class TicketsService {
       customerDesignation: ticket.application?.customer?.info?.employment_type ?? 'Not available',
       customerLocation: ticket.application?.customer?.info?.city ?? 'No Location available',
       customerState: ticket.application?.customer?.info?.state ?? 'No Location available',
+      customerPAN: ticket.application?.customer?.info?.pan ?? 'No PAN',
       case_type: ticket.case_type ?? '',
       fixed_commission_percentage: ticket.fixed_commission_percentage ?? null,
       companyId: ticket.companyId,
