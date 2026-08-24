@@ -164,19 +164,37 @@ export class TeamsService {
 
   async getApplicantAndManagerName(appliedBy: number): Promise<{ applicantName: string; managerName: string }> {
     const result = { applicantName: 'N/A', managerName: 'N/A' };
-    if (!appliedBy) return result;
+    if (!appliedBy || isNaN(Number(appliedBy))) return result;
 
-    const applicant = await this.userRepository.findOne({ where: { id: appliedBy } });
+    const applicant = await this.userRepository.findOne({ where: { id: Number(appliedBy) } });
     if (!applicant) return result;
 
-    result.applicantName = applicant.username;
+    result.applicantName = applicant.username || 'N/A';
 
-    const supervisors = await this.getSupervisorsOf(appliedBy);
-    if (supervisors.l2) {
-      result.managerName = supervisors.l2.username;
-    } else if (supervisors.l1) {
-      const l1Supervisors = await this.getSupervisorsOf(supervisors.l1.id);
-      result.managerName = l1Supervisors.l2?.username || supervisors.l1.username;
+    const teamRecords = await this.teamRepository.find({
+      where: { member_id: Number(appliedBy) },
+      relations: ['supervisor'],
+    });
+
+    if (teamRecords && teamRecords.length > 0) {
+      const l2Record = teamRecords.find(r => r.level === 'l2');
+      if (l2Record && l2Record.supervisor) {
+        result.managerName = l2Record.supervisor.username || 'N/A';
+      } else {
+        const l1Record = teamRecords.find(r => r.level === 'l1');
+        if (l1Record && l1Record.supervisor_id) {
+          const tlTeamRecord = await this.teamRepository.findOne({
+            where: { member_id: l1Record.supervisor_id, level: 'l2' },
+            relations: ['supervisor'],
+          });
+
+          if (tlTeamRecord && tlTeamRecord.supervisor) {
+            result.managerName = tlTeamRecord.supervisor.username || 'N/A';
+          } else if (l1Record.supervisor) {
+            result.managerName = l1Record.supervisor.username || 'N/A';
+          }
+        }
+      }
     }
 
     return result;
