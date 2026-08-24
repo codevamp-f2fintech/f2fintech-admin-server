@@ -14,6 +14,7 @@ import { LoanTracking } from 'src/applications/entities/loanTracking.entity';
 import { Application } from 'src/applications/entities/applications.entity';
 import { TicketArchive } from './entities/ticketArchive.entity';
 import { NotificationsService } from '../notifications/notifications.service';
+import { TeamsService } from 'src/teams/teams.service';
 
 export interface TicketResponse {
   ticketId: number | string;
@@ -58,6 +59,8 @@ export interface TicketResponse {
   co_applicant_email?: string;
   co_applicant_mother_name?: string;
   customerPAN?: string;
+  appliedByName?: string;
+  managerName?: string;
 }
 
 export interface PaginationResult {
@@ -92,6 +95,7 @@ export class TicketsService {
     private readonly customerApplicationRepository: Repository<Application>,
     private readonly httpService: HttpService,
     private readonly notificationsService: NotificationsService,
+    private readonly teamsService: TeamsService,
   ) { }
 
   async create(createTicketDto: CreateTicketDto, companyId?: number): Promise<any> {
@@ -424,6 +428,9 @@ export class TicketsService {
       })
     ) ?? [];
 
+    const appliedBy = ticket.application?.applied_by;
+    const applicantAndManager = await this.teamsService.getApplicantAndManagerName(Number(appliedBy));
+
     return {
       ticketId: ticket.id,
       userId: ticket.user_id,
@@ -455,6 +462,8 @@ export class TicketsService {
       customerLocation: ticket.application?.customer?.info?.city ?? 'No Location available',
       customerState: ticket.application?.customer?.info?.state ?? 'No Location available',
       customerPAN: ticket.application?.customer?.info?.pan ?? 'No PAN',
+      appliedByName: applicantAndManager.applicantName,
+      managerName: applicantAndManager.managerName,
       case_type: ticket.case_type ?? '',
       fixed_commission_percentage: ticket.fixed_commission_percentage ?? null,
       companyId: ticket.companyId,

@@ -161,4 +161,24 @@ export class TeamsService {
       select: ['id', 'username', 'designation', 'email', 'role'],
     });
   }
+
+  async getApplicantAndManagerName(appliedBy: number): Promise<{ applicantName: string; managerName: string }> {
+    const result = { applicantName: 'N/A', managerName: 'N/A' };
+    if (!appliedBy) return result;
+
+    const applicant = await this.userRepository.findOne({ where: { id: appliedBy } });
+    if (!applicant) return result;
+
+    result.applicantName = applicant.username;
+
+    const supervisors = await this.getSupervisorsOf(appliedBy);
+    if (supervisors.l2) {
+      result.managerName = supervisors.l2.username;
+    } else if (supervisors.l1) {
+      const l1Supervisors = await this.getSupervisorsOf(supervisors.l1.id);
+      result.managerName = l1Supervisors.l2?.username || supervisors.l1.username;
+    }
+
+    return result;
+  }
 }
