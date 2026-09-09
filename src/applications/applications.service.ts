@@ -156,6 +156,7 @@ export class ApplicationsService {
         companyId: application.company_id ?? 'No company',
         existingLoans: application.existing_loans,
         source: application.source,
+        appliedBy: application.applied_by ?? null,
       };
     });
 

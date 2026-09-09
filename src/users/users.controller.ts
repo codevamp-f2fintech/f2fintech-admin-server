@@ -78,6 +78,12 @@ export class UsersController {
     return ResponseFormatter.success( 200, 'User Retrieved Successfully', user );
   }
 
+  @Get( 'get-user-name/:id' )
+  async findUserName ( @Param( 'id' ) id: number ) {
+    const user = await this.usersService.findUserName( id );
+    return ResponseFormatter.success( 200, 'User Retrieved Successfully', user );
+  }
+
   @Patch( 'update-user' )
   async update ( @Body() updateUserDto: UpdateUserDto ) {
     const updatedUser = await this.usersService.update( updateUserDto );

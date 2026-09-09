@@ -155,6 +155,18 @@ export class UsersService {
     return user;
   }
 
+  async findUserName(id: number): Promise<{ id: number; username: string }> {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .select(['user.id', 'user.username'])
+      .where('user.id = :id', { id })
+      .getOne();
+    if (!user) {
+      throw new NotFoundException(`User Not Found`);
+    }
+    return { id: user.id, username: user.username };
+  }
+
   async update(updateUserDto: UpdateUserDto): Promise<User> {
     const { id, password, ...updateFields } = updateUserDto;
     // Ensure the user exists before updating

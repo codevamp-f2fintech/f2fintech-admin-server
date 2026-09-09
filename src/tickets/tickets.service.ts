@@ -53,12 +53,14 @@ export interface TicketResponse {
   fixed_commission_percentage: number | string;
   companyId: number;
   applicationSource: string;
+  source?: string;
   due_date: Date | string | null;
   co_applicant_name?: string;
   co_applicant_contact?: string;
   co_applicant_email?: string;
   co_applicant_mother_name?: string;
   customerPAN?: string;
+  appliedBy?: number | null;
   appliedByName?: string;
   managerName?: string;
 }
@@ -362,6 +364,7 @@ export class TicketsService {
         applicationDate: application.application_date,
         applicationId: application.id,
         applicationSource: application.source,
+        appliedBy: application.applied_by ?? null,
         customerId: customer?.id ?? 'No ID',
         customerName: customer?.name ?? 'No Name',
         customerEmail: customer?.email ?? 'No Email',
@@ -453,6 +456,7 @@ export class TicketsService {
       loanStatus: ticket.application?.loanTracking?.[0]?.status ?? '',
       applicationId: ticket.application?.id ?? '',
       applicationSource: ticket.application?.source ?? 'No Source',
+      source: ticket.application?.source ?? 'No Source',
       customerId: ticket.application?.customer?.id ?? '',
       customerName: ticket.application?.customer?.name ?? 'No Name',
       customerEmail: ticket.application?.customer?.email ?? 'No Email',
@@ -462,6 +466,7 @@ export class TicketsService {
       customerLocation: ticket.application?.customer?.info?.city ?? 'No Location available',
       customerState: ticket.application?.customer?.info?.state ?? 'No Location available',
       customerPAN: ticket.application?.customer?.info?.pan ?? 'No PAN',
+      appliedBy: ticket.application?.applied_by ?? null,
       appliedByName: applicantAndManager.applicantName,
       managerName: applicantAndManager.managerName,
       case_type: ticket.case_type ?? '',
